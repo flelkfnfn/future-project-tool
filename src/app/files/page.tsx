@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+<<<<<<< HEAD
 import Link from "next/link";
 import { uploadFile, deleteFile } from "./actions";
 
@@ -7,7 +8,13 @@ export default async function FilesPage() {
   const { data: files, error } = await supabase.from("files").select("id, name, url");
 
   if (error) {
-    return <p className="text-red-500">데이터를 불러오는 중 오류가 발생했습니다.</p>;
+    console.error("파일 데이터 로드 오류:", error); // Log the error to the server console
+    return (
+      <div className="text-red-500 p-4 border border-red-700 rounded">
+        <p>데이터를 불러오는 중 오류가 발생했습니다.</p>
+        <p className="text-sm mt-2">오류 상세: {error.message}</p> {/* Display error message */}
+      </div>
+    );
   }
 
   return (

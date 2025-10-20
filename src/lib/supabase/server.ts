@@ -1,9 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-// 함수를 async로 변경
 export async function createClient() {
-  // cookies() 앞에 await 추가
   const cookieStore = await cookies()
 
   // 서버 컴포넌트에서는 쿠키를 읽기만 할 수 있으므로 'get' 핸들러만 제공합니다.
