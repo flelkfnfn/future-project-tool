@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { v4 as uuidv4 } from 'uuid';
+import { redirect } from 'next/navigation'; // Import redirect
 
 export async function uploadFile(formData: FormData) {
   const supabase = await createClient()
@@ -84,4 +85,43 @@ export async function deleteFile(formData: FormData) {
   }
 
   revalidatePath('/files');
+}
+
+export async function downloadFile(formData: FormData) {
+  const supabase = await createClient();
+  const fileUrl = formData.get('fileUrl') as string;
+
+  if (!fileUrl) {
+    console.error("다운로드 오류: 파일 URL이 없습니다.");
+    return;
+  }
+
+  // Extract the path from the public URL
+  // Example: https://<project_id>.supabase.co/storage/v1/object/public/project-files/public/uuid.ext
+  // We need: public/uuid.ext
+  const pathSegments = fileUrl.split('project-files/');
+  const filePathInStorage = pathSegments.length > 1 ? pathSegments[1] : null;
+
+  if (!filePathInStorage) {
+    console.error("다운로드 오류: 스토리지 파일 경로를 추출할 수 없습니다.", fileUrl);
+    return;
+  }
+
+  // Generate a signed URL for download
+  const { data, error } = await supabase.storage
+    .from('project-files')
+    .createSignedUrl(filePathInStorage, 60, { // URL valid for 60 seconds
+      download: true, // Force download
+    });
+
+  if (error) {
+    console.error("다운로드 URL 생성 오류:", error);
+    return;
+  }
+
+  if (data?.signedUrl) {
+    redirect(data.signedUrl); // Redirect the user to the signed URL
+  } else {
+    console.error("다운로드 URL이 생성되지 않았습니다.");
+  }
 }

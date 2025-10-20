@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import Link from "next/link";
-import { uploadFile, deleteFile } from "./actions";
+import { uploadFile, deleteFile, downloadFile } from "./actions"; // Import downloadFile
 
 export default async function FilesPage() {
   const supabase = await createClient();
@@ -42,14 +41,15 @@ export default async function FilesPage() {
             <li key={file.id} className="p-4 border rounded-md shadow-sm flex justify-between items-center">
               <span className="text-lg">{file.name}</span>
               <div className="flex gap-2 items-center"> {/* Added a div to group link and delete button */}
-                <Link
-                  href={file.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                >
-                  다운로드
-                </Link>
+                <form action={downloadFile}> {/* Changed Link to form */}
+                  <input type="hidden" name="fileUrl" value={file.url} />
+                  <button
+                    type="submit"
+                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                  >
+                    다운로드
+                  </button>
+                </form>
                 {/* Add delete form/button */}
                 <form action={deleteFile}>
                   <input type="hidden" name="id" value={file.id} />
