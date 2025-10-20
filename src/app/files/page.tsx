@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-<<<<<<< HEAD
 import Link from "next/link";
 import { uploadFile, deleteFile } from "./actions";
 
