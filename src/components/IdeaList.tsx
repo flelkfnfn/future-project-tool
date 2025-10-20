@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useOptimistic } from 'react';
+import { useState, useOptimistic, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
 import { addComment, deleteIdea, toggleLike } from '@/app/ideas/actions';
 
 interface Comment {
@@ -139,7 +139,7 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
             <h3 className="text-lg font-medium mb-2">댓글</h3>
             {idea.comments && idea.comments.length > 0 ? (
               <ul className="space-y-2 text-sm">
-                {idea.comments.map((comment) => (
+                {idea.comments.map((comment: { id: Key | null | undefined; content: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; created_at: string | number | Date; }) => (
                   <li key={comment.id} className="bg-gray-100 p-2 rounded">
                     <p>{comment.content}</p>
                     <p className="text-xs text-gray-500">
