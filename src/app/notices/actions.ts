@@ -23,3 +23,16 @@ export async function addNotice(formData: FormData) {
 
   revalidatePath('/notices')
 }
+
+export async function deleteNotice(id: number) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('notices').delete().eq('id', id)
+
+  if (error) {
+    console.error("공지사항 삭제 오류:", error)
+    return
+  }
+
+  revalidatePath('/notices')
+}

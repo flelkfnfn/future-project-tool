@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { addNotice } from "./actions";
+import { addNotice, deleteNotice } from "./actions";
 
 export default async function NoticesPage() {
   const supabase = await createClient();
@@ -39,9 +39,20 @@ export default async function NoticesPage() {
       {notices.length > 0 ? (
         <ul className="mt-4 space-y-4">
           {notices.map((notice) => (
-            <li key={notice.id} className="p-4 border rounded-md shadow-sm">
-              <h2 className="text-xl font-semibold">{notice.title}</h2>
-              <p className="mt-2 text-gray-700">{notice.content}</p>
+            <li key={notice.id} className="p-4 border rounded-md shadow-sm flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-semibold">{notice.title}</h2>
+                <p className="mt-2 text-gray-700">{notice.content}</p>
+              </div>
+              <form action={deleteNotice}>
+                <input type="hidden" name="id" value={notice.id} />
+                <button
+                  type="submit"
+                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                >
+                  삭제
+                </button>
+              </form>
             </li>
           ))}
         </ul>
