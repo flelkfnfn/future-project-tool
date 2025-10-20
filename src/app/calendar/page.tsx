@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { addEvent } from "./actions";
+import { addEvent, deleteEvent } from "./actions";
 
 export default async function CalendarPage() {
   const supabase = await createClient();
@@ -45,10 +45,21 @@ export default async function CalendarPage() {
       {events.length > 0 ? (
         <ul className="mt-4 space-y-4">
           {events.map((event) => (
-            <li key={event.id} className="p-4 border rounded-md shadow-sm">
-              <h2 className="text-xl font-semibold">{event.title}</h2>
-              <p className="mt-2 text-gray-700">{event.description}</p>
-              <p className="mt-2 text-sm text-gray-500">날짜: {event.event_date}</p>
+            <li key={event.id} className="p-4 border rounded-md shadow-sm flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-semibold">{event.title}</h2>
+                <p className="mt-2 text-gray-700">{event.description}</p>
+                <p className="mt-2 text-sm text-gray-500">날짜: {event.event_date}</p>
+              </div>
+              <form action={deleteEvent}>
+                <input type="hidden" name="id" value={event.id} />
+                <button
+                  type="submit"
+                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                >
+                  삭제
+                </button>
+              </form>
             </li>
           ))}
         </ul>

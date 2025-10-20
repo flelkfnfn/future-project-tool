@@ -24,3 +24,16 @@ export async function addEvent(formData: FormData) {
 
   revalidatePath('/calendar')
 }
+
+export async function deleteEvent(id: number) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('calendar_events').delete().eq('id', id)
+
+  if (error) {
+    console.error("이벤트 삭제 오류:", error)
+    return
+  }
+
+  revalidatePath('/calendar')
+}
