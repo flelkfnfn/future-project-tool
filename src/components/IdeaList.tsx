@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useOptimistic, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
+import { useOptimistic, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
 import { addComment, deleteIdea, toggleLike } from '@/app/ideas/actions';
+import React from 'react';
 
 interface Comment {
   id: number;

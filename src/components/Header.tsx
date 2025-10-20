@@ -5,17 +5,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useSupabase } from '@/components/supabase-provider';
+import { User } from '@supabase/supabase-js';
 
 const Header = () => {
   const router = useRouter();
   const { supabase, session } = useSupabase(); // Get session from context
-  const [user, setUser] = useState<any>(null); // Keep user state for convenience
+  const [user, setUser] = useState<User | null>(null); // Keep user state for convenience
   // const [isApproved, setIsApproved] = useState<boolean | null>(null); // Temporarily remove isApproved logic
 
   useEffect(() => {
-    console.log("Header useEffect: Session from context", session);
-    setUser(session?.user || null); // Set user from session
-  }, [session]); // Depend on session from context
+  setUser(session?.user ?? null); // session?.user는 User | undefined
+}, [session]); // Depend on session from context
 
   // Temporarily remove redirect logic for unapproved users
   // useEffect(() => {
@@ -24,7 +24,7 @@ const Header = () => {
   //   }
   // }, [user, isApproved, router]);
 
-  const handleLogout = async () => {
+  const handleLogout: () => Promise<void> = async () => {
     await supabase.auth.signOut();
     router.push('/login');
   };
