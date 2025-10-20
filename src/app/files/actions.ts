@@ -51,8 +51,15 @@ export async function uploadFile(formData: FormData) {
   revalidatePath('/files')
 }
 
-export async function deleteFile(id: number, fileUrl: string) {
+export async function deleteFile(formData: FormData) {
   const supabase = await createClient();
+  const id = Number(formData.get('id'))
+  const fileUrl = formData.get('fileUrl') as string
+
+  if (isNaN(id) || !fileUrl) {
+    console.error("파일 삭제 오류: 유효하지 않은 ID 또는 URL입니다.", formData.get('id'), fileUrl)
+    return
+  }
 
   // 1. Supabase Storage에서 파일 삭제
   // URL에서 파일 경로 추출 (예: .../storage/v1/object/public/project-files/public/uuid.ext -> public/uuid.ext)
@@ -73,7 +80,7 @@ export async function deleteFile(id: number, fileUrl: string) {
 
   if (dbError) {
     console.error("데이터베이스 파일 메타데이터 삭제 오류:", dbError);
-    return;
+    return
   }
 
   revalidatePath('/files');

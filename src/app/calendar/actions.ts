@@ -25,8 +25,14 @@ export async function addEvent(formData: FormData) {
   revalidatePath('/calendar')
 }
 
-export async function deleteEvent(id: number) {
+export async function deleteEvent(formData: FormData) {
   const supabase = await createClient()
+  const id = Number(formData.get('id'))
+
+  if (isNaN(id)) {
+    console.error("이벤트 삭제 오류: 유효하지 않은 ID입니다.", formData.get('id'))
+    return
+  }
 
   const { error } = await supabase.from('calendar_events').delete().eq('id', id)
 

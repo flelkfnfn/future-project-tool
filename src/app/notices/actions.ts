@@ -24,8 +24,14 @@ export async function addNotice(formData: FormData) {
   revalidatePath('/notices')
 }
 
-export async function deleteNotice(id: number) {
+export async function deleteNotice(formData: FormData) {
   const supabase = await createClient()
+  const id = Number(formData.get('id'))
+
+  if (isNaN(id)) {
+    console.error("공지사항 삭제 오류: 유효하지 않은 ID입니다.", formData.get('id'))
+    return
+  }
 
   const { error } = await supabase.from('notices').delete().eq('id', id)
 

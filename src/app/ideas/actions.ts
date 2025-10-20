@@ -24,8 +24,14 @@ export async function addIdea(formData: FormData) {
   revalidatePath('/ideas')
 }
 
-export async function deleteIdea(id: number) {
+export async function deleteIdea(formData: FormData) {
   const supabase = await createClient()
+  const id = Number(formData.get('id'))
+
+  if (isNaN(id)) {
+    console.error("아이디어 삭제 오류: 유효하지 않은 ID입니다.", formData.get('id'))
+    return
+  }
 
   const { error } = await supabase.from('ideas').delete().eq('id', id)
 

@@ -24,8 +24,14 @@ export async function addProject(formData: FormData) {
   revalidatePath('/projects')
 }
 
-export async function deleteProject(id: number) {
+export async function deleteProject(formData: FormData) {
   const supabase = await createClient()
+  const id = Number(formData.get('id')) // Extract id from FormData and convert to number
+
+  if (isNaN(id)) {
+    console.error("프로젝트 삭제 오류: 유효하지 않은 ID입니다.", formData.get('id'))
+    return
+  }
 
   const { error } = await supabase.from('projects').delete().eq('id', id)
 
