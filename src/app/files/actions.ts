@@ -50,3 +50,31 @@ export async function uploadFile(formData: FormData) {
 
   revalidatePath('/files')
 }
+
+export async function deleteFile(id: number, fileUrl: string) {
+  const supabase = await createClient();
+
+  // 1. Supabase Storage에서 파일 삭제
+  // URL에서 파일 경로 추출 (예: .../storage/v1/object/public/project-files/public/uuid.ext -> public/uuid.ext)
+  const filePath = fileUrl.split('project-files/')[1];
+  if (filePath) {
+    const { error: storageError } = await supabase.storage
+      .from('project-files')
+      .remove([filePath]);
+
+    if (storageError) {
+      console.error("스토리지 파일 삭제 오류:", storageError);
+      // 오류 발생 시에도 데이터베이스 삭제는 시도
+    }
+  }
+
+  // 2. 데이터베이스에서 파일 메타데이터 삭제
+  const { error: dbError } = await supabase.from('files').delete().eq('id', id);
+
+  if (dbError) {
+    console.error("데이터베이스 파일 메타데이터 삭제 오류:", dbError);
+    return;
+  }
+
+  revalidatePath('/files');
+}
