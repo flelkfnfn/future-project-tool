@@ -30,6 +30,11 @@ const Header = () => {
                 캘린더
               </Link>
             </li>
+            <li>
+              <Link href="/files" className="hover:text-gray-300">
+                파일 공유
+              </Link>
+            </li>
           </ul>
         </nav>
       </div>
