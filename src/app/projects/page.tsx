@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { addProject } from "./actions";
+import { addProject, deleteProject } from "./actions";
 
 // 이 페이지는 서버에서 실행되므로, 페이지가 렌더링 되기 전에 데이터를 가져올 수 있습니다.
 export default async function ProjectsPage() {
@@ -34,8 +34,17 @@ export default async function ProjectsPage() {
       {projects.length > 0 ? (
         <ul className="space-y-2">
           {projects.map((project) => (
-            <li key={project.id} className="p-4 border rounded-md shadow-sm">
-              {project.name}
+            <li key={project.id} className="p-4 border rounded-md shadow-sm flex justify-between items-center">
+              <span className="text-lg">{project.name}</span>
+              <form action={deleteProject}>
+                <input type="hidden" name="id" value={project.id} />
+                <button
+                  type="submit"
+                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                >
+                  삭제
+                </button>
+              </form>
             </li>
           ))}
         </ul>

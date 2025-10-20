@@ -23,3 +23,16 @@ export async function addProject(formData: FormData) {
   // 새로운 목록을 다시 불러오도록 합니다.
   revalidatePath('/projects')
 }
+
+export async function deleteProject(id: number) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('projects').delete().eq('id', id)
+
+  if (error) {
+    console.error("프로젝트 삭제 오류:", error)
+    return
+  }
+
+  revalidatePath('/projects')
+}
