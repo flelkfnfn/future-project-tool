@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { uploadFile } from "./actions";
+import { uploadFile, deleteFile } from "./actions";
 
 export default async function FilesPage() {
   const supabase = await createClient();
@@ -35,14 +35,26 @@ export default async function FilesPage() {
           {files.map((file) => (
             <li key={file.id} className="p-4 border rounded-md shadow-sm flex justify-between items-center">
               <span className="text-lg">{file.name}</span>
-              <Link
-                href={file.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-              >
-                다운로드
-              </Link>
+              <div className="flex gap-2">
+                <Link
+                  href={file.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                >
+                  다운로드
+                </Link>
+                <form action={deleteFile}>
+                  <input type="hidden" name="id" value={file.id} />
+                  <input type="hidden" name="url" value={file.url} />
+                  <button
+                    type="submit"
+                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                  >
+                    삭제
+                  </button>
+                </form>
+              </div>
             </li>
           ))}
         </ul>
