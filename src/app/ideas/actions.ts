@@ -23,3 +23,16 @@ export async function addIdea(formData: FormData) {
 
   revalidatePath('/ideas')
 }
+
+export async function deleteIdea(id: number) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('ideas').delete().eq('id', id)
+
+  if (error) {
+    console.error("아이디어 삭제 오류:", error)
+    return
+  }
+
+  revalidatePath('/ideas')
+}

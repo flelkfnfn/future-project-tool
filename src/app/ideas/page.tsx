@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { addIdea } from "./actions";
+import { addIdea, deleteIdea } from "./actions";
 
 export default async function IdeasPage() {
   const supabase = await createClient();
@@ -39,10 +39,21 @@ export default async function IdeasPage() {
       {ideas.length > 0 ? (
         <ul className="mt-4 space-y-4">
           {ideas.map((idea) => (
-            <li key={idea.id} className="p-4 border rounded-md shadow-sm">
-              <h2 className="text-xl font-semibold">{idea.title}</h2>
-              <p className="mt-2 text-gray-700">{idea.description}</p>
-              <p className="mt-2 text-sm text-gray-500">좋아요: {idea.likes}</p>
+            <li key={idea.id} className="p-4 border rounded-md shadow-sm flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-semibold">{idea.title}</h2>
+                <p className="mt-2 text-gray-700">{idea.description}</p>
+                <p className="mt-2 text-sm text-gray-500">좋아요: {idea.likes}</p>
+              </div>
+              <form action={deleteIdea}>
+                <input type="hidden" name="id" value={idea.id} />
+                <button
+                  type="submit"
+                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                >
+                  삭제
+                </button>
+              </form>
             </li>
           ))}
         </ul>
