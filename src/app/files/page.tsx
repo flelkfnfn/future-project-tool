@@ -15,7 +15,7 @@ export default async function FilesPage() {
       <h1 className="text-2xl font-bold mb-4">파일 공유 공간</h1>
 
       {/* 파일 업로드 폼 */}
-      <form action={uploadFile} className="mb-8 flex flex-col gap-2" encType="multipart/form-data">
+      <form action={uploadFile} className="mb-8 flex flex-col gap-2">
         <input
           type="file"
           name="file"
