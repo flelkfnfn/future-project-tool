@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSupabase } from '@/components/supabase-provider'
@@ -109,10 +109,10 @@ export default function ChatSidebar({ open = true, onToggle }: { open?: boolean;
 
   return (
     <aside className="h-full">
-      <div className="sticky top-16 h-[calc(100vh-6rem)] relative overflow-visible">
-        <div className={`absolute inset-0 flex flex-col border rounded-md bg-white transition-transform duration-300 min-w-0 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className="sticky top-16 h-[calc(100vh-6rem)] relative overflow-visible pointer-events-none">
+        <div className={`absolute inset-0 flex flex-col border rounded-md bg-white transition-transform duration-300 pointer-events-auto min-w-0 ${open ? 'translate-x-0' : 'translate-x-full'}`}>
           <div className="px-3 py-2 border-b font-semibold flex items-center justify-between">
-            <span>채팅</span>
+            <span>채팅창</span>
           </div>
           {authed ? (
             <>
@@ -129,21 +129,21 @@ export default function ChatSidebar({ open = true, onToggle }: { open?: boolean;
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={onKeyDown}
-                  placeholder="메시지 입력"
+                  placeholder="메시지를 입력하세요..."
                   className="border rounded px-2 py-1 text-sm flex-1 min-w-0 w-full"
                 />
               </div>
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center p-4 text-sm text-gray-600">
-              로그인 후 채팅을 이용하실 수 있습니다.
+              채팅창을 열려면 로그인하세요.
             </div>
           )}
           <button
             type="button"
             onClick={onToggle}
-            className="absolute -left-14 bottom-3 z-20 w-12 h-12 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 flex items-center justify-center"
-            aria-label={open ? '채팅 닫기' : '채팅 열기'}
+            className="absolute left-0 -translate-x-full bottom-3 z-20 w-12 h-12 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 flex items-center justify-center pointer-events-auto"
+            aria-label={open ? '채팅창 열기' : '채팅창 닫기'}
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6">
               <path d="M18 10c0 3.866-3.582 7-8 7-1.102 0-2.147-.187-3.095-.525-.226-.081-.477-.07-.692.037L3.3 17.4a.75.75 0 01-1.05-.836l.616-2.463a.75.75 0 00-.18-.705A6.97 6.97 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7z" />
@@ -154,3 +154,7 @@ export default function ChatSidebar({ open = true, onToggle }: { open?: boolean;
     </aside>
   )
 }
+
+
+
+

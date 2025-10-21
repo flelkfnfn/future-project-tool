@@ -77,9 +77,9 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
           const isSat = dow === 6
           const weekendBg = isSun ? 'bg-rose-50' : isSat ? 'bg-sky-50' : ''
           return (
-            <div key={idx} className={`min-h-28 p-2 border -mt-px -ml-px ${inMonth ? `${weekendBg || 'bg-white'}` : 'bg-gray-50 text-gray-400'}`}>
+            <div key={idx} className={`min-h-28 p-2 border -mt-px -ml-px min-w-0 overflow-hidden ${inMonth ? `${weekendBg || 'bg-white'}` : 'bg-gray-50 text-gray-400'}`}>
               <div className={`inline-block px-2 py-0.5 rounded text-xs ${isToday ? 'bg-blue-500 text-white' : inMonth ? (isSun ? 'text-rose-600' : isSat ? 'text-sky-600' : 'text-gray-700') : 'text-gray-400'}`}>{d.getDate()}</div>
-              <div className="mt-2 flex flex-col gap-1">
+              <div className="mt-2 flex flex-col gap-1 min-w-0">
                 {list.map((e) => (
                   <div key={e.id} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded flex justify-between items-center">
                     <span className="truncate">{e.title}</span>
@@ -91,12 +91,12 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
                 ))}
               </div>
               <div className="mt-2">
-                <AuthGuardForm action={addEvent} className="flex gap-1">
+                <AuthGuardForm action={addEvent} className="flex gap-1 min-w-0 items-stretch">
                   <input type="hidden" name="event_date" value={key} />
                   <input
                     name="title"
                     placeholder="제목"
-                    className="border rounded px-1 py-0.5 text-xs flex-1"
+                    className="border rounded px-1 py-0.5 text-xs flex-1 min-w-0 w-full"
                     required
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
