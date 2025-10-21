@@ -1,5 +1,3 @@
-import { createServiceClient } from '@/lib/supabase/service'
-
 export type MailConfig = {
   host: string
   port: number
@@ -22,7 +20,11 @@ function getConfig(): MailConfig {
 
 export async function sendMail(to: string, subject: string, body: string) {
   const cfg = getConfig()
-  const nodemailer = await import('nodemailer') as unknown as { createTransport: (opts: any) => { sendMail: (opts: any) => Promise<unknown> } }
+  type TransportOpts = { host: string; port: number; secure?: boolean; auth?: { user: string; pass: string } }
+  type SendOpts = { from: string; to: string; subject: string; text: string }
+  type NodemailerModule = { createTransport: (opts: TransportOpts) => { sendMail: (opts: SendOpts) => Promise<unknown> } }
+
+  const nodemailer = (await import('nodemailer')) as unknown as NodemailerModule
   const transport = nodemailer.createTransport({
     host: cfg.host,
     port: cfg.port,
@@ -31,4 +33,3 @@ export async function sendMail(to: string, subject: string, body: string) {
   })
   await transport.sendMail({ from: cfg.from, to, subject, text: body })
 }
-
