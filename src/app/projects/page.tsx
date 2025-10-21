@@ -2,7 +2,9 @@
 import { addProject, deleteProject } from "./actions";
 import AuthGuardForm from "@/components/AuthGuardForm";
 
-type Project = { id: number; name: string }\n\nexport default async function ProjectsPage() {
+type Project = { id: number; name: string }
+
+export default async function ProjectsPage() {
   const supabase = await createClient();
   const { data: projects, error } = await supabase.from("projects").select("id, name");
 
@@ -54,6 +56,7 @@ type Project = { id: number; name: string }\n\nexport default async function Pro
     </div>
   );
 }
+
 
 
 
