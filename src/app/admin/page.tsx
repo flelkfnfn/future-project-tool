@@ -51,9 +51,11 @@ async function createLocalUser(formData: FormData) {
       const d = (e as { digest?: unknown }).digest
       if (typeof d === 'string' && d.startsWith('NEXT_REDIRECT')) throw e
     }
-    const msg = (typeof e === 'object' && e !== null && 'message' in e && typeof (e as any).message === 'string')
-      ? (e as { message: string }).message
-      : 'Server error'
+    let msg = 'Server error'
+    if (typeof e === 'object' && e !== null && 'message' in e) {
+      const m = (e as { message?: unknown }).message
+      if (typeof m === 'string') msg = m
+    }
     redirect(`/admin?error=${encodeURIComponent(msg)}`)
   }
 }
