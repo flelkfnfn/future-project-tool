@@ -20,7 +20,7 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
 
   const first = startOfMonth(current)
   const last = endOfMonth(current)
-
+ 
   const days = useMemo(() => {
     const res: Date[] = []
     const startWeekday = first.getDay()

@@ -7,7 +7,24 @@ export default function PageTransitionOverlay() {
   const pathname = usePathname()
   const [show, setShow] = useState(false)
 
+  // Show immediately on internal navigation click
   useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null
+      if (!target) return
+      const a = target.closest('a') as HTMLAnchorElement | null
+      if (!a) return
+      if (a.target && a.target !== '_self') return
+      const href = a.getAttribute('href') || ''
+      if (!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:')) return
+      setShow(true)
+    }
+    document.addEventListener('click', onClick, true)
+    return () => document.removeEventListener('click', onClick, true)
+  }, [])
+
+  useEffect(() => {
+    // Path changed: keep overlay briefly then fade out
     setShow(true)
     const t = setTimeout(() => setShow(false), 280)
     return () => clearTimeout(t)
@@ -24,4 +41,3 @@ export default function PageTransitionOverlay() {
     </div>
   )
 }
-
