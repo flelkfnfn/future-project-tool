@@ -1,13 +1,22 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useSupabase } from '@/components/supabase-provider'
 import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js'
 
+const nav = [
+  { href: '/projects', label: '프로젝트' },
+  { href: '/notices', label: '공지사항' },
+  { href: '/ideas', label: '아이디어 모음' },
+  { href: '/calendar', label: '캘린더' },
+  { href: '/files', label: '파일 공유' },
+]
+
 const Header = () => {
   const router = useRouter()
+  const pathname = usePathname()
   const { supabase, session } = useSupabase()
   const [user, setUser] = useState<User | null>(session?.user ?? null)
 
@@ -34,42 +43,38 @@ const Header = () => {
   }
 
   return (
-    <header className="bg-gray-800 text-white p-4">
-      <div className="container mx-auto flex justify-between items-center">
+    <header className="bg-white text-gray-900 border-b">
+      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link href="/" className="text-xl font-bold">
           미래사회변화주 프로젝트
         </Link>
-        <nav className="flex items-center space-x-4">
-          <ul className="flex space-x-4">
-            <li>
-              <Link href="/projects" className="hover:text-gray-300">프로젝트</Link>
-            </li>
-            <li>
-              <Link href="/notices" className="hover:text-gray-300">공지사항</Link>
-            </li>
-            <li>
-              <Link href="/ideas" className="hover:text-gray-300">아이디어 모음</Link>
-            </li>
-            <li>
-              <Link href="/calendar" className="hover:text-gray-300">캘린더</Link>
-            </li>
-            <li>
-              <Link href="/files" className="hover:text-gray-300">파일 공유</Link>
-            </li>
+        <nav className="flex items-center gap-4">
+          <ul className="flex gap-2">
+            {nav.map((item) => {
+              const active = pathname?.startsWith(item.href)
+              const cls = active
+                ? 'px-3 py-1 rounded-md bg-blue-50 text-blue-700 font-semibold'
+                : 'px-3 py-1 rounded-md text-gray-700 hover:bg-gray-100'
+              return (
+                <li key={item.href}>
+                  <Link href={item.href} className={cls}>{item.label}</Link>
+                </li>
+              )
+            })}
           </ul>
-          <div className="ml-4">
+          <div className="ml-2">
             {user ? (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm">{user.email}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">{user.email}</span>
                 <button
                   onClick={handleLogout}
-                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
+                  className="bg-rose-500 text-white px-3 py-1 rounded hover:bg-rose-600 text-sm"
                 >
                   로그아웃
                 </button>
               </div>
             ) : (
-              <Link href="/login" className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">
+              <Link href="/login" className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm">
                 로그인 / 회원가입
               </Link>
             )}
@@ -81,4 +86,3 @@ const Header = () => {
 }
 
 export default Header
-
