@@ -95,7 +95,7 @@ export default function ChatSidebar({ open = true, onToggle }: { open?: boolean;
     // Persist to DB (best-effort)
     try {
       const row: Database['public']['Tables']['chat_messages']['Insert'] = { id: msg.id, text: msg.text, user: msg.user, ts: msg.ts }
-      await (supabase as any).from('chat_messages').insert(row)
+      await supabase.from('chat_messages').insert(row)
     } catch {}
     setInput('')
   }
