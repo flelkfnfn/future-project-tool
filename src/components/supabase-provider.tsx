@@ -4,7 +4,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { createContext, useContext, useEffect, useState } from 'react'
 
-import type { SupabaseClient, Session } from '@supabase/ssr' // Import Session type
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Session } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase/database.types'
 
 type SupabaseContext = {
@@ -26,16 +27,15 @@ export default function SupabaseProvider({
   useEffect(() => {
     // Fetch initial session
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      setSession(initialSession);
-    });
+      setSession(initialSession)
+    })
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session); // Update session state
-      if (session?.access_token !== supabase.auth.currentSession?.access_token) {
-        router.refresh()
-      }
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      setSession(nextSession)
+      // Refresh on any auth state change to sync server/client
+      router.refresh()
     })
 
     return () => {
