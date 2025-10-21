@@ -1,6 +1,6 @@
 "use server"
 
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { verify } from '@/lib/auth/jwt'
 import { createClient } from '@/lib/supabase/server'
 
