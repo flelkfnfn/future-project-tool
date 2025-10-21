@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -37,39 +37,25 @@ const Header = () => {
     <header className="bg-gray-800 text-white p-4">
       <div className="container mx-auto flex justify-between items-center">
         <Link href="/" className="text-xl font-bold">
-          미래사회변화주 프로젝트
+          誘몃옒?ы쉶蹂?붿＜ ?꾨줈?앺듃
         </Link>
         <nav className="flex items-center space-x-4">
           <ul className="flex space-x-4">
-            {user && (
-              <>
-                <li>
-                  <Link href="/projects" className="hover:text-gray-300">
-                    프로젝트
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/notices" className="hover:text-gray-300">
-                    공지사항
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/ideas" className="hover:text-gray-300">
-                    아이디어 모음
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/calendar" className="hover:text-gray-300">
-                    캘린더
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/files" className="hover:text-gray-300">
-                    파일 공유
-                  </Link>
-                </li>
-              </>
-            )}
+            <li>
+              <Link href="/projects" className="hover:text-gray-300">프로젝트</Link>
+            </li>
+            <li>
+              <Link href="/notices" className="hover:text-gray-300">공지사항</Link>
+            </li>
+            <li>
+              <Link href="/ideas" className="hover:text-gray-300">아이디어 모음</Link>
+            </li>
+            <li>
+              <Link href="/calendar" className="hover:text-gray-300">캘린더</Link>
+            </li>
+            <li>
+              <Link href="/files" className="hover:text-gray-300">파일 공유</Link>
+            </li>
           </ul>
           <div className="ml-4">
             {user ? (
@@ -79,13 +65,12 @@ const Header = () => {
                   onClick={handleLogout}
                   className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
                 >
-                  로그아웃
+                  濡쒓렇?꾩썐
                 </button>
               </div>
             ) : (
               <Link href="/login" className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">
-                로그인 / 회원가입
-              </Link>
+                濡쒓렇??/ ?뚯썝媛??              </Link>
             )}
           </div>
         </nav>
@@ -95,4 +80,5 @@ const Header = () => {
 }
 
 export default Header
+
 

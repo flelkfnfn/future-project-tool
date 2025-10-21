@@ -18,6 +18,12 @@ export function sign(payload: Record<string, any>, secret: string, expSec = 60 *
   return `${data}.${sig}`
 }
 
+function b64urlDecode(input: string) {
+  const pad = input.length % 4 === 2 ? '==' : input.length % 4 === 3 ? '=' : ''
+  const b64 = input.replace(/-/g, '+').replace(/_/g, '/') + pad
+  return Buffer.from(b64, 'base64').toString()
+}
+
 export function verify(token: string, secret: string): { valid: boolean; payload?: any } {
   const parts = token.split('.')
   if (parts.length !== 3) return { valid: false }
@@ -26,11 +32,10 @@ export function verify(token: string, secret: string): { valid: boolean; payload
   const sig = crypto.createHmac('sha256', secret).update(data).digest('base64url')
   if (sig !== s) return { valid: false }
   try {
-    const payload = JSON.parse(Buffer.from(p, 'base64').toString())
+    const payload = JSON.parse(b64urlDecode(p))
     if (payload.exp && Date.now() / 1000 > payload.exp) return { valid: false }
     return { valid: true, payload }
   } catch {
     return { valid: false }
   }
 }
-
