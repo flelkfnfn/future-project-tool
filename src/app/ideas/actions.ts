@@ -63,7 +63,7 @@ export async function toggleLike(formData: FormData) {
     .eq('user_id', likeUserId)
     .maybeSingle()
 
-  if (checkError && (checkError as any).code && (checkError as any).code !== 'PGRST116') return
+  if (checkError && checkError?.code && checkError?.code !== 'PGRST116') return
 
   if (existingLike) {
     const { error: deleteError } = await supabase

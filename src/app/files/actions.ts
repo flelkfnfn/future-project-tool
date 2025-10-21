@@ -22,7 +22,7 @@ export async function uploadFile(formData: FormData) {
   const filePath = `public/${fileName}`;
 
   // 1. Supabase Storage에 파일 업로드
-  const { data: uploadData, error: uploadError } = await supabase.storage
+  const { error: uploadError } = await supabase.storage
     .from('project-files') // 버킷 이름
     .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
