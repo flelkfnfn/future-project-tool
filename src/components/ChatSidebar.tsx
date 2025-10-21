@@ -17,6 +17,7 @@ export default function ChatSidebar({ open = true, onToggle }: { open?: boolean;
   const [input, setInput] = useState('')
   const chanRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
+  const persist = process.env.NEXT_PUBLIC_CHAT_PERSIST === '1'
 
   const [username, setUsername] = useState<string>('guest')
   useEffect(() => {
@@ -49,27 +50,26 @@ export default function ChatSidebar({ open = true, onToggle }: { open?: boolean;
       setMessages([])
       return
     }
-    // Load persisted messages from DB (best effort), fallback to localStorage
-    (async () => {
-      try {
-        const { data, error } = await supabase
-          .from('chat_messages')
-          .select('id, text, user, ts')
-          .order('ts', { ascending: true })
-          .limit(200)
-        if (!error && data) {
-          setMessages(data as ChatMsg[])
-          try { localStorage.setItem('global_chat_cache', JSON.stringify(data)) } catch {}
-        } else {
-          const raw = localStorage.getItem('global_chat_cache')
-          if (raw) setMessages(JSON.parse(raw))
-        }
-      } catch {
+    // Load messages (DB when enabled; otherwise local cache only)
+    ;(async () => {
+      if (persist) {
         try {
-          const raw = localStorage.getItem('global_chat_cache')
-          if (raw) setMessages(JSON.parse(raw))
+          const { data, error } = await supabase
+            .from('chat_messages')
+            .select('id, text, user, ts')
+            .order('ts', { ascending: true })
+            .limit(200)
+          if (!error && data) {
+            setMessages(data as ChatMsg[])
+            try { localStorage.setItem('global_chat_cache', JSON.stringify(data)) } catch {}
+            return
+          }
         } catch {}
       }
+      try {
+        const raw = localStorage.getItem('global_chat_cache')
+        if (raw) setMessages(JSON.parse(raw))
+      } catch {}
     })()
     const chan = supabase.channel('global-chat', { config: { broadcast: { self: true } } })
     chan.on('broadcast', { event: 'message' }, (payload) => {
@@ -85,19 +85,21 @@ export default function ChatSidebar({ open = true, onToggle }: { open?: boolean;
     chan.subscribe()
     chanRef.current = chan
     return () => { chan.unsubscribe(); chanRef.current = null }
-  }, [supabase, authed])
+  }, [supabase, authed, persist])
 
   const send = async () => {
     const text = input.trim()
     if (!text) return
     const msg: ChatMsg = { id: crypto.randomUUID(), text, user: username, ts: Date.now() }
     chanRef.current?.send({ type: 'broadcast', event: 'message', payload: msg })
-    // Persist to DB (best-effort)
-    try {
-      const row: Database['public']['Tables']['chat_messages']['Insert'] = { id: msg.id, text: msg.text, user: msg.user, ts: msg.ts }
-      // @ts-expect-error: 커스텀 Database 타입 확장으로 테이블 매핑을 느슨하게 허용
-      await supabase.from('chat_messages').insert(row)
-    } catch {}
+    // Persist to DB (optional)
+    if (persist) {
+      try {
+        const row: Database['public']['Tables']['chat_messages']['Insert'] = { id: msg.id, text: msg.text, user: msg.user, ts: msg.ts }
+        // @ts-expect-error: 커스텀 Database 타입 확장으로 테이블 매핑을 느슨하게 허용
+        await supabase.from('chat_messages').insert(row)
+      } catch {}
+    }
     setInput('')
   }
 
