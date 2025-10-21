@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -37,7 +37,7 @@ const Header = () => {
     <header className="bg-gray-800 text-white p-4">
       <div className="container mx-auto flex justify-between items-center">
         <Link href="/" className="text-xl font-bold">
-          誘몃옒?ы쉶蹂?붿＜ ?꾨줈?앺듃
+          미래사회변화주 프로젝트
         </Link>
         <nav className="flex items-center space-x-4">
           <ul className="flex space-x-4">
@@ -65,12 +65,13 @@ const Header = () => {
                   onClick={handleLogout}
                   className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
                 >
-                  濡쒓렇?꾩썐
+                  로그아웃
                 </button>
               </div>
             ) : (
               <Link href="/login" className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">
-                濡쒓렇??/ ?뚯썝媛??              </Link>
+                로그인 / 회원가입
+              </Link>
             )}
           </div>
         </nav>
@@ -80,5 +81,4 @@ const Header = () => {
 }
 
 export default Header
-
 

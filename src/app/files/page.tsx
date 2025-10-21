@@ -1,4 +1,4 @@
-﻿import AuthGuardForm from "@/components/AuthGuardForm";
+import AuthGuardForm from "@/components/AuthGuardForm";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { uploadFile, deleteFile } from "./actions";
@@ -8,20 +8,20 @@ export default async function FilesPage() {
   const { data: files, error } = await supabase.from("files").select("id, name, url");
 
   if (error) {
-    console.error("?뚯씪 ?곗씠??濡쒕뱶 ?ㅻ쪟:", error); // Log the error to the server console
+    console.error("파일 로드 오류:", error);
     return (
       <div className="text-red-500 p-4 border border-red-700 rounded">
-        <p>?곗씠?곕? 遺덈윭?ㅻ뒗 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.</p>
-        <p className="text-sm mt-2">?ㅻ쪟 ?곸꽭: {error.message}</p> {/* Display error message */}
+        <p>파일을 불러오는 중 오류가 발생했습니다.</p>
+        <p className="text-sm mt-2">오류 상세: {error.message}</p>
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">?뚯씪 怨듭쑀 怨듦컙</h1>
+      <h1 className="text-2xl font-bold mb-4">파일 공유 공간</h1>
 
-      {/* ?뚯씪 ?낅줈????*/}
+      {/* 파일 업로드 */}
       <AuthGuardForm action={uploadFile} className="mb-8 flex flex-col gap-2">
         <input
           type="file"
@@ -33,11 +33,11 @@ export default async function FilesPage() {
           type="submit"
           className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 self-start"
         >
-          ?뚯씪 ?낅줈??
+          파일 업로드
         </button>
       </AuthGuardForm>
 
-      {files.length > 0 ? (
+      {files && files.length > 0 ? (
         <ul className="mt-4 space-y-4">
           {files.map((file) => (
             <li key={file.id} className="p-4 border rounded-md shadow-sm flex justify-between items-center">
@@ -49,7 +49,7 @@ export default async function FilesPage() {
                   rel="noopener noreferrer"
                   className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
                 >
-                  ?ㅼ슫濡쒕뱶
+                  다운로드
                 </Link>
                 <AuthGuardForm action={deleteFile}>
                   <input type="hidden" name="id" value={file.id} />
@@ -58,7 +58,7 @@ export default async function FilesPage() {
                     type="submit"
                     className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
                   >
-                    ??젣
+                    삭제
                   </button>
                 </AuthGuardForm>
               </div>
@@ -66,7 +66,7 @@ export default async function FilesPage() {
           ))}
         </ul>
       ) : (
-        <p className="mt-4">?꾩쭅 怨듭쑀???뚯씪???놁뒿?덈떎.</p>
+        <p className="mt-4">아직 공유된 파일이 없습니다.</p>
       )}
     </div>
   );
