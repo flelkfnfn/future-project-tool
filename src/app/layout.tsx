@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "미래사회변화주 프로젝트",
-  description: "미래사회변화주 프로젝트 협업 툴",
+  title: "미래변화주도 프로젝트",
+  description: "미래변화주도 프로젝트 협업 툴",
 };
 
 // app/layout.tsx

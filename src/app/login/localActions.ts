@@ -1,9 +1,9 @@
-﻿"use server"
+"use server"
 
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase/service'
-import { verifyPassword } from '@/lib/auth/local'
+import { hashPassword, verifyPassword } from '@/lib/auth/local'
 import { sign } from '@/lib/auth/jwt'
 
 const TABLE = 'local_users'
@@ -31,9 +31,23 @@ export async function localSignIn(formData: FormData) {
   redirect('/')
 }
 
-export async function localSignOut() {
-  const jar = await cookies()
-  jar.set('local_session', '', { path: '/', expires: new Date(0) })
-  jar.set('local_session_present', '', { path: '/', expires: new Date(0) })
-  redirect('/login')
+export async function localSignUp(formData: FormData) {
+  const username = String(formData.get('username') ?? '').trim()
+  const password = String(formData.get('password') ?? '')
+  const gmail = String(formData.get('gmail') ?? '').trim()
+  if (!username || !password || !gmail) redirect(`/login?error=${encodeURIComponent('아이디/비밀번호/Gmail을 모두 입력하세요')}`)
+
+  const svc = createServiceClient()
+  const { data: existing } = await svc.from(TABLE).select('id').eq('username', username).maybeSingle()
+  if (existing) {
+    redirect(`/login?error=${encodeURIComponent('이미 등록된 아이디입니다')}`)
+  }
+
+  const { salt, hash } = hashPassword(password)
+  const { error: insErr } = await svc
+    .from(TABLE)
+    .insert({ username, password_hash: hash, salt, role: 'member', gmail })
+  if (insErr) redirect(`/login?error=${encodeURIComponent(insErr.message)}`)
+  redirect(`/login?message=${encodeURIComponent('회원가입이 완료되었습니다. 로그인해 주세요.')}`)
 }
+

@@ -24,6 +24,42 @@ export async function addNotice(formData: FormData) {
     return
   }
 
+  // Queue notification emails to all registered users (outbox pattern)
+  try {
+    const { data: users, error: usersErr } = await supabase
+      .from('local_users')
+      .select('gmail')
+
+    if (!usersErr && users && users.length > 0) {
+      // Simple validation: include only addresses containing '@'
+      const list = users
+        .map((u: any) => (u && typeof u.gmail === 'string' ? u.gmail.trim() : ''))
+        .filter((g: string) => g.includes('@'))
+
+      // Optionally include admin email if set
+      const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL
+      if (adminEmail && adminEmail.includes('@')) list.push(adminEmail)
+
+      // De-duplicate
+      const uniq = Array.from(new Set(list))
+
+      if (uniq.length > 0) {
+        // Insert into email_outbox for later delivery by a worker/cron
+        const rows = uniq.map((to) => ({
+          to,
+          subject: `[공지] ${title}`,
+          body: content ?? '',
+        }))
+        const { error: outboxErr } = await supabase.from('email_outbox').insert(rows)
+        if (outboxErr) {
+          console.error('email_outbox insert error:', outboxErr)
+        }
+      }
+    }
+  } catch (e) {
+    console.error('enqueue emails failed:', e)
+  }
+
   revalidatePath('/notices')
 }
 

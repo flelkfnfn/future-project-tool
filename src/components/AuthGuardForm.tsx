@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useSupabase } from '@/components/supabase-provider'
@@ -11,14 +11,13 @@ export default function AuthGuardForm({ children, onSubmit, ...rest }: Props) {
 
   useEffect(() => {
     let mounted = true
+    const hasLocal = () => typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return
-      const hasLocal = typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
-      setAuthed(!!data.session || hasLocal)
+      setAuthed(!!data.session || hasLocal())
     })
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      const hasLocal = typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
-      setAuthed(!!s || hasLocal)
+      setAuthed(!!s || hasLocal())
     })
     return () => {
       sub.subscription.unsubscribe()
@@ -41,4 +40,3 @@ export default function AuthGuardForm({ children, onSubmit, ...rest }: Props) {
     </form>
   )
 }
-
