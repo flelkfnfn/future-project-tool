@@ -51,8 +51,7 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
   }, [events])
 
   const monthLabel = current.toLocaleString('ko-KR', { year: 'numeric', month: 'long' })
-  const weekdays = ['월', '화', '수', '목', '금', '토', '일']
-  const weekdaysKo = ['일', '월', '화', '수', '목', '금', '토']
+    const weekdaysKo = ['일', '월', '화', '수', '목', '금', '토']
 
   return (
     <div className="bg-white rounded-md border">
@@ -114,4 +113,5 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
     </div>
   )
 }
+
 
