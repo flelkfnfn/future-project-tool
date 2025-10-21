@@ -23,7 +23,7 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
 
   const days = useMemo(() => {
     const res: Date[] = []
-    const startWeekday = (first.getDay() + 6) % 7 // Monday=0
+    const startWeekday = first.getDay()
     for (let i = 0; i < startWeekday; i++) {
       const d = new Date(first)
       d.setDate(first.getDate() - (startWeekday - i))
@@ -52,6 +52,7 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
 
   const monthLabel = current.toLocaleString('ko-KR', { year: 'numeric', month: 'long' })
   const weekdays = ['월', '화', '수', '목', '금', '토', '일']
+  const weekdaysKo = ['일', '월', '화', '수', '목', '금', '토']
 
   return (
     <div className="bg-white rounded-md border">
@@ -61,8 +62,8 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
         <button className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200" onClick={() => setCurrent(new Date(current.getFullYear(), current.getMonth() + 1, 1))}>다음</button>
       </div>
       <div className="grid grid-cols-7 text-center text-sm text-gray-600 border-b">
-        {weekdays.map((w) => (
-          <div key={w} className="py-2">{w}</div>
+        {weekdaysKo.map((w, i) => (
+          <div key={w} className={`py-2 ${i === 0 ? 'text-rose-600' : ''} ${i === 6 ? 'text-sky-600' : ''}`}>{w}</div>
         ))}
       </div>
       <div className="grid grid-cols-7">
@@ -71,9 +72,13 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
           const isToday = formatYMD(d) === formatYMD(new Date())
           const key = formatYMD(d)
           const list = eventsByDate.get(key) || []
+          const dow = d.getDay()
+          const isSun = dow === 0
+          const isSat = dow === 6
+          const weekendBg = isSun ? 'bg-rose-50' : isSat ? 'bg-sky-50' : ''
           return (
-            <div key={idx} className={`min-h-28 p-2 border -mt-px -ml-px ${inMonth ? 'bg-white' : 'bg-gray-50 text-gray-400'}`}>
-              <div className={`inline-block px-2 py-0.5 rounded text-xs ${isToday ? 'bg-blue-500 text-white' : 'text-gray-700'}`}>{d.getDate()}</div>
+            <div key={idx} className={`min-h-28 p-2 border -mt-px -ml-px ${inMonth ? `${weekendBg || 'bg-white'}` : 'bg-gray-50 text-gray-400'}`}>
+              <div className={`inline-block px-2 py-0.5 rounded text-xs ${isToday ? 'bg-blue-500 text-white' : inMonth ? (isSun ? 'text-rose-600' : isSat ? 'text-sky-600' : 'text-gray-700') : 'text-gray-400'}`}>{d.getDate()}</div>
               <div className="mt-2 flex flex-col gap-1">
                 {list.map((e) => (
                   <div key={e.id} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded flex justify-between items-center">

@@ -14,9 +14,15 @@ type TableLike = {
   Update: Record<string, unknown>
 }
 
+type ChatMessages = {
+  Row: { id: string; text: string; user: string; ts: number }
+  Insert: { id: string; text: string; user: string; ts: number }
+  Update: Partial<ChatMessages['Insert']>
+}
+
 export type Database = {
   public: {
-    Tables: Record<string, TableLike>
+    Tables: { chat_messages: ChatMessages } & Record<string, TableLike>
     Views: Record<string, TableLike>
     Functions: Record<string, unknown>
     Enums: Record<string, string | number>

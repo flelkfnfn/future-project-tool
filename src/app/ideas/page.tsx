@@ -1,5 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { addIdea, deleteIdea, addComment, toggleLike } from "./actions";
+import AuthGuardForm from "@/components/AuthGuardForm";
+
+type Comment = { id: number; content: string; created_at: string; user_id: string }
+type Idea = { id: number; title: string; description: string; likes: number; comments: Comment[] }
 
 export default async function IdeasPage() {
   const supabase = await createClient();
@@ -14,6 +18,8 @@ export default async function IdeasPage() {
     console.error("아이디어 데이터 로드 오류:", error);
     return <p className="text-red-500">데이터를 불러오는 중 오류가 발생했습니다.</p>;
   }
+
+  const ideasList = (ideas as unknown as Idea[]) || []
 
   return (
     <div>
@@ -42,16 +48,16 @@ export default async function IdeasPage() {
         </button>
       </form>
 
-      {ideas.length > 0 ? (
+      {ideasList.length > 0 ? (
         <ul className="mt-4 space-y-4">
-          {ideas.map((idea) => (
+          {ideasList.map((idea: Idea) => (
             <li key={idea.id} className="p-4 border rounded-md shadow-sm"> {/* Removed flex justify-between items-center from here */}
               <div className="flex justify-between items-start"> {/* Added this div for layout */}
                 <div>
                   <h2 className="text-xl font-semibold">{idea.title}</h2>
                   <p className="mt-2 text-gray-700">{idea.description}</p>
                 </div>
-                <form action={deleteIdea}>
+                <AuthGuardForm action={deleteIdea}>
                   <input type="hidden" name="id" value={idea.id} />
                   <button
                     type="submit"
@@ -59,12 +65,12 @@ export default async function IdeasPage() {
                   >
                     삭제
                   </button>
-                </form>
+                </AuthGuardForm>
               </div>
 
               {/* 좋아요 기능 */}
               <div className="mt-4 flex items-center gap-2">
-                <form action={toggleLike}>
+                <AuthGuardForm action={toggleLike}>
                   <input type="hidden" name="idea_id" value={idea.id} />
                   <button
                     type="submit"
@@ -72,7 +78,7 @@ export default async function IdeasPage() {
                   >
                     좋아요 ({idea.likes})
                   </button>
-                </form>
+                </AuthGuardForm>
               </div>
 
               {/* 댓글 섹션 */}
@@ -80,7 +86,7 @@ export default async function IdeasPage() {
                 <h3 className="text-lg font-medium mb-2">댓글</h3>
                 {idea.comments && idea.comments.length > 0 ? (
                   <ul className="space-y-2 text-sm">
-                    {idea.comments.map((comment) => (
+                    {idea.comments.map((comment: Comment) => (
                       <li key={comment.id} className="bg-gray-100 p-2 rounded">
                         <p>{comment.content}</p>
                         <p className="text-xs text-gray-500">
@@ -94,7 +100,7 @@ export default async function IdeasPage() {
                 )}
 
                 {/* 댓글 추가 폼 */}
-                <form action={addComment} className="mt-4 flex gap-2">
+                <AuthGuardForm action={addComment} className="mt-4 flex gap-2">
                   <input type="hidden" name="idea_id" value={idea.id} />
                   <textarea
                     name="content"
@@ -109,7 +115,7 @@ export default async function IdeasPage() {
                   >
                     댓글 추가
                   </button>
-                </form>
+                </AuthGuardForm>
               </div>
             </li>
           ))}

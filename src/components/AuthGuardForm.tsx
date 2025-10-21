@@ -10,6 +10,7 @@ type Props = React.FormHTMLAttributes<HTMLFormElement> & {
 export default function AuthGuardForm({ children, onSubmit, confirmMessage, ...rest }: Props) {
   const { supabase } = useSupabase()
   const [authed, setAuthed] = useState<boolean>(false)
+  const [pending, setPending] = useState<boolean>(false)
 
   useEffect(() => {
     let mounted = true
@@ -40,12 +41,20 @@ export default function AuthGuardForm({ children, onSubmit, confirmMessage, ...r
       alert('로그인이 필요합니다.')
       return
     }
+    setPending(true)
     onSubmit?.(e)
   }
 
+  const formProps = { ...rest, className: `${rest.className ?? ''} relative` }
+
   return (
-    <form {...rest} onSubmit={handleSubmit}>
+    <form {...formProps} onSubmit={handleSubmit}>
       {children}
+      {pending && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 transition-opacity duration-200">
+          <div className="h-6 w-6 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+        </div>
+      )}
     </form>
   )
 }

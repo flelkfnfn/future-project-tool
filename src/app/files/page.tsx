@@ -1,7 +1,8 @@
 ﻿import AuthGuardForm from "@/components/AuthGuardForm";
 import { createClient } from "@/lib/supabase/server";
-import Link from "next/link";
-import { uploadFile, deleteFile } from "./actions";
+import { uploadFile, deleteFile, downloadFile } from "./actions";
+
+type FileItem = { id: number; name: string; url: string }
 
 export default async function FilesPage() {
   const supabase = await createClient();
@@ -37,23 +38,24 @@ export default async function FilesPage() {
         </button>
       </AuthGuardForm>
 
-      {files && files.length > 0 ? (
+      {(files as unknown as FileItem[]) && (files as unknown as FileItem[]).length > 0 ? (
         <ul className="mt-4 space-y-4">
-          {files.map((file) => (
+          {(files as unknown as FileItem[]).map((file: FileItem) => (
             <li key={file.id} className="p-4 border rounded-md shadow-sm flex justify-between items-center">
               <span className="text-lg">{file.name}</span>
               <div className="flex gap-2">
-                <Link
-                  href={file.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                >
+                <form action={downloadFile}>
+                  <input type="hidden" name="fileUrl" value={file.url} />
+                  <button
+                    type="submit"
+                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                  >
                   다운로드
-                </Link>
+                </button>
+                </form>
                 <AuthGuardForm action={deleteFile} confirmMessage="정말 삭제하시겠습니까?">
                   <input type="hidden" name="id" value={file.id} />
-                  <input type="hidden" name="url" value={file.url} />
+                  <input type="hidden" name="fileUrl" value={file.url} />
                   <button
                     type="submit"
                     className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
@@ -71,5 +73,3 @@ export default async function FilesPage() {
     </div>
   );
 }
-
-
