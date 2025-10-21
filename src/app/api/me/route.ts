@@ -5,8 +5,7 @@ export async function GET() {
   try {
     const auth = await getAuth()
     return NextResponse.json({ authenticated: auth.authenticated, principal: auth.principal ?? null })
-  } catch (e) {
+  } catch {
     return NextResponse.json({ authenticated: false, principal: null }, { status: 200 })
   }
 }
-
