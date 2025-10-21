@@ -45,13 +45,15 @@ async function createLocalUser(formData: FormData) {
       if (insErr) redirect(`/admin?error=${encodeURIComponent(insErr.message)}`)
       redirect(`/admin?message=${encodeURIComponent('생성되었습니다')}`)
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     // rethrow Next redirect errors
-    if (e && typeof e === 'object' && 'digest' in e) {
-      const d = (e as any).digest
+    if (typeof e === 'object' && e !== null && 'digest' in e) {
+      const d = (e as { digest?: unknown }).digest
       if (typeof d === 'string' && d.startsWith('NEXT_REDIRECT')) throw e
     }
-    const msg = e?.message || 'Server error'
+    const msg = (typeof e === 'object' && e !== null && 'message' in e && typeof (e as any).message === 'string')
+      ? (e as { message: string }).message
+      : 'Server error'
     redirect(`/admin?error=${encodeURIComponent(msg)}`)
   }
 }
