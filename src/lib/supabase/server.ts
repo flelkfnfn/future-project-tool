@@ -43,6 +43,6 @@ export async function createClient() {
         set: setCookie,
         remove: removeCookie,
       },
-    } as any)
+    } as unknown as Parameters<typeof createServerClient>[2])
   )
 }
