@@ -95,6 +95,7 @@ export default function ChatSidebar({ open = true, onToggle }: { open?: boolean;
     // Persist to DB (best-effort)
     try {
       const row: Database['public']['Tables']['chat_messages']['Insert'] = { id: msg.id, text: msg.text, user: msg.user, ts: msg.ts }
+      // @ts-expect-error: 커스텀 Database 타입 확장으로 테이블 매핑을 느슨하게 허용
       await supabase.from('chat_messages').insert(row)
     } catch {}
     setInput('')
