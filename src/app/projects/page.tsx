@@ -2,7 +2,7 @@
 import { addProject, deleteProject } from "./actions";
 import AuthGuardForm from "@/components/AuthGuardForm";
 
-export default async function ProjectsPage() {
+type Project = { id: number; name: string }\n\nexport default async function ProjectsPage() {
   const supabase = await createClient();
   const { data: projects, error } = await supabase.from("projects").select("id, name");
 
@@ -31,9 +31,9 @@ export default async function ProjectsPage() {
         </button>
       </AuthGuardForm>
 
-      {projects && projects.length > 0 ? (
+      {((projects as unknown as Project[]) ?? []).length > 0 ? (
         <ul className="space-y-2">
-          {projects.map((project) => (
+          {((projects as unknown as Project[]) ?? []).map((project: Project) => (
             <li key={project.id} className="p-4 border rounded-md shadow-sm flex justify-between items-center">
               <span className="text-lg">{project.name}</span>
               <AuthGuardForm action={deleteProject} confirmMessage="정말 삭제하시겠습니까?">
@@ -54,5 +54,6 @@ export default async function ProjectsPage() {
     </div>
   );
 }
+
 
 
