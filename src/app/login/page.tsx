@@ -1,13 +1,10 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { signIn } from './actions'
 import { localSignIn, localSignUp } from './localActions'
 
 function LoginInner() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
   const message = searchParams.get('message')
