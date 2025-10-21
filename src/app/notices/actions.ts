@@ -33,7 +33,7 @@ export async function addNotice(formData: FormData) {
     if (!usersErr && users && users.length > 0) {
       // Simple validation: include only addresses containing '@'
       const list = users
-        .map((u: any) => (u && typeof u.gmail === 'string' ? u.gmail.trim() : ''))
+        .map((u: { gmail: string | null }) => (u && typeof u.gmail === 'string' ? u.gmail.trim() : ''))
         .filter((g: string) => g.includes('@'))
 
       // Optionally include admin email if set

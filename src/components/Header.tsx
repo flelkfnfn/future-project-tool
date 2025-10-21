@@ -46,7 +46,7 @@ const Header = () => {
     <header className="bg-white text-gray-900 border-b">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link href="/" className="text-xl font-bold">
-          미래사회변화주 프로젝트
+          미래변화주도 프로젝트
         </Link>
         <nav className="flex items-center gap-4">
           <ul className="flex gap-2">

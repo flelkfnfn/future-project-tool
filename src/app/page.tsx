@@ -1,4 +1,4 @@
-export default function Home() {
+﻿export default function Home() {
   return (
     <div className="text-center">
       <h1 className="text-2xl font-bold">미래변화주도 프로젝트에 오신 것을 환영합니다</h1>
@@ -6,4 +6,3 @@ export default function Home() {
     </div>
   );
 }
-
