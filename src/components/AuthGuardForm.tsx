@@ -42,6 +42,8 @@ export default function AuthGuardForm({ children, onSubmit, confirmMessage, ...r
       return
     }
     setPending(true)
+    // Fallback: 혹시 revalidate만으로 리렌더가 지연될 때 대비해 자동 해제
+    try { setTimeout(() => setPending(false), 2500) } catch {}
     onSubmit?.(e)
   }
 
