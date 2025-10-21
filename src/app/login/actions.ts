@@ -26,7 +26,7 @@ export async function signUp(formData: FormData) {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
-    const { data: created, error: adminErr } = await admin.auth.admin.createUser({
+    const { error: adminErr } = await admin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,

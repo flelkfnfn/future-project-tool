@@ -1,6 +1,6 @@
 'use client'
 
-import { useOptimistic, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
+import { useOptimistic } from 'react';
 import { addComment, deleteIdea, toggleLike } from '@/app/ideas/actions';
 import React from 'react';
 
@@ -23,10 +23,15 @@ interface IdeaListProps {
   initialIdeas: Idea[];
 }
 
+type OptimisticAction =
+  | { type: 'add'; payload: Idea }
+  | { type: 'delete'; payload: { id: number } }
+  | { type: 'toggleLike'; payload: { idea_id: number; change: number } }
+
 export default function IdeaList({ initialIdeas }: IdeaListProps) {
   const [optimisticIdeas, addOptimisticIdea] = useOptimistic(
     initialIdeas,
-    (currentIdeas, action: { type: 'add' | 'delete' | 'toggleLike'; payload: any }) => {
+    (currentIdeas: Idea[], action: OptimisticAction) => {
       switch (action.type) {
         case 'add':
           return [...currentIdeas, action.payload];
@@ -44,7 +49,7 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
     }
   );
 
-  const handleToggleLike = async (idea_id: number, currentLikes: number) => {
+  const handleToggleLike = async (idea_id: number) => {
     // Optimistically update the UI
     const userLiked = false; // This logic needs to be more robust, ideally passed from server
     // For now, we'll assume a simple toggle based on current state, but a real app needs to know if *this user* liked it.
@@ -125,7 +130,7 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
 
           {/* 좋아요 기능 */}
           <div className="mt-4 flex items-center gap-2">
-            <form action={() => handleToggleLike(idea.id, idea.likes)}>
+            <form action={() => handleToggleLike(idea.id)}>
               <button
                 type="submit"
                 className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600"
@@ -140,7 +145,7 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
             <h3 className="text-lg font-medium mb-2">댓글</h3>
             {idea.comments && idea.comments.length > 0 ? (
               <ul className="space-y-2 text-sm">
-                {idea.comments.map((comment: { id: Key | null | undefined; content: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; created_at: string | number | Date; }) => (
+                {idea.comments.map((comment: Comment) => (
                   <li key={comment.id} className="bg-gray-100 p-2 rounded">
                     <p>{comment.content}</p>
                     <p className="text-xs text-gray-500">

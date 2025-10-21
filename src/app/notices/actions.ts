@@ -1,10 +1,13 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { revalidatePath } from 'next/cache'
+import { getAuth } from '@/lib/auth/session'
 
 export async function addNotice(formData: FormData) {
-  const supabase = await createClient()
+  const auth = await getAuth()
+  if (!auth.authenticated) return
+  const supabase = createServiceClient()
 
   const title = formData.get('title') as string
   const content = formData.get('content') as string
@@ -25,7 +28,9 @@ export async function addNotice(formData: FormData) {
 }
 
 export async function deleteNotice(formData: FormData) {
-  const supabase = await createClient()
+  const auth = await getAuth()
+  if (!auth.authenticated) return
+  const supabase = createServiceClient()
   const id = Number(formData.get('id'))
 
   if (isNaN(id)) {

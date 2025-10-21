@@ -1,25 +1,29 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies, headers } from 'next/headers'
 
+type CookieGet = (name: string) => string | undefined
+type CookieSet = (name: string, value: string, options?: Record<string, unknown>) => void
+type CookieRemove = (name: string, options?: Record<string, unknown>) => void
+
 export async function createClient() {
-  let getCookie: (name: string) => string | undefined
-  let setCookie: (name: string, value: string, options?: any) => void
-  let removeCookie: (name: string, options?: any) => void
+  let getCookie: CookieGet
+  let setCookie: CookieSet
+  let removeCookie: CookieRemove
 
   try {
-    const store: any = await (cookies() as any)
-    getCookie = (name: string) => store.get(name)?.value
-    setCookie = (name: string, value: string, options?: any) => {
-      try { store.set(name, value, options) } catch {}
+    const store = await cookies()
+    getCookie = (name) => store.get(name)?.value
+    setCookie = (name, value, options) => {
+      try { (store as unknown as { set: CookieSet }).set(name, value, options) } catch {}
     }
-    removeCookie = (name: string, options?: any) => {
-      try { store.set(name, '', { ...(options || {}), expires: new Date(0) }) } catch {}
+    removeCookie = (name, options) => {
+      try { (store as unknown as { set: CookieSet }).set(name, '', { ...(options || {}), expires: new Date(0) }) } catch {}
     }
   } catch {
-    const hdrs: any = await (headers() as any)
-    getCookie = (name: string) => {
-      const cookieHeader: string = hdrs.get('cookie') || ''
-      const parts: string[] = cookieHeader.split(';')
+    const hdrs = await headers()
+    getCookie = (name) => {
+      const cookieHeader = hdrs.get('cookie') || ''
+      const parts = cookieHeader.split(';')
       for (const part of parts) {
         const [k, ...rest] = part.trim().split('=')
         if (k === name) return decodeURIComponent(rest.join('='))

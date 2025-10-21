@@ -1,10 +1,13 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { revalidatePath } from 'next/cache'
+import { getAuth } from '@/lib/auth/session'
 
 export async function addEvent(formData: FormData) {
-  const supabase = await createClient()
+  const auth = await getAuth()
+  if (!auth.authenticated) return
+  const supabase = createServiceClient()
 
   const title = formData.get('title') as string
   const description = formData.get('description') as string
@@ -26,7 +29,9 @@ export async function addEvent(formData: FormData) {
 }
 
 export async function deleteEvent(formData: FormData) {
-  const supabase = await createClient()
+  const auth = await getAuth()
+  if (!auth.authenticated) return
+  const supabase = createServiceClient()
   const id = Number(formData.get('id'))
 
   if (isNaN(id)) {

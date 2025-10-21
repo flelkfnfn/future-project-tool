@@ -1,12 +1,16 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { revalidatePath } from 'next/cache'
 import { v4 as uuidv4 } from 'uuid';
 import { redirect } from 'next/navigation'; // Import redirect
+import { getAuth } from '@/lib/auth/session'
+import { createClient } from '@/lib/supabase/client';
 
 export async function uploadFile(formData: FormData) {
-  const supabase = await createClient()
+  const auth = await getAuth()
+  if (!auth.authenticated) return
+  const supabase = createServiceClient()
 
   const file = formData.get('file') as File
   if (!file || file.size === 0) {
@@ -53,7 +57,9 @@ export async function uploadFile(formData: FormData) {
 }
 
 export async function deleteFile(formData: FormData) {
-  const supabase = await createClient();
+  const auth = await getAuth()
+  if (!auth.authenticated) return
+  const supabase = createServiceClient();
   const id = Number(formData.get('id'))
   const fileUrl = formData.get('fileUrl') as string
 

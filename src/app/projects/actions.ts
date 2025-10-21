@@ -1,10 +1,13 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { revalidatePath } from 'next/cache'
+import { getAuth } from '@/lib/auth/session'
 
 export async function addProject(formData: FormData) {
-  const supabase = await createClient()
+  const auth = await getAuth()
+  if (!auth.authenticated) return
+  const supabase = createServiceClient()
 
   const text = formData.get('name') as string
   if (!text) {
@@ -25,7 +28,9 @@ export async function addProject(formData: FormData) {
 }
 
 export async function deleteProject(formData: FormData) {
-  const supabase = await createClient()
+  const auth = await getAuth()
+  if (!auth.authenticated) return
+  const supabase = createServiceClient()
   const id = Number(formData.get('id')) // Extract id from FormData and convert to number
 
   if (isNaN(id)) {
