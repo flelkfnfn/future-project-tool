@@ -71,13 +71,27 @@ export async function toggleLike(formData: FormData) {
       .delete()
       .eq('id', existingLike.id)
     if (deleteError) return
-    await supabase.rpc('decrement_idea_likes', { idea_id_param: idea_id })
+    // Recalculate likes count
+    const { count } = await supabase
+      .from('idea_likes')
+      .select('*', { count: 'exact', head: true })
+      .eq('idea_id', idea_id)
+    if (typeof count === 'number') {
+      await supabase.from('ideas').update({ likes: count }).eq('id', idea_id)
+    }
   } else {
     const { error: insertError } = await supabase
       .from('idea_likes')
       .insert({ idea_id, user_id: likeUserId })
     if (insertError) return
-    await supabase.rpc('increment_idea_likes', { idea_id_param: idea_id })
+    // Recalculate likes count
+    const { count } = await supabase
+      .from('idea_likes')
+      .select('*', { count: 'exact', head: true })
+      .eq('idea_id', idea_id)
+    if (typeof count === 'number') {
+      await supabase.from('ideas').update({ likes: count }).eq('id', idea_id)
+    }
   }
 
   revalidatePath('/ideas')

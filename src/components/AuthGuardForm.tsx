@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useSupabase } from '@/components/supabase-provider'
 
-type Props = React.FormHTMLAttributes<HTMLFormElement>
+type Props = React.FormHTMLAttributes<HTMLFormElement> & {
+  confirmMessage?: string
+}
 
-export default function AuthGuardForm({ children, onSubmit, ...rest }: Props) {
+export default function AuthGuardForm({ children, onSubmit, confirmMessage, ...rest }: Props) {
   const { supabase } = useSupabase()
   const [authed, setAuthed] = useState<boolean>(false)
 
@@ -26,6 +28,13 @@ export default function AuthGuardForm({ children, onSubmit, ...rest }: Props) {
   }, [supabase])
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+    if (confirmMessage) {
+      const ok = typeof window !== 'undefined' ? window.confirm(confirmMessage) : true
+      if (!ok) {
+        e.preventDefault()
+        return
+      }
+    }
     if (!authed) {
       e.preventDefault()
       alert('로그인이 필요합니다.')

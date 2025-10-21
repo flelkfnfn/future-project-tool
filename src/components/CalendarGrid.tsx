@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useMemo, useState } from 'react'
 import AuthGuardForm from '@/components/AuthGuardForm'
@@ -23,18 +23,15 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
 
   const days = useMemo(() => {
     const res: Date[] = []
-    const startWeekday = (first.getDay() + 6) % 7 // make Monday=0
-    // lead blank days from previous month
+    const startWeekday = (first.getDay() + 6) % 7 // Monday=0
     for (let i = 0; i < startWeekday; i++) {
       const d = new Date(first)
       d.setDate(first.getDate() - (startWeekday - i))
       res.push(d)
     }
-    // days in month
     for (let d = 1; d <= last.getDate(); d++) {
       res.push(new Date(current.getFullYear(), current.getMonth(), d))
     }
-    // tail days to complete 6 weeks
     while (res.length % 7 !== 0 || res.length < 42) {
       const d = new Date(res[res.length - 1])
       d.setDate(d.getDate() + 1)
@@ -81,7 +78,7 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
                 {list.map((e) => (
                   <div key={e.id} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded flex justify-between items-center">
                     <span className="truncate">{e.title}</span>
-                    <AuthGuardForm action={deleteEvent}>
+                    <AuthGuardForm action={deleteEvent} confirmMessage="정말 삭제하시겠습니까?">
                       <input type="hidden" name="id" value={e.id} />
                       <button type="submit" className="text-rose-600 hover:text-rose-700 ml-2">삭제</button>
                     </AuthGuardForm>
@@ -91,8 +88,18 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
               <div className="mt-2">
                 <AuthGuardForm action={addEvent} className="flex gap-1">
                   <input type="hidden" name="event_date" value={key} />
-                  <input name="title" placeholder="제목" className="border rounded px-1 py-0.5 text-xs flex-1" required />
-                  <button type="submit" className="text-xs px-2 py-0.5 rounded bg-blue-500 text-white hover:bg-blue-600">추가</button>
+                  <input
+                    name="title"
+                    placeholder="제목"
+                    className="border rounded px-1 py-0.5 text-xs flex-1"
+                    required
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        ;(e.currentTarget.form as HTMLFormElement | null)?.requestSubmit()
+                      }
+                    }}
+                  />
                 </AuthGuardForm>
               </div>
             </div>

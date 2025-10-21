@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useSupabase } from '@/components/supabase-provider'
 import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js'
+import { localSignOut } from '@/app/login/localActions'
 
 const nav = [
   { href: '/projects', label: '프로젝트' },
@@ -19,6 +20,7 @@ const Header = () => {
   const pathname = usePathname()
   const { supabase, session } = useSupabase()
   const [user, setUser] = useState<User | null>(session?.user ?? null)
+  const [localAuthed, setLocalAuthed] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -31,6 +33,7 @@ const Header = () => {
     } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, s: Session | null) => {
       if (mounted) setUser(s?.user ?? null)
     })
+    setLocalAuthed(typeof document !== 'undefined' && document.cookie.includes('local_session_present=1'))
     return () => {
       mounted = false
       subscription.unsubscribe()
@@ -41,6 +44,8 @@ const Header = () => {
     await supabase.auth.signOut()
     router.push('/login')
   }
+
+  const authed = !!user || localAuthed
 
   return (
     <header className="bg-white text-gray-900 border-b">
@@ -63,15 +68,18 @@ const Header = () => {
             })}
           </ul>
           <div className="ml-2">
-            {user ? (
+            {authed ? (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">{user.email}</span>
-                <button
-                  onClick={handleLogout}
-                  className="bg-rose-500 text-white px-3 py-1 rounded hover:bg-rose-600 text-sm"
-                >
-                  로그아웃
-                </button>
+                {user?.email && <span className="text-sm text-gray-600">{user.email}</span>}
+                <form action={localSignOut}>
+                  <button
+                    type="submit"
+                    onClick={handleLogout}
+                    className="bg-rose-500 text-white px-3 py-1 rounded hover:bg-rose-600 text-sm"
+                  >
+                    로그아웃
+                  </button>
+                </form>
               </div>
             ) : (
               <Link href="/login" className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm">

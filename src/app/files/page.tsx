@@ -1,4 +1,4 @@
-import AuthGuardForm from "@/components/AuthGuardForm";
+﻿import AuthGuardForm from "@/components/AuthGuardForm";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { uploadFile, deleteFile } from "./actions";
@@ -8,7 +8,7 @@ export default async function FilesPage() {
   const { data: files, error } = await supabase.from("files").select("id, name, url");
 
   if (error) {
-    console.error("파일 로드 오류:", error);
+    console.error("파일 목록을 가져오는 중 오류 발생:", error);
     return (
       <div className="text-red-500 p-4 border border-red-700 rounded">
         <p>파일을 불러오는 중 오류가 발생했습니다.</p>
@@ -19,9 +19,9 @@ export default async function FilesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">파일 공유 공간</h1>
+      <h1 className="text-2xl font-bold mb-4">파일 관리</h1>
 
-      {/* 파일 업로드 */}
+      {/* 파일 업로드 폼 */}
       <AuthGuardForm action={uploadFile} className="mb-8 flex flex-col gap-2">
         <input
           type="file"
@@ -51,7 +51,7 @@ export default async function FilesPage() {
                 >
                   다운로드
                 </Link>
-                <AuthGuardForm action={deleteFile}>
+                <AuthGuardForm action={deleteFile} confirmMessage="정말 삭제하시겠습니까?">
                   <input type="hidden" name="id" value={file.id} />
                   <input type="hidden" name="url" value={file.url} />
                   <button
@@ -66,9 +66,10 @@ export default async function FilesPage() {
           ))}
         </ul>
       ) : (
-        <p className="mt-4">아직 공유된 파일이 없습니다.</p>
+        <p className="mt-4">업로드된 파일이 없습니다.</p>
       )}
     </div>
   );
 }
+
 

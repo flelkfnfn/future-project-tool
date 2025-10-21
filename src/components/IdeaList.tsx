@@ -1,7 +1,6 @@
-'use client'
+﻿'use client'
 
 import AuthGuardForm from "@/components/AuthGuardForm";
-import { useOptimistic } from 'react';
 import { addComment, deleteIdea, toggleLike } from '@/app/ideas/actions';
 import React from 'react';
 
@@ -24,56 +23,18 @@ interface IdeaListProps {
   initialIdeas: Idea[];
 }
 
-type OptimisticAction =
-  | { type: 'add'; payload: Idea }
-  | { type: 'delete'; payload: { id: number } }
-  | { type: 'toggleLike'; payload: { idea_id: number; change: number } }
-
 export default function IdeaList({ initialIdeas }: IdeaListProps) {
-  const [optimisticIdeas, addOptimisticIdea] = useOptimistic(
-    initialIdeas,
-    (currentIdeas: Idea[], action: OptimisticAction) => {
-      switch (action.type) {
-        case 'add':
-          return [...currentIdeas, action.payload];
-        case 'delete':
-          return currentIdeas.filter((idea) => idea.id !== action.payload.id);
-        case 'toggleLike':
-          return currentIdeas.map((idea) =>
-            idea.id === action.payload.idea_id
-              ? { ...idea, likes: idea.likes + action.payload.change }
-              : idea
-          );
-        default:
-          return currentIdeas;
-      }
-    }
-  );
-
-  const handleToggleLike = async (idea_id: number) => {
-    addOptimisticIdea({ type: 'toggleLike', payload: { idea_id, change: 1 } });
-    const formData = new FormData();
-    formData.append('idea_id', String(idea_id));
-    await toggleLike(formData);
-  };
-
-  const handleDeleteIdea = async (id: number) => {
-    addOptimisticIdea({ type: 'delete', payload: { id } });
-    const formData = new FormData();
-    formData.append('id', String(id));
-    await deleteIdea(formData);
-  };
-
   return (
     <ul className="mt-4 space-y-4">
-      {optimisticIdeas.map((idea) => (
+      {initialIdeas.map((idea) => (
         <li key={idea.id} className="p-4 border rounded-md shadow-sm">
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-xl font-semibold">{idea.title}</h2>
               <p className="mt-2 text-gray-700">{idea.description}</p>
             </div>
-            <AuthGuardForm action={() => handleDeleteIdea(idea.id)}>
+            <AuthGuardForm action={deleteIdea}>
+              <input type="hidden" name="id" value={idea.id} />
               <button
                 type="submit"
                 className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
@@ -85,7 +46,8 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
 
           {/* 좋아요 기능 */}
           <div className="mt-4 flex items-center gap-2">
-            <AuthGuardForm action={() => handleToggleLike(idea.id)}>
+            <AuthGuardForm action={toggleLike}>
+              <input type="hidden" name="idea_id" value={idea.id} />
               <button
                 type="submit"
                 className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600"
@@ -136,4 +98,5 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
     </ul>
   );
 }
+
 

@@ -1,4 +1,4 @@
-import AuthGuardForm from "@/components/AuthGuardForm";
+﻿import AuthGuardForm from "@/components/AuthGuardForm";
 import { createClient } from "@/lib/supabase/server";
 import { addNotice, deleteNotice } from "./actions";
 
@@ -14,7 +14,7 @@ export default async function NoticesPage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">공지사항</h1>
 
-      {/* 공지사항 추가 */}
+      {/* 공지사항 추가 폼 */}
       <AuthGuardForm action={addNotice} className="mb-8 flex flex-col gap-2">
         <input
           type="text"
@@ -45,7 +45,7 @@ export default async function NoticesPage() {
                 <h2 className="text-xl font-semibold">{notice.title}</h2>
                 <p className="mt-2 text-gray-700">{notice.content}</p>
               </div>
-              <AuthGuardForm action={deleteNotice}>
+              <AuthGuardForm action={deleteNotice} confirmMessage="정말 삭제하시겠습니까?">
                 <input type="hidden" name="id" value={notice.id} />
                 <button
                   type="submit"
@@ -63,3 +63,4 @@ export default async function NoticesPage() {
     </div>
   );
 }
+

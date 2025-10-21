@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+﻿import { createClient } from "@/lib/supabase/server";
 import { addProject, deleteProject } from "./actions";
 import AuthGuardForm from "@/components/AuthGuardForm";
 
@@ -14,7 +14,7 @@ export default async function ProjectsPage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">프로젝트 목록</h1>
 
-      {/* 프로젝트 추가 */}
+      {/* 프로젝트 목록 */}
       <AuthGuardForm action={addProject} className="mb-8 flex gap-2">
         <input
           type="text"
@@ -36,7 +36,7 @@ export default async function ProjectsPage() {
           {projects.map((project) => (
             <li key={project.id} className="p-4 border rounded-md shadow-sm flex justify-between items-center">
               <span className="text-lg">{project.name}</span>
-              <AuthGuardForm action={deleteProject}>
+              <AuthGuardForm action={deleteProject} confirmMessage="정말 삭제하시겠습니까?">
                 <input type="hidden" name="id" value={project.id} />
                 <button
                   type="submit"
@@ -49,9 +49,10 @@ export default async function ProjectsPage() {
           ))}
         </ul>
       ) : (
-        <p className="mt-4">아직 생성된 프로젝트가 없습니다.</p>
+        <p className="mt-4">업로드된 파일이 없습니다.</p>
       )}
     </div>
   );
 }
+
 
