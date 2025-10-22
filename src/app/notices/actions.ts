@@ -33,8 +33,9 @@ export async function addNotice(formData: FormData) {
     const recipients = new Set<string>()
 
     if (!usersErr && Array.isArray(users)) {
-      for (const u of users) {
-        const g = (u && typeof (u as any).gmail === 'string') ? String((u as any).gmail).trim() : ''
+      const list = users as Array<{ gmail: string | null }>
+      for (const u of list) {
+        const g = typeof u.gmail === 'string' ? u.gmail.trim() : ''
         if (g && g.includes('@')) recipients.add(g)
       }
     } else if (usersErr) {
