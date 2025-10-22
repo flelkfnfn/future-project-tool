@@ -43,7 +43,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {chatOpen && !addOpen && (
         <div className="fixed right-4 top-16 bottom-4 hidden lg:block z-30">
           <div className="h-full w-80">
-            <ChatSidebar open={chatOpen} onToggle={() => setChatOpen((v) => !v)} />
+            <ChatSidebar open={chatOpen} onToggle={() => setChatOpen((v) => !v)} onAdd={() => setAddOpen(true)} />
           </div>
         </div>
       )}

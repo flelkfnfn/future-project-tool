@@ -1,4 +1,4 @@
-'use server'
+﻿'use server'
 
 import { createServiceClient } from '@/lib/supabase/service'
 import { revalidatePath } from 'next/cache'
@@ -30,37 +30,41 @@ export async function addNotice(formData: FormData) {
       .from('local_users')
       .select('gmail')
 
-    if (!usersErr && users && users.length > 0) {
-      // Simple validation: include only addresses containing '@'
-      const list = users
-        .map((u: { gmail: string | null }) => (u && typeof u.gmail === 'string' ? u.gmail.trim() : ''))
-        .filter((g: string) => g.includes('@'))
+    const recipients = new Set<string>()
 
-      // Optionally include admin email if set
-      const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL
-      if (adminEmail && adminEmail.includes('@')) list.push(adminEmail)
+    if (!usersErr && Array.isArray(users)) {
+      for (const u of users) {
+        const g = (u && typeof (u as any).gmail === 'string') ? String((u as any).gmail).trim() : ''
+        if (g && g.includes('@')) recipients.add(g)
+      }
+    } else if (usersErr) {
+      console.error('local_users query error:', usersErr)
+    }
 
-      // De-duplicate
-      const uniq = Array.from(new Set(list))
+    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL
+    if (adminEmail && adminEmail.includes('@')) recipients.add(adminEmail)
 
-      if (uniq.length > 0) {
-        // Insert into email_outbox for later delivery by a worker/cron
-        const rows = uniq.map((to) => ({
-          to,
-          subject: `[공지] ${title}`,
-          body: content ?? '',
-        }))
-        const { error: outboxErr } = await supabase.from('email_outbox').insert(rows)
-        if (outboxErr) {
-          console.error('email_outbox insert error:', outboxErr)
-        }
+    const actorEmail = (auth.principal?.source === 'supabase') ? (auth.principal.email ?? '') : ''
+    if (actorEmail && actorEmail.includes('@')) recipients.add(actorEmail)
+
+    const uniq = Array.from(recipients)
+
+    if (uniq.length === 0) {
+      console.warn('email_outbox skipped: no recipients (set NEXT_PUBLIC_ADMIN_EMAIL or register users with gmail)')
+    } else {
+      const rows = uniq.map((to) => ({
+        to,
+        subject: `[Notice] ${title}`,
+        body: content ?? '',
+      }))
+      const { error: outboxErr } = await supabase.from('email_outbox').insert(rows)
+      if (outboxErr) {
+        console.error('email_outbox insert error:', outboxErr)
       }
     }
   } catch (e) {
     console.error('enqueue emails failed:', e)
-  }
-
-  // Fire-and-forget trigger to send emails soon after queuing
+  }  // Fire-and-forget trigger to send emails soon after queuing
   try {
     const base = process.env.NEXT_PUBLIC_SITE_URL
       || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '')

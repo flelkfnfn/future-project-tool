@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getAuth } from '@/lib/auth/session'
 
@@ -7,8 +7,8 @@ export const runtime = 'nodejs'
 export async function GET() {
   const supabase = createServiceClient()
   const { data, error } = await supabase
-    .from('chat_message')
-    .select('text, username, ts')
+    .from('chat_messages')
+    .select('text, user, ts')
     .order('ts', { ascending: true })
     .limit(200)
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   const ts = Number(String(form.get('ts') ?? '')) || Date.now()
   if (!text) return NextResponse.json({ ok: false, error: 'TEXT_REQUIRED' }, { status: 400 })
   const username = auth.principal?.source === 'supabase' ? (auth.principal.email ?? 'user') : String(auth.principal?.username ?? 'user')
-  const { error } = await supabase.from('chat_message').insert({ text, username, ts })
+  const { error } = await supabase.from('chat_messages').insert({ text, user: username, ts })
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }

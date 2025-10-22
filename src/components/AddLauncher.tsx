@@ -1,5 +1,4 @@
-'use client'
-
+'use client';
 export default function AddLauncher({ onOpen }: { onOpen: () => void }) {
   return (
     <button

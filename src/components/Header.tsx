@@ -40,6 +40,26 @@ const Header = () => {
     }
   }, [supabase])
 
+  // Re-evaluate local auth on route change (after server redirects)
+  useEffect(() => {
+    setLocalAuthed(typeof document !== 'undefined' && document.cookie.includes('local_session_present=1'))
+  }, [pathname])
+
+  // Also update when the tab regains focus (cookie may have changed)
+  useEffect(() => {
+    const onFocus = () => {
+      setLocalAuthed(typeof document !== 'undefined' && document.cookie.includes('local_session_present=1'))
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('focus', onFocus)
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('focus', onFocus)
+      }
+    }
+  }, [])
+
   const handleLogout: () => Promise<void> = async () => {
     await supabase.auth.signOut()
     router.push('/login')
