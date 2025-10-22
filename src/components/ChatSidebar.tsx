@@ -4,7 +4,6 @@ import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useSupabase } from '@/components/supabase-provider'
 import AddLauncher from '@/components/AddLauncher'
 
-
 type ChatMsg = { id: string; text: string; user: string; ts: number }
 
 export default function ChatSidebar({ open = true, onToggle, showToggle = true, onAdd }: { open?: boolean; onToggle?: () => void; showToggle?: boolean; onAdd?: () => void }) {
@@ -39,7 +38,7 @@ export default function ChatSidebar({ open = true, onToggle, showToggle = true, 
         const j = await res.json()
         if (j?.ok && Array.isArray(j.data)) {
           const mapped: ChatMsg[] = (j.data as Array<{ text: string; username?: string; ts: number }>).map((r) => ({
-            id: (globalThis as any).crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2), text: r.text, user: r.username ?? 'user', ts: r.ts,
+            id: randomId(), text: r.text, user: r.username ?? 'user', ts: r.ts,
           }))
           setMessages(mapped)
           try { localStorage.setItem('global_chat_cache', JSON.stringify(mapped)) } catch {}
@@ -64,7 +63,7 @@ export default function ChatSidebar({ open = true, onToggle, showToggle = true, 
 
   const send = async () => {
     const text = input.trim(); if (!text) return
-    const msg: ChatMsg = { id: (globalThis as any).crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2), text, user: username, ts: Date.now() }
+    const msg: ChatMsg = { id: randomId(), text, user: username, ts: Date.now() }
     chanRef.current?.send({ type: 'broadcast', event: 'message', payload: msg })
     try {
       const fd = new FormData()
@@ -113,4 +112,8 @@ export default function ChatSidebar({ open = true, onToggle, showToggle = true, 
       </div>
     </aside>
   )
+}
+
+function randomId(): any {
+  throw new Error('Function not implemented.')
 }
