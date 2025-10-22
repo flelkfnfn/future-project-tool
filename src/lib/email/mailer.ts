@@ -1,10 +1,9 @@
-﻿export type MailConfig = {
+export type MailConfig = {
   host: string
   port: number
   user?: string
   pass?: string
   from: string
-  // Advanced SMTP/TLS options (optional, via env)
   secure?: boolean
   requireTLS?: boolean
   ignoreTLS?: boolean
@@ -20,13 +19,13 @@ function getConfig(): MailConfig {
   const port = Number(process.env.SMTP_PORT || '0')
   const user = process.env.SMTP_USER
   const pass = process.env.SMTP_PASS
-  const from = process.env.SMTP_FROM
+  const from = process.env.SMTP_FROM || ''
   if (!host || !port || !from) {
     throw new Error('MAIL_CONFIG_MISSING')
   }
-  const toBool = (v: string | undefined): boolean | undefined =>
+  const toBool = (v?: string) =>
     typeof v === 'string' ? ['1', 'true', 'yes', 'on'].includes(v.toLowerCase()) : undefined
-  const toNum = (v: string | undefined): number | undefined => {
+  const toNum = (v?: string) => {
     const n = Number(v)
     return Number.isFinite(n) && n > 0 ? n : undefined
   }
@@ -35,19 +34,32 @@ function getConfig(): MailConfig {
   const ignoreTLS = toBool(process.env.SMTP_IGNORE_TLS)
   const rejectUnauthorized =
     typeof process.env.SMTP_TLS_REJECT_UNAUTHORIZED === 'string'
-      ? !(process.env.SMTP_TLS_REJECT_UNAUTHORIZED === '0' || process.env.SMTP_TLS_REJECT_UNAUTHORIZED.toLowerCase() === 'false')
+      ? !(['0', 'false'].includes(process.env.SMTP_TLS_REJECT_UNAUTHORIZED.toLowerCase()))
       : undefined
   const connectionTimeoutMs = toNum(process.env.SMTP_TIMEOUT_MS) ?? 20000
   const greetingTimeoutMs = toNum(process.env.SMTP_GREETING_TIMEOUT_MS)
   const socketTimeoutMs = toNum(process.env.SMTP_SOCKET_TIMEOUT_MS)
   const pool = toBool(process.env.SMTP_POOL)
-  return { host, port, user, pass, from, secure, requireTLS, ignoreTLS, rejectUnauthorized, connectionTimeoutMs, greetingTimeoutMs, socketTimeoutMs, pool }
+  return {
+    host,
+    port,
+    user,
+    pass,
+    from,
+    secure,
+    requireTLS,
+    ignoreTLS,
+    rejectUnauthorized,
+    connectionTimeoutMs,
+    greetingTimeoutMs,
+    socketTimeoutMs,
+    pool,
+  }
 }
 
 export async function sendMail(to: string, subject: string, body: string) {
   const cfg = getConfig()
-  const debug = process.env.SMTP_DEBUG === '1'
-
+  // SMTP via nodemailer with fallbacks
   type TransportOpts = {
     host: string
     port: number
@@ -64,7 +76,9 @@ export async function sendMail(to: string, subject: string, body: string) {
     debug?: boolean
   }
   type SendOpts = { from: string; to: string; subject: string; text: string }
-  type NodemailerModule = { createTransport: (opts: TransportOpts) => { sendMail: (opts: SendOpts) => Promise<unknown> } }
+  type NodemailerModule = {
+    createTransport: (opts: TransportOpts) => { sendMail: (opts: SendOpts) => Promise<unknown> }
+  }
 
   const nodemailer = (await import('nodemailer')) as unknown as NodemailerModule
 
@@ -80,8 +94,8 @@ export async function sendMail(to: string, subject: string, body: string) {
     greetingTimeout: cfg.greetingTimeoutMs,
     socketTimeout: cfg.socketTimeoutMs,
     pool: cfg.pool,
-    logger: debug,
-    debug,
+    logger: process.env.SMTP_DEBUG === '1',
+    debug: process.env.SMTP_DEBUG === '1',
   }
 
   async function trySend(opts: TransportOpts) {
@@ -89,12 +103,10 @@ export async function sendMail(to: string, subject: string, body: string) {
     await transport.sendMail({ from: cfg.from, to, subject, text: body })
   }
 
-  // Attempt 1: base
   try {
     await trySend(base)
     return
   } catch (e1) {
-    // Attempt 2: force IPv4 by resolving host, preserve SNI
     try {
       const dns = await import('node:dns/promises')
       const looked = await dns.lookup(cfg.host, { family: 4 })
@@ -106,7 +118,6 @@ export async function sendMail(to: string, subject: string, body: string) {
       await trySend(withIp)
       return
     } catch (e2) {
-      // Attempt 3 (dev only): STARTTLS with relaxed TLS
       const isDev = process.env.NODE_ENV !== 'production'
       if (isDev) {
         try {
@@ -127,3 +138,4 @@ export async function sendMail(to: string, subject: string, body: string) {
     }
   }
 }
+

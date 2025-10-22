@@ -44,12 +44,5 @@ export async function POST(req: Request) {
       console.error('email_outbox insert error:', outboxErr)
     }
   }
-
-  // Fire-and-forget trigger to send emails (fallback)
-  try {
-    const base = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '')
-    if (base) fetch(`${base}/api/cron/send-email`, { method: 'GET', cache: 'no-store' }).catch(() => {})
-  } catch {}
-
   return NextResponse.json({ ok: true })
 }

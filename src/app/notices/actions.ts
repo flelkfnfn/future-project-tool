@@ -65,18 +65,9 @@ export async function addNotice(formData: FormData) {
     }
   } catch (e) {
     console.error('enqueue emails failed:', e)
-  }  // Fire-and-forget trigger to send emails soon after queuing
-  try {
-    const base = process.env.NEXT_PUBLIC_SITE_URL
-      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '')
-    if (base) {
-      // Don't await: let the function return quickly to unblock UI
-      fetch(`${base}/api/cron/send-email`, { method: 'GET', cache: 'no-store' }).catch(() => {})
     }
-  } catch {}
-
-  revalidatePath('/notices')
-}
+    revalidatePath('/notices')
+  }
 
 export async function deleteNotice(formData: FormData) {
   const auth = await getAuth()
