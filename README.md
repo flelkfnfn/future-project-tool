@@ -23,3 +23,4 @@
 git add .
 git commit -m "제발 되라7"
 git push origin main
+git push origin main --rebase 
