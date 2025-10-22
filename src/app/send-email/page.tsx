@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
-type Result = { ok: boolean; processed?: number; sent?: number; failed?: number; errors?: Array<{ id: number; to: string; error: string }> } | { ok: false; error: string }
+type Result = { ok: true; processed?: number; sent?: number; failed?: number; errors?: Array<{ id: number; to: string; error: string }> } | { ok: false; error: string }
 
 export default function SendEmailPage() {
   const [result, setResult] = useState<Result | null>(null)
@@ -35,7 +35,7 @@ export default function SendEmailPage() {
 
       {!loading && result && (
         <div className="space-y-3">
-          {'ok' in result && result.ok ? (
+          {result && result.ok ? (
             <div className="rounded-md border p-3 bg-green-50">
               <div className="font-semibold text-green-700">발송 처리 완료</div>
               <div className="text-sm text-gray-700">processed: {result.processed ?? 0}, sent: {result.sent ?? 0}, failed: {result.failed ?? 0}</div>
@@ -49,7 +49,7 @@ export default function SendEmailPage() {
           ) : (
             <div className="rounded-md border p-3 bg-rose-50">
               <div className="font-semibold text-rose-700">발송 실패</div>
-              <div className="text-sm text-gray-700">{(result as any).error || 'UNKNOWN_ERROR'}</div>
+              <div className="text-sm text-gray-700">{('ok' in result && !result.ok) ? result.error : 'UNKNOWN_ERROR'}</div>
             </div>
           )}
         </div>
