@@ -76,7 +76,7 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
           const isSat = dow === 6
           const weekendBg = isSun ? 'bg-rose-50' : isSat ? 'bg-sky-50' : ''
           return (
-            <div key={idx} className={`min-h-28 p-2 border -mt-px -ml-px min-w-0 overflow-hidden ${inMonth ? `${weekendBg || 'bg-white'}` : 'bg-gray-50 text-gray-400'}`}>
+            <div key={idx} className={`min-h-28 p-2 border -mt-px -ml-px min-w-0 overflow-hidden ${inMonth ? `${weekendBg || 'bg-white'}` : 'bg-gray-100 text-gray-300 opacity-70'}`}>
               <div className={`inline-block px-2 py-0.5 rounded text-xs ${isToday ? 'bg-blue-500 text-white' : inMonth ? (isSun ? 'text-rose-600' : isSat ? 'text-sky-600' : 'text-gray-700') : 'text-gray-400'}`}>{d.getDate()}</div>
               <div className="mt-2 flex flex-col gap-1 min-w-0">
                 {list.map((e) => (
@@ -113,5 +113,6 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
     </div>
   )
 }
+
 
 

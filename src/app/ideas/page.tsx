@@ -1,9 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
-import { addIdea, deleteIdea, addComment, toggleLike } from "./actions";
+﻿import { createClient } from "@/lib/supabase/server";
+import { deleteIdea, addComment, toggleLike } from "./actions";
 import AuthGuardForm from "@/components/AuthGuardForm";
 
 type Comment = { id: number; content: string; created_at: string; user_id: string }
-type Idea = { id: number; title: string; description: string; likes: number; comments: Comment[] }
+// If likes is an array of user IDs, update the type:
+type Idea = { id: number; title: string; description: string; likes: string[]; comments: Comment[] }
 
 export default async function IdeasPage() {
   const supabase = await createClient();
@@ -15,38 +16,18 @@ export default async function IdeasPage() {
     .order("created_at", { ascending: false }); // Order ideas by creation date
 
   if (error) {
-    console.error("아이디어 데이터 로드 오류:", error);
-    return <p className="text-red-500">데이터를 불러오는 중 오류가 발생했습니다.</p>;
+    console.error("아이디어 데이터를 불러오는 중 오류:", error);
+    return <p className="text-red-500">아이디어를 불러오는 중 오류가 발생했습니다.</p>;
   }
 
   const ideasList = (ideas as unknown as Idea[]) || []
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">아이디어 모음</h1>
+      <h1 className="text-2xl font-bold mb-4">아이디어 목록</h1>
 
-      {/* 새 아이디어 추가 폼 */}
-      <form action={addIdea} className="mb-8 flex flex-col gap-2">
-        <input
-          type="text"
-          name="title"
-          className="border rounded px-2 py-1 flex-grow"
-          placeholder="아이디어 제목..."
-          required
-        />
-        <textarea
-          name="description"
-          className="border rounded px-2 py-1 flex-grow"
-          placeholder="아이디어 설명..."
-          rows={4}
-        ></textarea>
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 self-start"
-        >
-          아이디어 추가
-        </button>
-      </form>
+      {/* 아이디어 추가 폼 */}
+      {/* 추가는 전역 + 버튼 모달 사용 */}
 
       {ideasList.length > 0 ? (
         <ul className="mt-4 space-y-4">
@@ -68,7 +49,7 @@ export default async function IdeasPage() {
                 </AuthGuardForm>
               </div>
 
-              {/* 좋아요 기능 */}
+              {/* 좋아요 버튼 */}
               <div className="mt-4 flex items-center gap-2">
                 <AuthGuardForm action={toggleLike}>
                   <input type="hidden" name="idea_id" value={idea.id} />
@@ -76,12 +57,13 @@ export default async function IdeasPage() {
                     type="submit"
                     className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600"
                   >
-                    좋아요 ({idea.likes})
+                    {/* 좋아요 개수 표시 */}
+                    좋아요({idea.likes.length})
                   </button>
                 </AuthGuardForm>
               </div>
 
-              {/* 댓글 섹션 */}
+              {/* ?볤? ?뱀뀡 */}
               <div className="mt-4 border-t pt-4">
                 <h3 className="text-lg font-medium mb-2">댓글</h3>
                 {idea.comments && idea.comments.length > 0 ? (
@@ -105,7 +87,7 @@ export default async function IdeasPage() {
                   <textarea
                     name="content"
                     className="border rounded px-2 py-1 flex-grow"
-                    placeholder="댓글을 남겨주세요..."
+                    placeholder="댓글을 입력해주세요..."
                     rows={1}
                     required
                   ></textarea>
@@ -126,3 +108,5 @@ export default async function IdeasPage() {
     </div>
   );
 }
+
+

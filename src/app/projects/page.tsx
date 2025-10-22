@@ -1,5 +1,5 @@
 ﻿import { createClient } from "@/lib/supabase/server";
-import { addProject, deleteProject } from "./actions";
+import { deleteProject } from "./actions";
 import AuthGuardForm from "@/components/AuthGuardForm";
 
 type Project = { id: number; name: string }
@@ -16,22 +16,7 @@ export default async function ProjectsPage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">프로젝트 목록</h1>
 
-      {/* 프로젝트 목록 */}
-      <AuthGuardForm action={addProject} className="mb-8 flex gap-2">
-        <input
-          type="text"
-          name="name"
-          className="border rounded px-2 py-1 flex-grow"
-          placeholder="프로젝트 이름..."
-          required
-        />
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"
-        >
-          추가
-        </button>
-      </AuthGuardForm>
+      {/* 추가는 전역 + 버튼 모달 사용 */}
 
       {((projects as unknown as Project[]) ?? []).length > 0 ? (
         <ul className="space-y-2">
@@ -56,6 +41,8 @@ export default async function ProjectsPage() {
     </div>
   );
 }
+
+
 
 
 
