@@ -1,9 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/send-email",
-      "schedule": "*/3000 * * * *"
-    }
-  ]
-}
-
