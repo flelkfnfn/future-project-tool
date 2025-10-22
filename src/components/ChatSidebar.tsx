@@ -4,6 +4,9 @@ import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useSupabase } from '@/components/supabase-provider'
 import AddLauncher from '@/components/AddLauncher'
 
+
+const randomId = () => (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : Math.random().toString(36).slice(2)
+
 type ChatMsg = { id: string; text: string; user: string; ts: number }
 
 export default function ChatSidebar({ open = true, onToggle, showToggle = true, onAdd }: { open?: boolean; onToggle?: () => void; showToggle?: boolean; onAdd?: () => void }) {
@@ -112,8 +115,4 @@ export default function ChatSidebar({ open = true, onToggle, showToggle = true, 
       </div>
     </aside>
   )
-}
-
-function randomId(): any {
-  throw new Error('Function not implemented.')
 }

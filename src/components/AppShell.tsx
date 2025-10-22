@@ -1,15 +1,11 @@
 ﻿'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { usePathname } from 'next/navigation'
 import ChatSidebar from '@/components/ChatSidebar'
 import AddLauncher from '@/components/AddLauncher'
 import AddModal from '@/components/AddModal'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
-  const isCalendar = pathname?.startsWith('/calendar')
-
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
@@ -56,7 +52,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           type="button"
           onClick={() => setChatOpen(true)}
           className="fixed right-4 bottom-4 z-40 w-12 h-12 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 hidden lg:flex items-center justify-center"
-          aria-label="梨꾪똿 ?닿린"
+          aria-label="채팅 열기"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6">
             <path d="M18 10c0 3.866-3.582 7-8 7-1.102 0-2.147-.187-3.095-.525-.226-.081-.477-.07-.692.037L3.3 17.4a.75.75 0 01-1.05-.836l.616-2.463a.75.75 0 00-.18-.705A6.97 6.97 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7z" />
