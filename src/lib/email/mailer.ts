@@ -106,7 +106,7 @@ export async function sendMail(to: string, subject: string, body: string) {
   try {
     await trySend(base)
     return
-  } catch { {
+  } catch (e1) {
     try {
       const dns = await import('node:dns/promises')
       const looked = await dns.lookup(cfg.host, { family: 4 })
@@ -138,4 +138,3 @@ export async function sendMail(to: string, subject: string, body: string) {
     }
   }
 }
-
