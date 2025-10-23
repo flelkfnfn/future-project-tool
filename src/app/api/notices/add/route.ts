@@ -1,7 +1,6 @@
 ﻿import { NextResponse } from "next/server"
 import { getAuth } from "@/lib/auth/session"
 import { createServiceClient } from "@/lib/supabase/service"
-import { sendMail } from "@/lib/email/mailer"
 
 export const runtime = 'nodejs'
 

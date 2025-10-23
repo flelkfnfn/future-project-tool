@@ -61,7 +61,7 @@ export async function addLink(formData: FormData) {
     return
   }
 
-  const { data, error } = await supabase.from('project_links').insert({ project_id, url, title }).select()
+  const { error } = await supabase.from('project_links').insert({ project_id, url, title })
 
   if (error) {
     console.error("Error adding link:", error)
@@ -69,5 +69,5 @@ export async function addLink(formData: FormData) {
     return
   }
 
-  // Success: no debug logging
+  // Success
 }

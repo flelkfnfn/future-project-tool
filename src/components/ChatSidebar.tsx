@@ -108,7 +108,8 @@ export default function ChatSidebar({
       (payload) => {
         const r = payload.new as { id?: number | string; text?: string; username?: string; user?: string; ts?: number };
         const text = String(r.text ?? "");
-        const user = String(r.user ?? "user");
+        // Prefer "username" (DB column), fallback to "user"
+        const user = String((r as any).username ?? r.user ?? "user");
         const ts = Number(r.ts ?? Date.now());
         const incoming: ChatMsg = { id: (r.id != null ? String(r.id) : makeId(text, user, ts)), text, user, ts };
 
@@ -289,7 +290,8 @@ function dedupe(list: ChatMsg[]): ChatMsg[] {
   const out: ChatMsg[] = [];
 
   for (const m of list) {
-    const key = m.id || makeId(m.text, m.user, m.ts);
+    // Use content-derived key to collapse optimistic + realtime duplicates
+    const key = makeId(m.text, m.user, m.ts);
     if (seen.has(key)) continue;
     seen.add(key);
     out.push(m);
