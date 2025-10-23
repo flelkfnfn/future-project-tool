@@ -71,7 +71,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-b dark:border-gray-700">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link href="/" className="text-xl font-bold">
-          미래변화주도 프로젝트
+          미래-사회변화주도 프로젝트
         </Link>
         <nav className="flex items-center gap-4">
           <ul className="flex gap-2">

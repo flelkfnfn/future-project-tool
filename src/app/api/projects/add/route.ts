@@ -10,11 +10,16 @@ export async function POST(req: Request) {
 
   const form = await req.formData()
   const name = String(form.get('name') ?? '')
+  const description = String(form.get('description') ?? '')
   if (!name) return NextResponse.json({ ok: false, error: 'NAME_REQUIRED' }, { status: 400 })
 
   const supabase = createServiceClient()
-  const { error } = await supabase.from('projects').insert({ name })
+  // Try inserting with description if the column exists; otherwise fall back to name only
+  let { error } = await supabase.from('projects').insert(description ? { name, description } : { name })
+  if (error && /description/i.test(String(error.message))) {
+    const retry = await supabase.from('projects').insert({ name })
+    error = retry.error
+  }
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
-

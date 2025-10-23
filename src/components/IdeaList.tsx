@@ -1,4 +1,4 @@
-﻿'use client'
+"use client"
 
 import AuthGuardForm from "@/components/AuthGuardForm";
 import { addComment, deleteIdea, toggleLike } from '@/app/ideas/actions';
@@ -31,9 +31,9 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-xl font-semibold">{idea.title}</h2>
-              <p className="mt-2 text-gray-700">{idea.description}</p>
+              <p className="mt-2 text-gray-700 whitespace-pre-wrap">{idea.description}</p>
             </div>
-            <AuthGuardForm action={deleteIdea}>
+            <AuthGuardForm action={deleteIdea} confirmMessage="아이디어를 삭제하시겠습니까?">
               <input type="hidden" name="id" value={idea.id} />
               <button
                 type="submit"
@@ -44,7 +44,6 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
             </AuthGuardForm>
           </div>
 
-          {/* 좋아요 기능 */}
           <div className="mt-4 flex items-center gap-2">
             <AuthGuardForm action={toggleLike}>
               <input type="hidden" name="idea_id" value={idea.id} />
@@ -57,7 +56,6 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
             </AuthGuardForm>
           </div>
 
-          {/* 댓글 섹션 */}
           <div className="mt-4 border-t pt-4">
             <h3 className="text-lg font-medium mb-2">댓글</h3>
             {idea.comments && idea.comments.length > 0 ? (
@@ -72,19 +70,24 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-gray-500">아직 댓글이 없습니다.</p>
+              <p className="text-sm text-gray-500">댓글이 없습니다.</p>
             )}
 
-            {/* 댓글 추가 */}
-            <AuthGuardForm action={addComment} className="mt-4 flex gap-2">
+            <AuthGuardForm action={addComment} className="mt-4 flex gap-2 items-center">
               <input type="hidden" name="idea_id" value={idea.id} />
-              <textarea
+              <input
                 name="content"
-                className="border rounded px-2 py-1 flex-grow"
-                placeholder="댓글을 남겨주세요..."
-                rows={1}
+                type="text"
+                className="border rounded px-2 py-1 flex-grow min-w-0 max-w-[400px]"
+                placeholder="댓글을 입력해주세요..."
                 required
-              ></textarea>
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    (e.currentTarget.form as HTMLFormElement | null)?.requestSubmit();
+                  }
+                }}
+              />
               <button
                 type="submit"
                 className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
@@ -98,5 +101,3 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
     </ul>
   );
 }
-
-

@@ -48,3 +48,26 @@ export async function deleteEvent(formData: FormData) {
 
   revalidatePath('/calendar')
 }
+
+export async function updateEventAssignee(formData: FormData) {
+  const auth = await getAuth()
+  if (!auth.authenticated) return
+  const supabase = createServiceClient()
+
+  const id = Number(formData.get('id'))
+  const description = String(formData.get('description') ?? '')
+
+  if (isNaN(id)) {
+    console.error('이벤트 업데이트 오류: 유효하지 않은 ID', formData.get('id'))
+    return
+  }
+
+  const { error } = await supabase.from('calendar_events').update({ description }).eq('id', id)
+
+  if (error) {
+    console.error('이벤트 업데이트 오류:', error)
+    return
+  }
+
+  revalidatePath('/calendar')
+}

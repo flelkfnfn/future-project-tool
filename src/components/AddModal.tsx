@@ -95,6 +95,7 @@ export default function AddModal({ onClose }: { onClose: () => void }) {
           <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget as HTMLFormElement); submitProject(fd); }} className="flex flex-col gap-4">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">프로젝트 추가</h3>
             <input name="name" placeholder="프로젝트명" className="border dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500" required />
+            <textarea name="description" placeholder="설명 (선택)" rows={4} className="border dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500" />
             <div className="flex justify-end gap-3">
               <button type="button" className="px-4 py-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => setMode(null)}>뒤로</button>
               <button type="submit" className="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors" disabled={pending}>등록</button>

@@ -6,7 +6,7 @@ import AuthGuardForm from "@/components/AuthGuardForm";
 import { deleteProject, addLink } from "@/app/projects/actions";
 
 type ProjectLink = { id: number; url: string; title: string };
-type Project = { id: number; name: string; project_links: ProjectLink[] };
+type Project = { id: number; name: string; description?: string | null; project_links: ProjectLink[] };
 
 export default function ProjectCard({ project }: { project: Project }) {
   const router = useRouter();
@@ -21,7 +21,7 @@ export default function ProjectCard({ project }: { project: Project }) {
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 w-80 flex-shrink-0 flex flex-col">
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-start mb-2">
         <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">{project.name}</h3>
         <AuthGuardForm
           action={deleteProject}
@@ -48,6 +48,11 @@ export default function ProjectCard({ project }: { project: Project }) {
           </button>
         </AuthGuardForm>
       </div>
+      {project.description && (
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 whitespace-pre-wrap">
+          {project.description}
+        </p>
+      )}
 
       <div className="flex-grow space-y-2">
 
@@ -57,6 +62,7 @@ export default function ProjectCard({ project }: { project: Project }) {
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
+            title={link.title ? `${link.title} — ${link.url}` : link.url}
             className="block bg-gray-100 dark:bg-gray-700 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{link.title || link.url}</p>

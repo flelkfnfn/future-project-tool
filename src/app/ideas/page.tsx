@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+﻿import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getAuth } from "@/lib/auth/session";
 import { deleteIdea, addComment, toggleLike } from "./actions";
@@ -60,7 +60,7 @@ export default async function IdeasPage() {
                     <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{idea.title}</h2>
                     <p className="mt-2 text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{idea.description}</p>
                   </div>
-                  <AuthGuardForm action={deleteIdea}>
+                  <AuthGuardForm action={deleteIdea} confirmMessage="아이디어를 삭제하시겠습니까?">
                     <input type="hidden" name="id" value={idea.id} />
                     <button
                       type="submit"
@@ -107,19 +107,19 @@ export default async function IdeasPage() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">아직 댓글이 없습니다.</p>
                   )}
 
-                  <AuthGuardForm action={addComment} className="mt-4 flex gap-2">
+                  <AuthGuardForm action={addComment} className="mt-4 flex gap-2 items-center">
                     <input type="hidden" name="idea_id" value={idea.id} />
-                    <textarea
+                    <input
                       name="content"
-                      className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-grow min-w-0 w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="댓글을 입력해주세요..."
-                      rows={1}
+                      type="text"
+                      className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-grow min-w-0 w-[380px] bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="댓글 내용을 입력하세요..."
                       required
-                    ></textarea>
+                      
+                    />
                     <button
                       type="submit"
-                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-                    >
+                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
                       댓글 추가
                     </button>
                   </AuthGuardForm>
@@ -152,3 +152,8 @@ export default async function IdeasPage() {
     </div>
   );
 }
+
+
+
+
+

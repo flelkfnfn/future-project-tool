@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "미래변화주도 프로젝트",
-  description: "미래변화주도 프로젝트 협업 툴",
+  title: "미래-사회변화주도 프로젝트",
+  description: "미래-사회변화주도 프로젝트 협업 틀",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -37,3 +37,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+

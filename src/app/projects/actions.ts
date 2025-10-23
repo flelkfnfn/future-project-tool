@@ -10,11 +10,17 @@ export async function addProject(formData: FormData) {
   const supabase = createServiceClient()
 
   const text = formData.get('name') as string
+  const description = (formData.get('description') as string) || ''
   if (!text) {
     return
   }
 
-  const { error } = await supabase.from('projects').insert({ name: text })
+  // Insert with description when available; otherwise fall back to name-only if schema lacks the column
+  let { error } = await supabase.from('projects').insert(description ? { name: text, description } : { name: text })
+  if (error && /description/i.test(String(error.message))) {
+    const retry = await supabase.from('projects').insert({ name: text })
+    error = retry.error
+  }
 
   if (error) {
     // TODO: Handle error
