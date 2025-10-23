@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { getAuth } from "@/lib/auth/session";
 import { deleteIdea, addComment, toggleLike } from "./actions";
 import AuthGuardForm from "@/components/AuthGuardForm";
+import IdeaComments from "@/components/IdeaComments";
 
 type Comment = { id: number; content: string; created_at: string; user_id: string };
 type IdeaLike = { user_id: string };
@@ -90,40 +91,8 @@ export default async function IdeasPage() {
                   </AuthGuardForm>
                 </div>
 
-                <div className="mt-4 border-t dark:border-gray-700 pt-4">
-                  <h3 className="text-lg font-medium mb-2 text-gray-800 dark:text-gray-200">댓글</h3>
-                  {idea.comments && idea.comments.length > 0 ? (
-                    <ul className="space-y-2 text-sm">
-                      {idea.comments.map((comment: Comment) => (
-                        <li key={comment.id} className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                          <p className="text-gray-800 dark:text-gray-200">{comment.content}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {new Date(comment.created_at).toLocaleString()}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">아직 댓글이 없습니다.</p>
-                  )}
-
-                  <AuthGuardForm action={addComment} className="mt-4 flex gap-2 items-center">
-                    <input type="hidden" name="idea_id" value={idea.id} />
-                    <input
-                      name="content"
-                      type="text"
-                      className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-grow min-w-0 w-[380px] bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="댓글 내용을 입력하세요..."
-                      required
-                      
-                    />
-                    <button
-                      type="submit"
-                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
-                      댓글 추가
-                    </button>
-                  </AuthGuardForm>
-                </div>
+                
+                <IdeaComments comments={idea.comments} ideaId={idea.id} />
               </li>
             );
           })}
@@ -152,6 +121,7 @@ export default async function IdeasPage() {
     </div>
   );
 }
+
 
 
 

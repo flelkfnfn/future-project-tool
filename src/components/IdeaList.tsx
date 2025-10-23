@@ -57,7 +57,10 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
           </div>
 
           <div className="mt-4 border-t pt-4">
-            <h3 className="text-lg font-medium mb-2">댓글</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-medium">댓글</h3>
+              {/* lightweight collapse using <details> would work too; keeping client-state in parent is out-of-scope here */}
+            </div>
             {idea.comments && idea.comments.length > 0 ? (
               <ul className="space-y-2 text-sm">
                 {idea.comments.map((comment: Comment) => (
@@ -75,14 +78,13 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
 
             <AuthGuardForm action={addComment} className="mt-4 flex gap-2 items-center">
               <input type="hidden" name="idea_id" value={idea.id} />
-              <input
+              <textarea
                 name="content"
-                type="text"
                 className="border rounded px-2 py-1 flex-grow min-w-0 max-w-[400px]"
                 placeholder="댓글을 입력해주세요..."
                 required
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     (e.currentTarget.form as HTMLFormElement | null)?.requestSubmit();
                   }

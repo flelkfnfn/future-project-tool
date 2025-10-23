@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -11,6 +11,7 @@ type Project = { id: number; name: string; description?: string | null; project_
 export default function ProjectCard({ project }: { project: Project }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
+  const [open, setOpen] = useState(true);
 
   const handleAddLink = async (formData: FormData) => {
     setPending(true);
@@ -25,13 +26,13 @@ export default function ProjectCard({ project }: { project: Project }) {
         <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">{project.name}</h3>
         <AuthGuardForm
           action={deleteProject}
-          confirmMessage="정말 삭제하시겠습니까?"
+          confirmMessage="?뺣쭚 ??젣?섏떆寃좎뒿?덇퉴?"
         >
           <input type="hidden" name="id" value={project.id} />
           <button
             type="submit"
             className="text-gray-400 hover:text-red-500 transition-colors"
-            aria-label="프로젝트 삭제"
+            aria-label="?꾨줈?앺듃 ??젣"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -55,16 +56,14 @@ export default function ProjectCard({ project }: { project: Project }) {
       )}
 
       <div className="flex-grow space-y-2">
-
-        {project.project_links && project.project_links.map(link => (
-          <a
-            key={link.id}
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={link.title ? `${link.title} — ${link.url}` : link.url}
-            className="block bg-gray-100 dark:bg-gray-700 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-          >
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">링크</span>
+          <button type="button" onClick={() => setOpen(v => !v)} className="w-6 h-6 rounded border dark:border-gray-600 flex items-center justify-center text-sm" aria-label={open ? "링크 접기" : "링크 펼치기"} title={open ? "링크 접기" : "링크 펼치기"}>
+            {open ? "-" : "+"}
+          </button>
+        </div>
+        {open && project.project_links && project.project_links.map(link => (
+          <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer" title={link.title ? `${link.title} — ${link.url}` : link.url} className="block bg-gray-100 dark:bg-gray-700 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
             <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{link.title || link.url}</p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{link.url}</p>
           </a>
@@ -79,13 +78,14 @@ export default function ProjectCard({ project }: { project: Project }) {
         )}
         <input type="hidden" name="project_id" value={project.id} />
         <div className="flex flex-col gap-2">
-          <input name="title" placeholder="링크 제목 (선택)" className="border dark:border-gray-600 rounded-md px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+          <input name="title" placeholder="留곹겕 ?쒕ぉ (?좏깮)" className="border dark:border-gray-600 rounded-md px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
           <input name="url" placeholder="https://..." className="border dark:border-gray-600 rounded-md px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" required />
           <button type="submit" className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-colors text-sm" disabled={pending}>
-            링크 추가
+            留곹겕 異붽?
           </button>
         </div>
       </AuthGuardForm>
     </div>
   );
 }
+
