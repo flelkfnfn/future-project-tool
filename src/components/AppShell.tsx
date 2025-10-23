@@ -48,20 +48,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       )}
       {!chatOpen && !addOpen && (
-        <button
-          type="button"
-          onClick={() => setChatOpen(true)}
-          className="fixed right-4 bottom-4 z-40 w-12 h-12 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 hidden lg:flex items-center justify-center"
-          aria-label="채팅 열기"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6">
-            <path d="M18 10c0 3.866-3.582 7-8 7-1.102 0-2.147-.187-3.095-.525-.226-.081-.477-.07-.692.037L3.3 17.4a.75.75 0 01-1.05-.836l.616-2.463a.75.75 0 00-.18-.705A6.97 6.97 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7z" />
-          </svg>
-        </button>
-      )}
-      {!chatOpen && !addOpen && (
-        <div className="fixed right-4 bottom-20 z-40 hidden lg:flex">
+        <div className="fixed right-4 bottom-20 z-40 hidden lg:flex flex-col items-center gap-2">
           <AddLauncher onOpen={() => setAddOpen(true)} />
+          <button
+            type="button"
+            onClick={() => setChatOpen(true)}
+            className="w-12 h-12 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 flex items-center justify-center"
+            aria-label="채팅 열기"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6">
+              <path d="M18 10c0 3.866-3.582 7-8 7-1.102 0-2.147-.187-3.095-.525-.226-.081-.477-.07-.692.037L3.3 17.4a.75.75 0 01-1.05-.836l.616-2.463a.75.75 0 00-.18-.705A6.97 6.97 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7z" />
+            </svg>
+          </button>
         </div>
       )}
       {addOpen && (

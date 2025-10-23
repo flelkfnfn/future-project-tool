@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
   // Enqueue into outbox
   if (recipients.size > 0) {
-    const rows = Array.from(recipients).map((to) => ({ to, subject: `[Notice] ${title}`, body: content ?? '' }))
+    const rows = Array.from(recipients).map((to) => ({ to, subject: `[공지] ${title}`, body: content ?? '' }))
     const { error: outboxErr } = await supabase.from('email_outbox').insert(rows)
     if (outboxErr) {
       console.error('email_outbox insert error:', outboxErr)

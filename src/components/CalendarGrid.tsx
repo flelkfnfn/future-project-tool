@@ -54,15 +54,15 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
     const weekdaysKo = ['일', '월', '화', '수', '목', '금', '토']
 
   return (
-    <div className="bg-white rounded-md border">
-      <div className="flex items-center justify-between p-3 border-b">
-        <button className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200" onClick={() => setCurrent(new Date(current.getFullYear(), current.getMonth() - 1, 1))}>이전</button>
+    <div className="bg-white dark:bg-gray-800 rounded-md border dark:border-gray-700">
+      <div className="flex items-center justify-between p-3 border-b dark:border-gray-700">
+        <button className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600" onClick={() => setCurrent(new Date(current.getFullYear(), current.getMonth() - 1, 1))}>이전</button>
         <h2 className="text-lg font-semibold">{monthLabel}</h2>
-        <button className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200" onClick={() => setCurrent(new Date(current.getFullYear(), current.getMonth() + 1, 1))}>다음</button>
+        <button className="px-3 py-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600" onClick={() => setCurrent(new Date(current.getFullYear(), current.getMonth() + 1, 1))}>다음</button>
       </div>
-      <div className="grid grid-cols-7 text-center text-sm text-gray-600 border-b">
+      <div className="grid grid-cols-7 text-center text-sm text-gray-600 dark:text-gray-400 border-b dark:border-gray-700">
         {weekdaysKo.map((w, i) => (
-          <div key={w} className={`py-2 ${i === 0 ? 'text-rose-600' : ''} ${i === 6 ? 'text-sky-600' : ''}`}>{w}</div>
+          <div key={w} className={`py-2 ${i === 0 ? 'text-rose-600 dark:text-rose-400' : ''} ${i === 6 ? 'text-sky-600 dark:text-sky-400' : ''}`}>{w}</div>
         ))}
       </div>
       <div className="grid grid-cols-7">
@@ -74,17 +74,17 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
           const dow = d.getDay()
           const isSun = dow === 0
           const isSat = dow === 6
-          const weekendBg = isSun ? 'bg-rose-50' : isSat ? 'bg-sky-50' : ''
+          const weekendBg = isSun ? 'bg-rose-50 dark:bg-rose-900/20' : isSat ? 'bg-sky-50 dark:bg-sky-900/20' : ''
           return (
-            <div key={idx} className={`min-h-28 p-2 border -mt-px -ml-px min-w-0 overflow-hidden ${inMonth ? `${weekendBg || 'bg-white'}` : 'bg-gray-100 text-gray-300 opacity-70'}`}>
-              <div className={`inline-block px-2 py-0.5 rounded text-xs ${isToday ? 'bg-blue-500 text-white' : inMonth ? (isSun ? 'text-rose-600' : isSat ? 'text-sky-600' : 'text-gray-700') : 'text-gray-400'}`}>{d.getDate()}</div>
+            <div key={idx} className={`min-h-28 p-2 border dark:border-gray-700 -mt-px -ml-px min-w-0 overflow-hidden ${inMonth ? `${weekendBg || 'bg-white dark:bg-gray-800'}` : 'bg-gray-100 dark:bg-gray-900 text-gray-300 dark:text-gray-600 opacity-70'}`}>
+              <div className={`inline-block px-2 py-0.5 rounded text-xs ${isToday ? 'bg-blue-500 text-white' : inMonth ? (isSun ? 'text-rose-600 dark:text-rose-400' : isSat ? 'text-sky-600 dark:text-sky-400' : 'text-gray-700 dark:text-gray-300') : 'text-gray-400 dark:text-gray-500'}`}>{d.getDate()}</div>
               <div className="mt-2 flex flex-col gap-1 min-w-0">
                 {list.map((e) => (
-                  <div key={e.id} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded flex justify-between items-center">
+                  <div key={e.id} className="text-xs bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded flex justify-between items-center">
                     <span className="truncate">{e.title}</span>
                     <AuthGuardForm action={deleteEvent} confirmMessage="정말 삭제하시겠습니까?">
                       <input type="hidden" name="id" value={e.id} />
-                      <button type="submit" className="text-rose-600 hover:text-rose-700 ml-2">삭제</button>
+                      <button type="submit" className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 ml-2">삭제</button>
                     </AuthGuardForm>
                   </div>
                 ))}
@@ -95,7 +95,7 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
                   <input
                     name="title"
                     placeholder="제목"
-                    className="border rounded px-1 py-0.5 text-xs flex-1 min-w-0 w-full"
+                    className="border dark:border-gray-600 rounded-md px-2 py-1 text-xs flex-1 min-w-0 w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
                     required
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {

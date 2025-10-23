@@ -23,6 +23,7 @@ export async function GET() {
     return NextResponse.json({ ok: true, data })
   }
   // Fallback: singular table chat_message (may not have id)
+  
   const alt = await supabase
     .from('chat_message')
     .select('id, text, username, ts')

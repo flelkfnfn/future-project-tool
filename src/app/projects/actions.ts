@@ -47,3 +47,27 @@ export async function deleteProject(formData: FormData) {
 
   revalidatePath('/projects')
 }
+
+export async function addLink(formData: FormData) {
+  const auth = await getAuth()
+  if (!auth.authenticated) return
+  const supabase = createServiceClient()
+
+  const project_id = Number(formData.get('project_id'))
+  const url = formData.get('url') as string
+  const title = formData.get('title') as string
+
+  if (isNaN(project_id) || !url) {
+    return
+  }
+
+  const { data, error } = await supabase.from('project_links').insert({ project_id, url, title }).select()
+
+  if (error) {
+    console.error("Error adding link:", error)
+    // Optionally surface a user-friendly message in UI if desired
+    return
+  }
+
+  // Success: no debug logging
+}

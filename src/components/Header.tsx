@@ -68,7 +68,7 @@ const Header = () => {
   const authed = !!user || localAuthed
 
   return (
-    <header className="bg-white text-gray-900 border-b">
+    <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-b dark:border-gray-700">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link href="/" className="text-xl font-bold">
           미래변화주도 프로젝트
@@ -78,8 +78,8 @@ const Header = () => {
             {nav.map((item) => {
               const active = pathname?.startsWith(item.href)
               const cls = active
-                ? 'px-3 py-1 rounded-md bg-blue-50 text-blue-700 font-semibold'
-                : 'px-3 py-1 rounded-md text-gray-700 hover:bg-gray-100'
+                ? 'px-3 py-1 rounded-md bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-semibold'
+                : 'px-3 py-1 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               return (
                 <li key={item.href}>
                   <Link href={item.href} className={cls}>{item.label}</Link>
@@ -90,7 +90,7 @@ const Header = () => {
           <div className="ml-2">
             {authed ? (
               <div className="flex items-center gap-2">
-                {user?.email && <span className="text-sm text-gray-600">{user.email}</span>}
+                {user?.email && <span className="text-sm text-gray-600 dark:text-gray-400">{user.email}</span>}
                 <form action={localSignOut}>
                   <button
                     type="submit"

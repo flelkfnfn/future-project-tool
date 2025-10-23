@@ -1,112 +1,154 @@
-﻿import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
+import { getAuth } from "@/lib/auth/session";
 import { deleteIdea, addComment, toggleLike } from "./actions";
 import AuthGuardForm from "@/components/AuthGuardForm";
 
-type Comment = { id: number; content: string; created_at: string; user_id: string }
-// If likes is an array of user IDs, update the type:
-type Idea = { id: number; title: string; description: string; likes: string[]; comments: Comment[] }
+type Comment = { id: number; content: string; created_at: string; user_id: string };
+type IdeaLike = { user_id: string };
+type Idea = {
+  id: number;
+  title: string;
+  description: string;
+  idea_likes: IdeaLike[];
+  comments: Comment[];
+};
 
 export default async function IdeasPage() {
   const supabase = await createClient();
+  const auth = await getAuth();
+  if (auth.principal?.source === "supabase" && auth.principal.id) {
+    try {
+      const svc = createServiceClient();
+      await svc.from('users').upsert({ id: auth.principal.id, email: auth.principal.email ?? null }, { onConflict: 'id', ignoreDuplicates: true });
+    } catch (e) {
+      console.error('ensure users row at page load error:', e);
+    }
+  }
 
-  // Fetch ideas and their comments
   const { data: ideas, error } = await supabase
     .from("ideas")
-    .select("id, title, description, likes, comments(id, content, created_at, user_id)") // Select comments, use 'likes'
-    .order("created_at", { ascending: false }); // Order ideas by creation date
+    .select("id, title, description, idea_likes(user_id), comments(id, content, created_at, user_id)")
+    .order("created_at", { ascending: false });
 
   if (error) {
     console.error("아이디어 데이터를 불러오는 중 오류:", error);
-    return <p className="text-red-500">아이디어를 불러오는 중 오류가 발생했습니다.</p>;
+    return (
+      <div className="flex justify-center items-center h-full">
+        <p className="text-red-500">아이디어를 불러오는 중 오류가 발생했습니다.</p>
+      </div>
+    );
   }
 
-  const ideasList = (ideas as unknown as Idea[]) || []
+  const ideasList = (ideas as unknown as Idea[]) || [];
+  const currentUserId = auth.principal?.id ?? null;
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">아이디어 목록</h1>
-
-      {/* 아이디어 추가 폼 */}
-      {/* 추가는 전역 + 버튼 모달 사용 */}
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">아이디어 목록</h1>
 
       {ideasList.length > 0 ? (
-        <ul className="mt-4 space-y-4">
-          {ideasList.map((idea: Idea) => (
-            <li key={idea.id} className="p-4 border rounded-md shadow-sm"> {/* Removed flex justify-between items-center from here */}
-              <div className="flex justify-between items-start"> {/* Added this div for layout */}
-                <div>
-                  <h2 className="text-xl font-semibold">{idea.title}</h2>
-                  <p className="mt-2 text-gray-700">{idea.description}</p>
+        <ul className="space-y-6">
+          {ideasList.map((idea: Idea) => {
+            const userHasLiked = idea.idea_likes.some(like => like.user_id === currentUserId);
+            const likeCount = idea.idea_likes.length;
+
+            return (
+              <li key={idea.id} className="bg-white dark:bg-gray-800 p-6 border dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{idea.title}</h2>
+                    <p className="mt-2 text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{idea.description}</p>
+                  </div>
+                  <AuthGuardForm action={deleteIdea}>
+                    <input type="hidden" name="id" value={idea.id} />
+                    <button
+                      type="submit"
+                      className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors ml-4"
+                    >
+                      삭제
+                    </button>
+                  </AuthGuardForm>
                 </div>
-                <AuthGuardForm action={deleteIdea}>
-                  <input type="hidden" name="id" value={idea.id} />
-                  <button
-                    type="submit"
-                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                  >
-                    삭제
-                  </button>
-                </AuthGuardForm>
-              </div>
 
-              {/* 좋아요 버튼 */}
-              <div className="mt-4 flex items-center gap-2">
-                <AuthGuardForm action={toggleLike}>
-                  <input type="hidden" name="idea_id" value={idea.id} />
-                  <button
-                    type="submit"
-                    className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600"
-                  >
-                    {/* 좋아요 개수 표시 */}
-                    좋아요({idea.likes.length})
-                  </button>
-                </AuthGuardForm>
-              </div>
+                <div className="mt-4 flex items-center gap-4">
+                  <AuthGuardForm action={toggleLike}>
+                    <input type="hidden" name="idea_id" value={idea.id} />
+                    <button
+                      type="submit"
+                      className={`flex items-center gap-2 transition-colors ${
+                        userHasLiked
+                          ? "text-purple-600 dark:text-purple-400"
+                          : "text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400"
+                      }`}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a2 2 0 00-.8 1.4z" />
+                      </svg>
+                      <span>{likeCount}</span>
+                    </button>
+                  </AuthGuardForm>
+                </div>
 
-              {/* ?볤? ?뱀뀡 */}
-              <div className="mt-4 border-t pt-4">
-                <h3 className="text-lg font-medium mb-2">댓글</h3>
-                {idea.comments && idea.comments.length > 0 ? (
-                  <ul className="space-y-2 text-sm">
-                    {idea.comments.map((comment: Comment) => (
-                      <li key={comment.id} className="bg-gray-100 p-2 rounded">
-                        <p>{comment.content}</p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(comment.created_at).toLocaleString()}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-gray-500">아직 댓글이 없습니다.</p>
-                )}
+                <div className="mt-4 border-t dark:border-gray-700 pt-4">
+                  <h3 className="text-lg font-medium mb-2 text-gray-800 dark:text-gray-200">댓글</h3>
+                  {idea.comments && idea.comments.length > 0 ? (
+                    <ul className="space-y-2 text-sm">
+                      {idea.comments.map((comment: Comment) => (
+                        <li key={comment.id} className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                          <p className="text-gray-800 dark:text-gray-200">{comment.content}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {new Date(comment.created_at).toLocaleString()}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">아직 댓글이 없습니다.</p>
+                  )}
 
-                {/* 댓글 추가 폼 */}
-                <AuthGuardForm action={addComment} className="mt-4 flex gap-2">
-                  <input type="hidden" name="idea_id" value={idea.id} />
-                  <textarea
-                    name="content"
-                    className="border rounded px-2 py-1 flex-grow"
-                    placeholder="댓글을 입력해주세요..."
-                    rows={1}
-                    required
-                  ></textarea>
-                  <button
-                    type="submit"
-                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                  >
-                    댓글 추가
-                  </button>
-                </AuthGuardForm>
-              </div>
-            </li>
-          ))}
+                  <AuthGuardForm action={addComment} className="mt-4 flex gap-2">
+                    <input type="hidden" name="idea_id" value={idea.id} />
+                    <textarea
+                      name="content"
+                      className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-grow min-w-0 w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="댓글을 입력해주세요..."
+                      rows={1}
+                      required
+                    ></textarea>
+                    <button
+                      type="submit"
+                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                    >
+                      댓글 추가
+                    </button>
+                  </AuthGuardForm>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       ) : (
-        <p className="mt-4">아직 등록된 아이디어가 없습니다.</p>
+        <div className="text-center py-24">
+          <svg
+            className="mx-auto h-12 w-12 text-gray-400 hover:text-yellow-400 transition-colors"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            {/* 💡 전구 아이콘 */}
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 2a7 7 0 00-7 7c0 2.29 1.063 3.918 2.227 5.083A5.97 5.97 0 008 17h8a5.97 5.97 0 00.773-2.917C17.937 12.918 19 11.29 19 9a7 7 0 00-7-7zm0 18v2m-3 0h6"
+            />
+          </svg>
+          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-200">아직 등록된 아이디어가 없습니다.</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">새로운 아이디어를 추가해보세요.</p>
+        </div>
       )}
     </div>
   );
 }
-
-

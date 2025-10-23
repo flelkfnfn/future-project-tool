@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import SupabaseProvider from "@/components/supabase-provider";
 import AppShell from "@/components/AppShell";
 import PageTransitionOverlay from "@/components/PageTransitionOverlay";
+import ThemeProvider from "@/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,11 +26,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <SupabaseProvider>
-          <Header />
-          <AppShell>{children}</AppShell>
-          <PageTransitionOverlay />
-        </SupabaseProvider>
+        <ThemeProvider>
+          <SupabaseProvider>
+            <Header />
+            <AppShell>{children}</AppShell>
+            <PageTransitionOverlay />
+          </SupabaseProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -60,45 +60,54 @@ export default function AddModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-white rounded-md shadow-lg w-[28rem] max-w-[90vw] p-4 relative">
-        <button className="absolute right-3 top-3 text-gray-500 hover:text-gray-800" onClick={onClose} aria-label="닫기">×</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-[32rem] max-w-[90vw] p-6 relative">
+        <button className="absolute right-4 top-4 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200" onClick={onClose} aria-label="닫기">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        {pending && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 dark:bg-gray-800/70 rounded-lg">
+            <div className="h-8 w-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+          </div>
+        )}
         {!mode ? (
-          <div className="flex flex-col gap-3">
-            <h3 className="text-lg font-semibold">무엇을 추가할까요?</h3>
-            <div className="flex gap-3">
-              <button className="px-4 py-2 rounded bg-blue-600 text-white" onClick={() => setMode('notice')}>공지</button>
-              <button className="px-4 py-2 rounded bg-indigo-600 text-white" onClick={() => setMode('project')}>프로젝트</button>
-              <button className="px-4 py-2 rounded bg-purple-600 text-white" onClick={() => setMode('idea')}>아이디어</button>
+          <div className="flex flex-col gap-4">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">무엇을 추가할까요?</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <button className="px-4 py-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors" onClick={() => setMode('notice')}>공지</button>
+              <button className="px-4 py-3 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors" onClick={() => setMode('project')}>프로젝트</button>
+              <button className="px-4 py-3 rounded-md bg-purple-600 hover:bg-purple-700 text-white font-semibold transition-colors" onClick={() => setMode('idea')}>아이디어</button>
             </div>
           </div>
         ) : mode === 'notice' ? (
-          <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget as HTMLFormElement); submitNotice(fd); }} className="flex flex-col gap-3">
-            <h3 className="text-lg font-semibold">공지 추가</h3>
-            <input name="title" placeholder="제목" className="border rounded px-2 py-1" required />
-            <textarea name="content" placeholder="내용" className="border rounded px-2 py-1" rows={5} />
-            <div className="flex justify-end gap-2">
-              <button type="button" className="px-3 py-1" onClick={() => setMode(null)}>뒤로</button>
-              <button type="submit" className="px-4 py-1 rounded bg-blue-600 text-white" disabled={pending}>등록</button>
+          <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget as HTMLFormElement); submitNotice(fd); }} className="flex flex-col gap-4">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">공지 추가</h3>
+            <input name="title" placeholder="제목" className="border dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500" required />
+            <textarea name="content" placeholder="내용" className="border dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500" rows={5} />
+            <div className="flex justify-end gap-3">
+              <button type="button" className="px-4 py-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => setMode(null)}>뒤로</button>
+              <button type="submit" className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors" disabled={pending}>등록</button>
             </div>
           </form>
         ) : mode === 'project' ? (
-          <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget as HTMLFormElement); submitProject(fd); }} className="flex flex-col gap-3">
-            <h3 className="text-lg font-semibold">프로젝트 추가</h3>
-            <input name="name" placeholder="프로젝트명" className="border rounded px-2 py-1" required />
-            <div className="flex justify-end gap-2">
-              <button type="button" className="px-3 py-1" onClick={() => setMode(null)}>뒤로</button>
-              <button type="submit" className="px-4 py-1 rounded bg-indigo-600 text-white" disabled={pending}>등록</button>
+          <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget as HTMLFormElement); submitProject(fd); }} className="flex flex-col gap-4">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">프로젝트 추가</h3>
+            <input name="name" placeholder="프로젝트명" className="border dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500" required />
+            <div className="flex justify-end gap-3">
+              <button type="button" className="px-4 py-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => setMode(null)}>뒤로</button>
+              <button type="submit" className="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors" disabled={pending}>등록</button>
             </div>
           </form>
         ) : (
-          <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget as HTMLFormElement); submitIdea(fd); }} className="flex flex-col gap-3">
-            <h3 className="text-lg font-semibold">아이디어 추가</h3>
-            <input name="title" placeholder="제목" className="border rounded px-2 py-1" required />
-            <textarea name="description" placeholder="설명(선택)" className="border rounded px-2 py-1" rows={4} />
-            <div className="flex justify-end gap-2">
-              <button type="button" className="px-3 py-1" onClick={() => setMode(null)}>뒤로</button>
-              <button type="submit" className="px-4 py-1 rounded bg-purple-600 text-white" disabled={pending}>등록</button>
+          <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget as HTMLFormElement); submitIdea(fd); }} className="flex flex-col gap-4">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">아이디어 추가</h3>
+            <input name="title" placeholder="제목" className="border dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500" required />
+            <textarea name="description" placeholder="설명(선택)" className="border dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500" rows={4} />
+            <div className="flex justify-end gap-3">
+              <button type="button" className="px-4 py-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => setMode(null)}>뒤로</button>
+              <button type="submit" className="px-4 py-2 rounded-md bg-purple-600 hover:bg-purple-700 text-white font-semibold transition-colors" disabled={pending}>등록</button>
             </div>
           </form>
         )}

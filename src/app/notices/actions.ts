@@ -55,7 +55,7 @@ export async function addNotice(formData: FormData) {
     } else {
       const rows = uniq.map((to) => ({
         to,
-        subject: `[Notice] ${title}`,
+        subject: `[공지] ${title}`,
         body: content ?? '',
       }))
       const { error: outboxErr } = await supabase.from('email_outbox').insert(rows)

@@ -221,11 +221,11 @@ export default function ChatSidebar({
     <aside className="h-full">
       <div className="sticky top-16 h-[calc(100vh-6rem)] relative overflow-visible">
         <div
-          className={`absolute inset-0 flex flex-col border rounded-md bg-white transition-transform duration-300 pointer-events-auto min-w-0 ${
+          className={`absolute inset-0 flex flex-col border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 transition-transform duration-300 pointer-events-auto min-w-0 ${
             open ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          <div className="px-3 py-2 border-b font-semibold flex items-center justify-between">
+          <div className="px-3 py-2 border-b dark:border-gray-700 font-semibold flex items-center justify-between text-gray-900 dark:text-gray-100">
             <span>채팅</span>
           </div>
 
@@ -233,8 +233,8 @@ export default function ChatSidebar({
             <>
               <div ref={listRef} className="flex-1 overflow-auto p-2 space-y-2 text-sm min-w-0">
                 {messages.map((m) => (
-                  <div key={m.id} className="rounded bg-gray-50 p-2">
-                    <div className="text-gray-600 text-xs">
+                  <div key={m.id} className="rounded bg-gray-100 dark:bg-gray-700 p-2">
+                    <div className="text-gray-600 dark:text-gray-400 text-xs">
                       {m.user} ·{" "}
                       {new Date(m.ts).toLocaleTimeString("ko-KR", {
                         hour: "2-digit",
@@ -242,43 +242,40 @@ export default function ChatSidebar({
                         hour12: false,
                       })}
                     </div>
-                    <div className="text-gray-900 whitespace-pre-wrap break-words">{m.text}</div>
+                    <div className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">{m.text}</div>
                   </div>
                 ))}
               </div>
 
-              <div className="p-2 border-t flex gap-2">
+              <div className="p-2 border-t dark:border-gray-700 flex gap-2">
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={onKeyDown}
                   placeholder="메시지 입력"
-                  className="border rounded px-2 py-1 text-sm flex-1 min-w-0 w-full"
+                  className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-1 min-w-0 w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center p-4 text-sm text-gray-600">
+            <div className="flex-1 flex items-center justify-center p-4 text-sm text-gray-600 dark:text-gray-400">
               로그인 후 채팅을 이용하실 수 있습니다.
             </div>
           )}
 
           {showToggle && (
-            <button
-              type="button"
-              onClick={onToggle}
-              className="absolute left-0 -translate-x-full bottom-3 z-20 w-12 h-12 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 flex items-center justify-center pointer-events-auto"
-              aria-label={open ? "채팅 닫기" : "채팅 열기"}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6">
-                <path d="M18 10c0 3.866-3.582 7-8 7-1.102 0-2.147-.187-3.095-.525-.226-.081-.477-.07-.692.037L3.3 17.4a.75.75 0 01-1.05-.836l.616-2.463a.75.75 0 00-.18-.705A6.97 6.97 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7z" />
-              </svg>
-            </button>
-          )}
-
-          {showToggle && (
-            <div className="absolute left-0 -translate-x-full bottom-20 z-20 pointer-events-auto">
+            <div className="absolute right-full bottom-16 z-20 flex flex-col items-center gap-2 pointer-events-auto mr-2">
               <AddLauncher onOpen={onAdd ?? (() => {})} />
+              <button
+                type="button"
+                onClick={onToggle}
+                className="w-12 h-12 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 flex items-center justify-center"
+                aria-label={open ? "채팅 닫기" : "채팅 열기"}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6">
+                  <path d="M18 10c0 3.866-3.582 7-8 7-1.102 0-2.147-.187-3.095-.525-.226-.081-.477-.07-.692.037L3.3 17.4a.75.75 0 01-1.05-.836l.616-2.463a.75.75 0 00-.18-.705A6.97 6.97 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7z" />
+                </svg>
+              </button>
             </div>
           )}
         </div>
