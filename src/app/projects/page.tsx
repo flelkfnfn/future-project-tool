@@ -27,17 +27,17 @@ export default async function ProjectsPage() {
       .from("projects")
       .select("*, project_links (*)")
       .order("id", { ascending: false });
-    data = retry.data as any;
-    error = retry.error as any;
+    data = retry.data as Project[];
+    error = retry.error;
   }
 
   let projects: Project[] = [];
   if (!error && Array.isArray(data)) {
-    projects = data.map((p: any) => ({
+    projects = data.map((p: Project) => ({
       id: p.id,
       name: p.name,
       description: p.description ?? null,
-      project_links: (Array.isArray(p.project_links) ? p.project_links : []).map((l: any) => ({
+      project_links: (Array.isArray(p.project_links) ? p.project_links : []).map((l: ProjectLink) => ({
         id: l.id,
         url: l.url,
         title: l.title,
@@ -52,7 +52,7 @@ export default async function ProjectsPage() {
     ]);
 
     if (projectsError) {
-      const detail = (projectsError as any)?.message || ''
+      const detail = (projectsError as { message?: string })?.message || ''
       return (
         <div className="flex justify-center items-center h-full">
           <div className="text-center">
@@ -66,7 +66,7 @@ export default async function ProjectsPage() {
     }
 
     const linksArr = (Array.isArray(linksData) ? linksData : []) as ProjectLink[];
-    projects = (projectsData || []).map((p: any) => ({
+    projects = (projectsData || []).map((p: Project) => ({
       id: p.id,
       name: p.name,
       description: p.description ?? null,
@@ -104,10 +104,10 @@ export default async function ProjectsPage() {
                   />
                 </svg>
                 <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                  아직 생성한 프로젝트가 없습니다.
+                  아직 생성된 프로젝트가 없습니다.
                 </h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  오른쪽 상단에서 프로젝트를 추가해보세요.
+                  새로운 프로젝트를 추가해보세요.
                 </p>
               </div>
             </div>
