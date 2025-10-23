@@ -109,7 +109,7 @@ export default function ChatSidebar({
         const r = payload.new as { id?: number | string; text?: string; username?: string; user?: string; ts?: number };
         const text = String(r.text ?? "");
         // Prefer "username" (DB column), fallback to "user"
-        const user = String((r as any).username ?? r.user ?? "user");
+        const user = String(r.username ?? r.user ?? "user");
         const ts = Number(r.ts ?? Date.now());
         const incoming: ChatMsg = { id: (r.id != null ? String(r.id) : makeId(text, user, ts)), text, user, ts };
 
