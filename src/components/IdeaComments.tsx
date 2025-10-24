@@ -3,18 +3,71 @@
 import AuthGuardForm from "@/components/AuthGuardForm";
 import { addComment } from "@/app/ideas/actions";
 import React, { useEffect, useRef, useState } from "react";
+import { useSupabase } from "@/components/supabase-provider";
 
-type Comment = { id: number; content: string; created_at: string; user_id: string };
+// Supabase 테이블에서 오는 댓글의 타입 정의
+type Comment = { 
+  id: number;
+  content: string;
+  created_at: string;
+  user_id: string;
+  // idea_id가 payload에 포함될 수 있으므로 추가
+  idea_id?: number;
+};
 
 export default function IdeaComments({ comments, ideaId }: { comments: Comment[]; ideaId: number }) {
+  // 1. Supabase 클라이언트 인스턴스 가져오기
+  const { supabase } = useSupabase();
+
+  // 2. props로 받은 초기 댓글 목록을 내부 상태로 관리
+  const [liveComments, setLiveComments] = useState<Comment[]>(comments);
+
   const [open, setOpen] = useState(true);
 
   // 애니메이션용 refs / state
   const contentRef = useRef<HTMLDivElement | null>(null);
-  const [maxHeight, setMaxHeight] = useState<string>("none"); // 'none' means auto height (열려있을 때)
-  const transitionRef = useRef(false);
+  const [maxHeight, setMaxHeight] = useState<string>("none");
 
-  // 초기 마운트 시, open 상태에 맞춰 maxHeight 설정
+  // 3. 실시간 댓글 구독을 위한 useEffect
+  useEffect(() => {
+    // 부모 컴포넌트로부터 받은 comments가 변경될 경우, 로컬 상태를 동기화
+    setLiveComments(comments);
+
+    // Supabase Realtime 구독 설정
+    const channel = supabase
+      .channel(`idea-comments:${ideaId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'comments', // 실제 댓글 테이블 이름이 'comments'라고 가정
+          filter: `idea_id=eq.${ideaId}` // 현재 ideaId에 해당하는 댓글만 수신
+        },
+        (payload) => {
+          const newComment = payload.new as Comment;
+          
+          // 중복 추가를 방지하기 위해 기존 댓글 목록에 없는 경우에만 추가
+          setLiveComments((prevComments) => {
+            if (prevComments.some(c => c.id === newComment.id)) {
+              return prevComments;
+            }
+            // 최신 댓글을 목록의 끝에 추가
+            return [...prevComments, newComment];
+          });
+        }
+      )
+      .subscribe();
+
+    // 컴포넌트가 언마운트될 때 채널 구독 해제 (메모리 누수 방지)
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    
+    // 의존성 배열: supabase, ideaId, 또는 초기 comments가 변경될 때마다 이 효과를 다시 실행
+  }, [supabase, ideaId, comments]);
+
+  // 애니메이션을 위한 useEffect들 (liveComments.length를 의존성으로 사용)
   useEffect(() => {
     const el = contentRef.current;
     if (!el) {
@@ -23,28 +76,19 @@ export default function IdeaComments({ comments, ideaId }: { comments: Comment[]
     }
 
     if (open) {
-      // open 상태라면 일단 px로 맞춰 애니메이션이 동작하도록 한 뒤에 transition 끝나면 none으로 둔다.
       setMaxHeight(`${el.scrollHeight}px`);
-      // transition 끝난 후 auto 높이가 되도록 onTransitionEnd에서 처리
     } else {
-      // 닫힐 때는 보이는 높이(px)에서 0으로 전환
-      // content가 'none'일 수 있으므로 현재 scrollHeight로 맞춘 뒤 0으로 변경
       setMaxHeight(`${el.scrollHeight}px`);
-      // 다음 프레임에서 닫기 애니메이션 시작
       requestAnimationFrame(() => requestAnimationFrame(() => setMaxHeight("0px")));
     }
-    // comments 내용이 변하면 높이 재조정(댓글 추가/삭제 등)
-  }, [open, comments.length]);
+  }, [open, liveComments.length]);
 
-  // ResizeObserver: 내부 컨텐츠가 변경될 때 열려있으면 maxHeight를 갱신
   useEffect(() => {
     const el = contentRef.current;
     if (!el || typeof window === "undefined") return;
 
     const ro = new ResizeObserver(() => {
-      // 열려있고 현재 maxHeight가 'none'이 아닌 경우 (애니메이션 중/직후), 실제 높이로 갱신
       if (open) {
-        // maxHeight가 none이면 아무것도 할 필요 없음 (auto 높이)
         if (maxHeight !== "none") {
           setMaxHeight(`${el.scrollHeight}px`);
         }
@@ -52,49 +96,40 @@ export default function IdeaComments({ comments, ideaId }: { comments: Comment[]
     });
     ro.observe(el);
     return () => ro.disconnect();
-    // maxHeight는 의존성에서 제외하여 루프 방지
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, comments.length]);
-
-  // 전환 종료 처리: 열림 끝나면 maxHeight를 none으로 두어 내부 컨텐츠가 자유롭게 늘어나도록 함
+  }, [open, liveComments.length, maxHeight]);
+  
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName !== "max-height") return;
-    // transitionRef로 애니메이션 진행 여부 체크 (선택적 안전장치)
     if (open) {
       setMaxHeight("none");
     }
   };
 
-  // 토글 버튼: open 상태 토글 + 애니메이션 시작을 위한 프레임 조작
   const toggle = () => {
     const el = contentRef.current;
     if (!el) {
       setOpen((v) => !v);
       return;
     }
-
-    if (open) {
-      // 닫기: 현재 높이(px)로 세팅 후 다음 프레임에서 0으로 바꿔 애니메이션
-      setMaxHeight(`${el.scrollHeight}px`);
-      requestAnimationFrame(() => {
-        transitionRef.current = true;
-        setMaxHeight("0px");
-        setOpen(false);
-      });
-    } else {
-      // 열기: 먼저 open true로 바꾼 뒤, 다음 프레임에서 scrollHeight(px)로 세팅해서 애니메이션
-      setOpen(true);
-      requestAnimationFrame(() => {
-        transitionRef.current = true;
+    setOpen((prevOpen) => {
+      const nextOpen = !prevOpen;
+      if (nextOpen) { // 열릴 때
+        requestAnimationFrame(() => {
+          setMaxHeight(`${el.scrollHeight}px`);
+        });
+      } else { // 닫힐 때
         setMaxHeight(`${el.scrollHeight}px`);
-      });
-    }
+        requestAnimationFrame(() => {
+          setMaxHeight("0px");
+        });
+      }
+      return nextOpen;
+    });
   };
 
-  // 스타일 객체: maxHeight가 'none'이면 스타일에서 제외하여 자동 높이 허용
   const contentStyle: React.CSSProperties =
-    maxHeight === "none"
-      ? { overflow: "visible", transition: undefined }
+    maxHeight === "none" && open
+      ? { overflow: "visible" }
       : {
           maxHeight,
           overflow: "hidden",
@@ -104,64 +139,56 @@ export default function IdeaComments({ comments, ideaId }: { comments: Comment[]
   return (
     <div className="mt-4 border-t dark:border-gray-700 pt-4">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200">댓글</h3>
+        <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200">댓글 ({liveComments.length})</h3>
         <button
           type="button"
           onClick={toggle}
-          className="w-6 h-6 rounded border dark:border-gray-600 flex items-center justify-center text-sm"
+          className="w-8 h-8 rounded-full border dark:border-gray-600 flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           aria-label={open ? "댓글 접기" : "댓글 펼치기"}
           title={open ? "댓글 접기" : "댓글 펼치기"}
           aria-expanded={open}
         >
-          <span
-            style={{
-              display: "inline-block",
-              transform: open ? "rotate(0deg)" : "rotate(180deg)",
-              transition: "transform 220ms ease",
-              fontSize: "2rem",
-            }}
-          >
-            {open ? "-" : "+"}
-          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-5 h-5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
+            <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+          </svg>
         </button>
       </div>
 
-      {/* 애니메이션 컨테이너: 댓글 목록 + 입력 폼을 모두 감싸도록 유지 */}
       <div
         ref={contentRef}
         style={contentStyle}
         onTransitionEnd={handleTransitionEnd}
         aria-hidden={!open}
       >
-        {comments && comments.length > 0 ? (
-          <ul className="space-y-2 text-sm">
-            {comments.map((comment) => (
-              <li key={comment.id} className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                <p className="text-gray-800 dark:text-gray-200">{comment.content}</p>
+        {liveComments && liveComments.length > 0 ? (
+          <ul className="space-y-2 text-sm pt-2">
+            {liveComments.map((comment) => (
+              <li key={comment.id} className="bg-gray-100 dark:bg-gray-800/50 p-3 rounded-lg">
+                <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">{comment.content}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {new Date(comment.created_at).toLocaleString()}
+                  {new Date(comment.created_at).toLocaleString('ko-KR')}
                 </p>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-gray-500 dark:text-gray-400">댓글이 없습니다.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 pt-2">아직 댓글이 없습니다.</p>
         )}
 
-        <AuthGuardForm action={addComment} className="mt-4 flex gap-2 items-center">
+        <AuthGuardForm action={addComment} className="mt-4 flex gap-2 items-start">
           <input type="hidden" name="idea_id" value={ideaId} />
-          <input
+          <textarea
             name="content"
-            type="text"
-            className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-1 min-w-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
+            rows={2}
+            className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-1 min-w-0 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 resize-none"
             placeholder="댓글을 입력해주세요..."
             required
           />
           <button
             type="submit"
-            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors self-stretch"
           >
-            댓글 추가
+            등록
           </button>
         </AuthGuardForm>
       </div>
