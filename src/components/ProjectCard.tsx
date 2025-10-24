@@ -52,27 +52,52 @@ export default function ProjectCard({ project }: { project: Project }) {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="w-6 h-6 rounded border dark:border-gray-600 flex items-center justify-center text-sm"
+            className="w-6 h-6 rounded border dark:border-gray-600 flex items-center justify-center text-sm transition-colors"
+            aria-expanded={open}
+            aria-controls={`project-links-${project.id}`}
             aria-label={open ? "링크 접기" : "링크 펼치기"}
             title={open ? "링크 접기" : "링크 펼치기"}
           >
-            {open ? "-" : "+"}
-          </button>
-        </div>
-
-        {open && project.project_links && project.project_links.map((link) => (
-          <a
-            key={link.id}
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={link.title ? `${link.title} - ${link.url}` : link.url}
-            className="block bg-gray-100 dark:bg-gray-700 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            <span
+            style={{
+              display: "inline-block",
+              transform: open ? "rotate(0deg)" : "rotate(180deg)",
+              transition: "transform 220ms ease",
+              fontSize: "1.5rem",
+            }}
           >
-            <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{link.title || link.url}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{link.url}</p>
-          </a>
-        ))}
+            {open ? "-" : "+"}
+          </span>
+        </button>
+      </div>
+
+        {/* ▼▼ 슬라이드 컨테이너: grid 트릭으로 높이 애니메이션 */}
+        <div
+          id={`project-links-${project.id}`}
+          className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+            open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          }`}
+          >
+          <div
+            className={`overflow-hidden transition-opacity duration-300 ${
+              open ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            {project.project_links && project.project_links.map((link) => (
+              <a
+                key={link.id}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={link.title ? `${link.title} - ${link.url}` : link.url}
+                className="block bg-gray-100 dark:bg-gray-700 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors mb-2"
+              >
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{link.title || link.url}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{link.url}</p>
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
 
       <AuthGuardForm action={handleAddLink} className="mt-4 pt-4 border-t dark:border-gray-700 relative">

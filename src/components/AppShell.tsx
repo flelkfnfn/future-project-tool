@@ -22,7 +22,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, [chatOpen])
 
   const gridCls = useMemo(() => {
-    // 紐⑤뱺 ?뱀뀡 ?숈씪 鍮꾩쑉 ?ъ슜: 1:4:1 (?щ갚:蹂몃Ц:梨꾪똿)
     return 'grid grid-cols-6 gap-4 w-full'
   }, [])
 
@@ -34,21 +33,26 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <main className="w-full p-4 overflow-x-hidden">
       <div className={gridCls}>
         <div className="col-span-1 hidden lg:block" />
-        <div className={'col-span-4 min-w-0'}>
-          {children}
-        </div>
+        <div className={"col-span-4 min-w-0"}>{children}</div>
         <div className="col-span-1 hidden lg:block" />
       </div>
-      {/* Fixed chat overlay aligned to right side */}
-      {chatOpen && !addOpen && (
-        <div className="fixed right-4 top-16 bottom-4 hidden lg:block z-30">
-          <div className="h-full w-80">
-            <ChatSidebar open={chatOpen} onToggle={() => setChatOpen((v) => !v)} onAdd={() => setAddOpen(true)} />
-          </div>
+
+      {/* 1) 항상 마운트: ChatSidebar는 계속 존재하고, open prop만 바뀜 */}
+      <div className="fixed right-4 top-16 bottom-4 hidden lg:block z-30">
+        <div className={
+            chatOpen ? "h-full w-80 overflow-visible"
+                    : "h-full w-80 overflow-x-hidden overflow-y-visible"}>
+          <ChatSidebar
+            open={chatOpen && !addOpen}             // ← addOpen일 땐 닫힌 상태로 슬라이드 아웃
+            onToggle={() => setChatOpen((v) => !v)} // ← 이 토글이 transform 전환을 유발
+            onAdd={() => setAddOpen(true)}
+          />
         </div>
-      )}
+      </div>
+
+      {/* 2) 닫힌 상태일 때만 표시되는 플로팅 버튼은 유지 */}
       {!chatOpen && !addOpen && (
-        <div className="fixed right-4 bottom-20 z-40 hidden lg:flex flex-col items-center gap-2">
+        <div className="absolute right-full bottom-16 z-20 flex flex-col items-center gap-2 pointer-events-auto mr-2">
           <AddLauncher onOpen={() => setAddOpen(true)} />
           <button
             type="button"
@@ -62,10 +66,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       )}
-      {addOpen && (
-        <AddModal onClose={() => setAddOpen(false)} />
-      )}
+
+      {addOpen && <AddModal onClose={() => setAddOpen(false)} />}
     </main>
-  )
+  );
+
 }
 

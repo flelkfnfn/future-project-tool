@@ -48,7 +48,6 @@ export default function ChatSidebar({
         }
       })
       .catch(() => {});
-
     return () => {
       active = false;
     };
@@ -69,7 +68,6 @@ export default function ChatSidebar({
     }
 
     (async () => {
-      // local cache 우선 로드
       try {
         const raw = localStorage.getItem("global_chat_cache");
         if (raw) {
@@ -85,14 +83,12 @@ export default function ChatSidebar({
         });
         const j = await res.json();
         if (j?.ok && Array.isArray(j.data)) {
-          const mapped: ChatMsg[] = (j.data as Array<{ text: string; user?: string; ts: number }>).map(
-            (r) => {
-              const u = r.user ?? "user";
-              const t = r.ts;
-              const x = r.text;
-              return { id: makeId(x, u, t), text: x, user: u, ts: t };
-            },
-          );
+          const mapped: ChatMsg[] = (j.data as Array<{ text: string; user?: string; ts: number }>).map((r) => {
+            const u = r.user ?? "user";
+            const t = r.ts;
+            const x = r.text;
+            return { id: makeId(x, u, t), text: x, user: u, ts: t };
+          });
           setMessages(dedupe(mapped));
           try {
             localStorage.setItem("global_chat_cache", JSON.stringify(mapped));
@@ -108,10 +104,9 @@ export default function ChatSidebar({
       (payload) => {
         const r = payload.new as { id?: number | string; text?: string; username?: string; user?: string; ts?: number };
         const text = String(r.text ?? "");
-        // Prefer "username" (DB column), fallback to "user"
         const user = String(r.username ?? r.user ?? "user");
         const ts = Number(r.ts ?? Date.now());
-        const incoming: ChatMsg = { id: (r.id != null ? String(r.id) : makeId(text, user, ts)), text, user, ts };
+        const incoming: ChatMsg = { id: r.id != null ? String(r.id) : makeId(text, user, ts), text, user, ts };
 
         setMessages((prev) => {
           const next = dedupe([...prev, incoming]);
@@ -121,16 +116,13 @@ export default function ChatSidebar({
           return next;
         });
 
-        listRef.current?.scrollTo({
-          top: listRef.current.scrollHeight,
-          behavior: "smooth",
-        });
+        listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
       },
     );
     chan.subscribe();
     chanRef.current = chan;
 
-    // DB 테이블이 없는 환경을 위한 broadcast fallback
+    // broadcast fallback
     const bcast = supabase.channel("global-chat", { config: { broadcast: { self: false } } });
     bcast.on("broadcast", { event: "message" }, (payload) => {
       const msg = payload.payload as ChatMsg;
@@ -141,10 +133,7 @@ export default function ChatSidebar({
         } catch {}
         return next;
       });
-      listRef.current?.scrollTo({
-        top: listRef.current.scrollHeight,
-        behavior: "smooth",
-      });
+      listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
     });
     bcast.subscribe();
     bcastRef.current = bcast;
@@ -186,7 +175,6 @@ export default function ChatSidebar({
         });
         setInput("");
       } else {
-        // Fallback: DB가 없더라도 채팅 가능하도록 broadcast 사용
         bcastRef.current?.send({ type: "broadcast", event: "message", payload: msg });
         setMessages((prev) => {
           const next = dedupe([...prev, msg]);
@@ -198,7 +186,6 @@ export default function ChatSidebar({
         setInput("");
       }
     } catch {
-      // 최후의 수단으로 로컬 broadcast
       bcastRef.current?.send({ type: "broadcast", event: "message", payload: msg });
       setMessages((prev) => {
         const next = dedupe([...prev, msg]);
@@ -218,13 +205,30 @@ export default function ChatSidebar({
     }
   };
 
+  // ✅ 인라인 트랜지션 + transform: 퍼지/클래스 이슈 없이 항상 슬라이드
+  const panelStyle: React.CSSProperties = {
+    transform: open ? "translateX(0%) translateY(0px)" : "translateX(100%) translateY(10px)",
+    transition:
+      "transform 420ms cubic-bezier(0.2, 0, 0, 1), box-shadow 420ms cubic-bezier(0.2, 0, 0, 1)",
+    willChange: "transform",
+  };
+
+  // 살짝 어두워지는 오버레이(옵션)
+  const overlayStyle: React.CSSProperties = {
+    opacity: open ? 1 : 0,
+    transition: "opacity 420ms cubic-bezier(0.2, 0, 0, 1)",
+    background: "linear-gradient(to left, rgba(0,0,0,0.06), rgba(0,0,0,0))",
+    pointerEvents: "none",
+  };
+
   return (
     <aside className="h-full">
       <div className="sticky top-16 h-[calc(100vh-6rem)] relative overflow-visible">
+        <div className="absolute inset-0" style={overlayStyle} aria-hidden />
         <div
-          className={`absolute inset-0 flex flex-col border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 transition-transform duration-300 pointer-events-auto min-w-0 ${
-            open ? "translate-x-0" : "translate-x-full"
-          }`}
+          className="absolute inset-0 flex flex-col border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 min-w-0"
+          style={panelStyle}
+          aria-hidden={!open}
         >
           <div className="px-3 py-2 border-b dark:border-gray-700 font-semibold flex items-center justify-between text-gray-900 dark:text-gray-100">
             <span>채팅</span>
@@ -234,16 +238,31 @@ export default function ChatSidebar({
             <>
               <div ref={listRef} className="flex-1 overflow-auto p-2 space-y-2 text-sm min-w-0">
                 {messages.map((m) => (
-                  <div key={m.id} className="rounded bg-gray-100 dark:bg-gray-700 p-2">
+                  <div
+                    key={m.id}
+                    className={`rounded p-2 ${
+                      m.user === "admin"
+                        ? "bg-amber-200 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700"
+                        : "bg-gray-100 dark:bg-gray-700"
+                    }`}
+                  >
                     <div className="text-gray-600 dark:text-gray-400 text-xs">
                       {m.user} ·{" "}
                       {new Date(m.ts).toLocaleTimeString("ko-KR", {
+                        month: "2-digit",
+                        day: "2-digit",
                         hour: "2-digit",
                         minute: "2-digit",
                         hour12: false,
                       })}
                     </div>
-                    <div className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">{m.text}</div>
+                    <div
+                      className={`whitespace-pre-wrap break-words ${
+                        m.user === "admin" ? "text-amber-900 dark:text-amber-100" : "text-gray-900 dark:text-gray-100"
+                      }`}
+                    >
+                      {m.text}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -288,14 +307,11 @@ export default function ChatSidebar({
 function dedupe(list: ChatMsg[]): ChatMsg[] {
   const seen = new Set<string>();
   const out: ChatMsg[] = [];
-
   for (const m of list) {
-    // Use content-derived key to collapse optimistic + realtime duplicates
     const key = makeId(m.text, m.user, m.ts);
     if (seen.has(key)) continue;
     seen.add(key);
     out.push(m);
   }
-
   return out.slice(-200);
 }
