@@ -59,11 +59,14 @@ export default function CreateChatRoomModal({ onClose }: { onClose: () => void }
       onClose()
     } catch (err: unknown) {
       if (err instanceof Error) {
-    setError(err.message)
-  } else {
-    setError('알 수 없는 오류가 발생했습니다.')
+        setError(err.message)
+      } else {
+        setError('알 수 없는 오류가 발생했습니다.')
+      }
+    } finally {
+      setPending(false)
+    }
   }
-}
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -118,5 +121,4 @@ export default function CreateChatRoomModal({ onClose }: { onClose: () => void }
       </div>
     </div>
   )
-}
 }
