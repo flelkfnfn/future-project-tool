@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "미래-사회변화주도 프로젝트",
-  description: "미래-사회변화주도 프로젝트 협업 틀",
+  title: "미래·사회변화주도 프로젝트",
+  description: "미래·사회변화주도 프로젝트 협업 틀",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

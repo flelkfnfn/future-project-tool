@@ -15,7 +15,6 @@ export async function addProject(formData: FormData) {
     return
   }
 
-  // Insert with description when available; otherwise fall back to name-only if schema lacks the column
   let { error } = await supabase.from('projects').insert(description ? { name: text, description } : { name: text })
   if (error && /description/i.test(String(error.message))) {
     const retry = await supabase.from('projects').insert({ name: text })
@@ -23,13 +22,10 @@ export async function addProject(formData: FormData) {
   }
 
   if (error) {
-    // TODO: Handle error
     console.error(error)
     return
   }
 
-  // 데이터가 성공적으로 추가되면, 프로젝트 페이지의 캐시를 무효화하여
-  // 새로운 목록을 다시 불러오도록 합니다.
   revalidatePath('/projects')
 }
 
@@ -37,7 +33,7 @@ export async function deleteProject(formData: FormData) {
   const auth = await getAuth()
   if (!auth.authenticated) return
   const supabase = createServiceClient()
-  const id = Number(formData.get('id')) // Extract id from FormData and convert to number
+  const id = Number(formData.get('id'))
 
   if (isNaN(id)) {
     console.error("프로젝트 삭제 오류: 유효하지 않은 ID입니다.", formData.get('id'))
@@ -71,9 +67,10 @@ export async function addLink(formData: FormData) {
 
   if (error) {
     console.error("Error adding link:", error)
-    // Optionally surface a user-friendly message in UI if desired
     return
   }
-
-  // Success
+  
+  // ▼▼▼ 이 부분이 추가되었습니다 ▼▼▼
+  // 링크가 추가된 후에도 프로젝트 목록 페이지를 갱신하도록 합니다.
+  revalidatePath('/projects')
 }
