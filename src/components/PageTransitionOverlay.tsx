@@ -5,9 +5,14 @@ import { usePathname } from 'next/navigation'
 
 export default function PageTransitionOverlay() {
   const pathname = usePathname()
+  const pathnameRef = useRef(pathname)
   const [show, setShow] = useState(false)
   const minUntil = useRef<number>(0)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    pathnameRef.current = pathname
+  }, [pathname])
 
   // Show immediately on internal navigation click and keep for minimum time
   useEffect(() => {
@@ -18,6 +23,7 @@ export default function PageTransitionOverlay() {
       if (!a) return
       if (a.target && a.target !== '_self') return
       const href = a.getAttribute('href') || ''
+      if (href === pathnameRef.current) return
       if (!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:')) return
       setShow(true)
       minUntil.current = Date.now() + 800 // 최소 800ms 유지

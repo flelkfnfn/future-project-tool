@@ -43,6 +43,11 @@ export async function localSignUp(formData: FormData) {
     redirect(`/login?error=${encodeURIComponent('이미 등록된 아이디입니다')}`)
   }
 
+  const { data: existingEmail } = await svc.from(TABLE).select('id').eq('gmail', gmail).maybeSingle()
+  if (existingEmail) {
+    redirect(`/login?error=${encodeURIComponent('이미 등록된 Gmail입니다')}`)
+  }
+
   const { salt, hash } = hashPassword(password)
   const { error: insErr } = await svc
     .from(TABLE)

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import ChatSidebar from '@/components/ChatSidebar'
 import AddLauncher from '@/components/AddLauncher'
 import AddModal from '@/components/AddModal'
+import CreateChatRoomModal from '@/components/CreateChatRoomModal'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
@@ -11,6 +12,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   const [chatOpen, setChatOpen] = useState<boolean>(true)
   const [addOpen, setAddOpen] = useState<boolean>(false)
+  const [createRoomOpen, setCreateRoomOpen] = useState<boolean>(false)
+
   useEffect(() => {
     try {
       const v = localStorage.getItem('chat_open')
@@ -46,6 +49,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             open={chatOpen && !addOpen}             // ← addOpen일 땐 닫힌 상태로 슬라이드 아웃
             onToggle={() => setChatOpen((v) => !v)} // ← 이 토글이 transform 전환을 유발
             onAdd={() => setAddOpen(true)}
+            onCreateRoom={() => setCreateRoomOpen(true)}
           />
         </div>
       </div>
@@ -68,6 +72,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       {addOpen && <AddModal onClose={() => setAddOpen(false)} />}
+      {createRoomOpen && <CreateChatRoomModal onClose={() => setCreateRoomOpen(false)} />}
     </main>
   );
 

@@ -12,22 +12,33 @@ type ChatMsg = {
   text: string;
   user: string;
   ts: number;
+  room_id?: number | null;
 };
+
+type ChatRoom = {
+  id: number;
+  name: string;
+}
 
 export default function ChatSidebar({
   open = true,
   onToggle,
   showToggle = true,
   onAdd,
+  onCreateRoom,
 }: {
   open?: boolean;
   onToggle?: () => void;
   showToggle?: boolean;
   onAdd?: () => void;
+  onCreateRoom?: () => void;
 }) {
   const { supabase, session } = useSupabase();
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
+  const [pending, setPending] = useState(false);
+  const [rooms, setRooms] = useState<ChatRoom[]>([]);
+  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const chanRef = useRef<RealtimeChannel | null>(null);
   const bcastRef = useRef<RealtimeChannel | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -61,6 +72,27 @@ export default function ChatSidebar({
     return false;
   }, [session]);
 
+  // Fetch rooms
+  useEffect(() => {
+    if (!authed) {
+      setRooms([]);
+      return;
+    }
+    const fetchRooms = async () => {
+      try {
+        const res = await fetch('/api/chat/rooms');
+        const data = await res.json();
+        if (data.ok) {
+          setRooms(data.rooms);
+        }
+      } catch (e) {
+        console.error('Failed to fetch rooms', e);
+      }
+    };
+    fetchRooms();
+  }, [authed, supabase]);
+
+  // Fetch messages for the selected room
   useEffect(() => {
     if (!authed) {
       setMessages([]);
@@ -68,95 +100,70 @@ export default function ChatSidebar({
     }
 
     (async () => {
+      // Clear messages when room changes
+      setMessages([]);
       try {
-        const raw = localStorage.getItem("global_chat_cache");
-        if (raw) {
-          const list = JSON.parse(raw) as ChatMsg[];
-          if (Array.isArray(list)) setMessages(list);
-        }
-      } catch {}
-
-      try {
-        const res = await fetch("/api/chat/messages", {
+        const url = selectedRoomId ? `/api/chat/messages?roomId=${selectedRoomId}` : '/api/chat/messages';
+        const res = await fetch(url, {
           cache: "no-store",
           credentials: "include",
         });
         const j = await res.json();
         if (j?.ok && Array.isArray(j.data)) {
-          const mapped: ChatMsg[] = (j.data as Array<{ text: string; user?: string; ts: number }>).map((r) => {
+          const mapped: ChatMsg[] = (j.data as Array<{ text: string; user?: string; ts: number, room_id?: number | null }>).map((r) => {
             const u = r.user ?? "user";
             const t = r.ts;
             const x = r.text;
-            return { id: makeId(x, u, t), text: x, user: u, ts: t };
+            return { id: makeId(x, u, t), text: x, user: u, ts: t, room_id: r.room_id };
           });
           setMessages(dedupe(mapped));
-          try {
-            localStorage.setItem("global_chat_cache", JSON.stringify(mapped));
-          } catch {}
         }
       } catch {}
     })();
 
-    const chan = supabase.channel("realtime:chat_message");
+    // Subscribe to real-time messages for the selected room
+    if (chanRef.current) {
+      chanRef.current.unsubscribe();
+    }
+
+    const channelName = selectedRoomId ? `room-${selectedRoomId}` : 'realtime:chat_message';
+    const chan = supabase.channel(channelName);
     chan.on(
       "postgres_changes",
-      { event: "INSERT", schema: "public", table: "chat_messages" },
+      { event: "INSERT", schema: "public", table: "chat_messages", filter: selectedRoomId ? `room_id=eq.${selectedRoomId}` : 'room_id=is.null' },
       (payload) => {
-        const r = payload.new as { id?: number | string; text?: string; username?: string; user?: string; ts?: number };
-        const text = String(r.text ?? "");
-        const user = String(r.username ?? r.user ?? "user");
-        const ts = Number(r.ts ?? Date.now());
-        const incoming: ChatMsg = { id: r.id != null ? String(r.id) : makeId(text, user, ts), text, user, ts };
+        const r = payload.new as ChatMsg;
+        const incoming: ChatMsg = { ...r, id: makeId(r.text, r.user, r.ts) };
 
-        setMessages((prev) => {
-          const next = dedupe([...prev, incoming]);
-          try {
-            localStorage.setItem("global_chat_cache", JSON.stringify(next));
-          } catch {}
-          return next;
-        });
-
+        setMessages((prev) => dedupe([...prev, incoming]));
         listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
       },
     );
     chan.subscribe();
     chanRef.current = chan;
 
-    // broadcast fallback
-    const bcast = supabase.channel("global-chat", { config: { broadcast: { self: false } } });
-    bcast.on("broadcast", { event: "message" }, (payload) => {
-      const msg = payload.payload as ChatMsg;
-      setMessages((prev) => {
-        const next = dedupe([...prev, msg]);
-        try {
-          localStorage.setItem("global_chat_cache", JSON.stringify(next));
-        } catch {}
-        return next;
-      });
-      listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
-    });
-    bcast.subscribe();
-    bcastRef.current = bcast;
-
     return () => {
       chan.unsubscribe();
       chanRef.current = null;
-      bcastRef.current?.unsubscribe();
-      bcastRef.current = null;
     };
-  }, [supabase, authed]);
+  }, [supabase, authed, selectedRoomId]);
 
   const send = async () => {
+    if (pending) return;
     const text = input.trim();
     if (!text) return;
 
-    const now = Date.now();
-    const msg: ChatMsg = { id: makeId(text, username, now), text, user: username, ts: now };
-
+    setPending(true);
     try {
+      const now = Date.now();
+      const msg: ChatMsg = { id: makeId(text, username, now), text, user: username, ts: now, room_id: selectedRoomId };
+
       const fd = new FormData();
       fd.append("text", msg.text);
       fd.append("ts", String(msg.ts));
+      if (selectedRoomId != null) {
+        fd.append("room_id", String(selectedRoomId));
+      }
 
       const res = await fetch("/api/chat/messages", {
         method: "POST",
@@ -168,37 +175,31 @@ export default function ChatSidebar({
       if (res.ok && j?.ok !== false) {
         setMessages((prev) => {
           const next = dedupe([...prev, msg]);
-          try {
-            localStorage.setItem("global_chat_cache", JSON.stringify(next));
-          } catch {}
           return next;
         });
-        setInput("");
       } else {
         bcastRef.current?.send({ type: "broadcast", event: "message", payload: msg });
         setMessages((prev) => {
           const next = dedupe([...prev, msg]);
-          try {
-            localStorage.setItem("global_chat_cache", JSON.stringify(next));
-          } catch {}
           return next;
         });
-        setInput("");
       }
     } catch {
+      const now = Date.now();
+      const msg: ChatMsg = { id: makeId(text, username, now), text, user: username, ts: now, room_id: selectedRoomId };
       bcastRef.current?.send({ type: "broadcast", event: "message", payload: msg });
       setMessages((prev) => {
         const next = dedupe([...prev, msg]);
-        try {
-          localStorage.setItem("global_chat_cache", JSON.stringify(next));
-        } catch {}
         return next;
       });
+    } finally {
       setInput("");
+      setPending(false);
     }
   };
 
   const onKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+    if (pending) return;
     if (e.key === "Enter") {
       e.preventDefault();
       send();
@@ -221,6 +222,8 @@ export default function ChatSidebar({
     pointerEvents: "none",
   };
 
+  const selectedRoomName = selectedRoomId ? rooms.find(r => r.id === selectedRoomId)?.name : '일반 채팅';
+
   return (
     <aside className="h-full">
       <div className="sticky top-16 h-[calc(100vh-6rem)] relative overflow-visible">
@@ -230,8 +233,33 @@ export default function ChatSidebar({
           style={panelStyle}
           aria-hidden={!open}
         >
+          <div className="p-2 border-b dark:border-gray-700 flex items-center gap-2 overflow-x-auto">
+            <button
+              onClick={() => setSelectedRoomId(null)}
+              className={`h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${selectedRoomId === null ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}
+            >
+              일반
+            </button>
+            {rooms.map(room => (
+              <button
+                key={room.id}
+                onClick={() => setSelectedRoomId(room.id)}
+                className={`h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold truncate p-1 ${selectedRoomId === room.id ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}
+                title={room.name}
+              >
+                {room.name}
+              </button>
+            ))}
+            <button
+              onClick={onCreateRoom}
+              className="h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            </button>
+          </div>
+
           <div className="px-3 py-2 border-b dark:border-gray-700 font-semibold flex items-center justify-between text-gray-900 dark:text-gray-100">
-            <span>채팅</span>
+            <span>{selectedRoomName}</span>
           </div>
 
           {authed ? (
@@ -274,6 +302,7 @@ export default function ChatSidebar({
                   onKeyDown={onKeyDown}
                   placeholder="메시지 입력"
                   className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-1 min-w-0 w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={pending}
                 />
               </div>
             </>
