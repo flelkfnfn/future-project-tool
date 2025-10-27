@@ -75,8 +75,9 @@ export default function AddMembersModal({ roomId, roomName, onClose }: Props) {
       }
       router.refresh()
       onClose()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.'
+      setError(message)
     } finally {
       setPending(false)
     }
@@ -92,7 +93,9 @@ export default function AddMembersModal({ roomId, roomName, onClose }: Props) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">'{roomName}'에 멤버 추가</h3>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          &lsquo;{roomName}&rsquo;에 멤버 추가
+        </h3>  
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">사용자 선택</label>
