@@ -31,8 +31,9 @@ export default function ManageChatRoomModal({ roomId, roomName, onClose, onAddMe
       }
       router.refresh()
       onClose()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.'
+      setError(message)
     } finally {
       setPending(false)
     }
@@ -46,8 +47,9 @@ export default function ManageChatRoomModal({ roomId, roomName, onClose, onAddMe
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">'{roomName}' 설정</h3>
-        
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          &lsquo;{roomName}&rsquo; 설정
+        </h3>        
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
         <div className="flex flex-col gap-4">
