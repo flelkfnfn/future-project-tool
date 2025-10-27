@@ -1,17 +1,17 @@
-import { NextResponse, type NextRequest } from 'next/server'
+﻿import { NextResponse, type NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { requireAuth } from '@/lib/auth/session'
 
 export const runtime = 'nodejs'
 
 type RouteParams = {
-  params: {
+  params: Promise<{
     roomId: string
-  }
+  }>
 }
 
 // DELETE: Delete a chat room
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
+export async function DELETE(req: NextRequest, context: RouteParams) {
   let authPrincipal
   try {
     authPrincipal = await requireAuth()
@@ -19,7 +19,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ ok: false, error: 'UNAUTHORIZED' }, { status: 401 })
   }
 
-  const { roomId } = params
+  const { roomId } = await context.params
   if (!roomId) {
     return NextResponse.json({ ok: false, error: 'ROOM_ID_REQUIRED' }, { status: 400 })
   }

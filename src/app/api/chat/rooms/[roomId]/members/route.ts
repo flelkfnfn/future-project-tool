@@ -1,24 +1,24 @@
-import { NextResponse, type NextRequest } from 'next/server'
+﻿import { NextResponse, type NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { requireAuth } from '@/lib/auth/session'
 
 export const runtime = 'nodejs'
 
 type RouteParams = {
-  params: {
+  params: Promise<{
     roomId: string
-  }
+  }>
 }
 
 // GET: List members of a room
-export async function GET(req: NextRequest, { params }: RouteParams) {
+export async function GET(req: NextRequest, context: RouteParams) {
   try {
     await requireAuth()
   } catch {
     return NextResponse.json({ ok: false, error: 'UNAUTHORIZED' }, { status: 401 })
   }
 
-  const { roomId } = params
+  const { roomId } = await context.params
   if (!roomId) {
     return NextResponse.json({ ok: false, error: 'ROOM_ID_REQUIRED' }, { status: 400 })
   }
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
 
 // POST: Add members to a room
-export async function POST(req: NextRequest, { params }: RouteParams) {
+export async function POST(req: NextRequest, context: RouteParams) {
   let authPrincipal
   try {
     authPrincipal = await requireAuth()
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ ok: false, error: 'UNAUTHORIZED' }, { status: 401 })
   }
 
-  const { roomId } = params
+  const { roomId } = await context.params
   if (!roomId) {
     return NextResponse.json({ ok: false, error: 'ROOM_ID_REQUIRED' }, { status: 400 })
   }
