@@ -5,6 +5,8 @@ import ChatSidebar from '@/components/ChatSidebar'
 import AddLauncher from '@/components/AddLauncher'
 import AddModal from '@/components/AddModal'
 import CreateChatRoomModal from '@/components/CreateChatRoomModal'
+import ManageChatRoomModal from '@/components/ManageChatRoomModal'
+import AddMembersModal from '@/components/AddMembersModal'
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
@@ -13,6 +15,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [chatOpen, setChatOpen] = useState<boolean>(true)
   const [addOpen, setAddOpen] = useState<boolean>(false)
   const [createRoomOpen, setCreateRoomOpen] = useState<boolean>(false)
+  const [manageRoom, setManageRoom] = useState<{ id: number; name: string } | null>(null)
+  const [addMembersRoom, setAddMembersRoom] = useState<{ id: number; name: string } | null>(null)
 
   useEffect(() => {
     try {
@@ -30,6 +34,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   if (!mounted) {
     return <main className="w-full p-4 overflow-x-hidden"></main>
+  }
+
+  const openAddMembersModal = () => {
+    if (manageRoom) {
+      setAddMembersRoom(manageRoom)
+      setManageRoom(null)
+    }
   }
 
   return (
@@ -50,6 +61,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             onToggle={() => setChatOpen((v) => !v)} // ← 이 토글이 transform 전환을 유발
             onAdd={() => setAddOpen(true)}
             onCreateRoom={() => setCreateRoomOpen(true)}
+            onManageRoom={setManageRoom}
           />
         </div>
       </div>
@@ -73,6 +85,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {addOpen && <AddModal onClose={() => setAddOpen(false)} />}
       {createRoomOpen && <CreateChatRoomModal onClose={() => setCreateRoomOpen(false)} />}
+      {manageRoom && <ManageChatRoomModal roomId={manageRoom.id} roomName={manageRoom.name} onClose={() => setManageRoom(null)} onAddMembers={openAddMembersModal} />}
+      {addMembersRoom && <AddMembersModal roomId={addMembersRoom.id} roomName={addMembersRoom.name} onClose={() => setAddMembersRoom(null)} />}
     </main>
   );
 

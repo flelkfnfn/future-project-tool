@@ -1,4 +1,4 @@
-﻿"use client";
+﻿'use client';
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
@@ -26,12 +26,14 @@ export default function ChatSidebar({
   showToggle = true,
   onAdd,
   onCreateRoom,
+  onManageRoom,
 }: {
   open?: boolean;
   onToggle?: () => void;
   showToggle?: boolean;
   onAdd?: () => void;
   onCreateRoom?: () => void;
+  onManageRoom?: (room: { id: number; name: string }) => void;
 }) {
   const { supabase, session } = useSupabase();
   const [messages, setMessages] = useState<ChatMsg[]>([]);
@@ -132,8 +134,14 @@ export default function ChatSidebar({
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "chat_messages", filter: selectedRoomId ? `room_id=eq.${selectedRoomId}` : 'room_id=is.null' },
       (payload) => {
-        const r = payload.new as ChatMsg;
-        const incoming: ChatMsg = { ...r, id: makeId(r.text, r.user, r.ts) };
+        const r = payload.new as { id: string; text: string; username: string; ts: number; room_id: number | null };
+        const incoming: ChatMsg = {
+          id: makeId(r.text, r.username, r.ts), // Use r.username to match optimistic update
+          text: r.text,
+          user: r.username,
+          ts: r.ts,
+          room_id: r.room_id,
+        };
 
         setMessages((prev) => dedupe([...prev, incoming]));
         listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
@@ -222,7 +230,7 @@ export default function ChatSidebar({
     pointerEvents: "none",
   };
 
-  const selectedRoomName = selectedRoomId ? rooms.find(r => r.id === selectedRoomId)?.name : '일반 채팅';
+  const selectedRoom = useMemo(() => selectedRoomId ? rooms.find(r => r.id === selectedRoomId) : null, [rooms, selectedRoomId]);
 
   return (
     <aside className="h-full">
@@ -259,7 +267,14 @@ export default function ChatSidebar({
           </div>
 
           <div className="px-3 py-2 border-b dark:border-gray-700 font-semibold flex items-center justify-between text-gray-900 dark:text-gray-100">
-            <span>{selectedRoomName}</span>
+            <span>{selectedRoom?.name ?? '일반 채팅'}</span>
+            {selectedRoom && onManageRoom && (
+              <button onClick={() => onManageRoom(selectedRoom)} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                </svg>
+              </button>
+            )}
           </div>
 
           {authed ? (
@@ -314,7 +329,7 @@ export default function ChatSidebar({
 
           {showToggle && (
             <div className="absolute right-full bottom-16 z-20 flex flex-col items-center gap-2 pointer-events-auto mr-2">
-              <AddLauncher onOpen={onAdd ?? (() => {})} />
+              <AddLauncher onOpen={onAdd ?? (() => {})}/>
               <button
                 type="button"
                 onClick={onToggle}
