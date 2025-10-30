@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import SupabaseProvider from "@/components/supabase-provider";
 import AppShell from "@/components/AppShell";
 import PageTransitionOverlay from "@/components/PageTransitionOverlay";
+import ClickSpark from "@/components/ClickSpark";
 import ThemeProvider from "@/components/ThemeProvider";
 
 const geistSans = Geist({
@@ -24,9 +25,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="ko" className="h-full" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} h-full antialiased`}
+      >
         <ThemeProvider>
+          <ClickSpark />
           <SupabaseProvider>
             <Header />
             <AppShell>{children}</AppShell>

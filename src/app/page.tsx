@@ -35,7 +35,7 @@ const features = [
 export default function Home() {
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="text-center py-24">
+      <div className="text-center pt-24 pb-16">
         <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-6xl">
           미래·사회변화주도 프로젝트
         </h1>
