@@ -18,7 +18,7 @@ function LoginInner() {
   const handleCaps = (setter: (v: boolean) => void) => (e: React.KeyboardEvent<HTMLInputElement>) => {
     try {
       // @ts-ignore
-      const on = typeof e.getModifierState === 'function' ? e.getModifierState('CapsLock') : false
+      const on = (e as KeyboardEvent).getModifierState?.('CapsLock') ?? false
       setter(!!on)
     } catch {}
   }
