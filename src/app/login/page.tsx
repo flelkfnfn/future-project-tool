@@ -15,13 +15,16 @@ function LoginInner() {
   const [signInCaps, setSignInCaps] = useState(false)
   const [signUpCaps, setSignUpCaps] = useState(false)
 
-  const handleCaps = (setter: (v: boolean) => void) => (e: React.KeyboardEvent<HTMLInputElement>) => {
-    try {
-      // @ts-ignore
-      const on = (e as KeyboardEvent).getModifierState?.('CapsLock') ?? false
-      setter(!!on)
-    } catch {}
-  }
+  const handleCaps =
+    (setter: (v: boolean) => void) =>
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      try {
+        const on = e.getModifierState?.('CapsLock') ?? false
+        setter(on)
+      } catch {
+        setter(false)
+      }
+    }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
