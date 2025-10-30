@@ -166,7 +166,14 @@ export default function IdeaComments({ comments, ideaId }: { comments: Comment[]
               <li key={comment.id} className="bg-gray-100 dark:bg-gray-800/50 p-3 rounded-lg">
                 <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">{comment.content}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {new Date(comment.created_at).toLocaleString('ko-KR')}
+                  {new Date(comment.created_at).toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                  })}
                 </p>
               </li>
             ))}

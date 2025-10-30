@@ -65,7 +65,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* 1) �׻� ����Ʈ: ChatSidebar�� ���?�����ϰ�, open prop�� �ٲ� */}
-      <div className={`fixed right-4 top-16 bottom-4 hidden lg:block z-30 ${panelVisible ? 'w-80' : 'w-0'} ${(chatOpen && !addOpen) ? 'pointer-events-auto' : 'pointer-events-none'}`}>
+      <div className={`fixed right-4 top-16 bottom-4 hidden lg:block z-51 ${panelVisible ? 'w-80' : 'w-0'} ${(chatOpen && !addOpen) ? 'pointer-events-auto' : 'pointer-events-none'}`}>
         <div className={
             panelVisible ? "h-full w-80 overflow-visible"
                          : "h-full w-0 overflow-x-hidden overflow-y-visible"}>

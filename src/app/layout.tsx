@@ -4,7 +4,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import SupabaseProvider from "@/components/supabase-provider";
 import AppShell from "@/components/AppShell";
-import PageTransitionOverlay from "@/components/PageTransitionOverlay";
+import { PageTransitionOverlayProvider } from "@/components/PageTransitionOverlay";
 import ClickSpark from "@/components/ClickSpark";
 import ThemeProvider from "@/components/ThemeProvider";
 
@@ -31,11 +31,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <ThemeProvider>
           <ClickSpark />
-          <SupabaseProvider>
-            <Header />
-            <AppShell>{children}</AppShell>
-            <PageTransitionOverlay />
-          </SupabaseProvider>
+          <PageTransitionOverlayProvider>
+            <SupabaseProvider>
+              <Header />
+              <AppShell>{children}</AppShell>
+            </SupabaseProvider>
+          </PageTransitionOverlayProvider>
         </ThemeProvider>
       </body>
     </html>

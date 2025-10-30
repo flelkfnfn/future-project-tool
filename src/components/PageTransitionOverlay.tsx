@@ -1,53 +1,76 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
 
-export default function PageTransitionOverlay() {
-  const pathname = usePathname()
-  const pathnameRef = useRef(pathname)
-  const [show, setShow] = useState(false)
-  const minUntil = useRef<number>(0)
-  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+interface PageTransitionOverlayContextType {
+  showOverlay: (minDuration?: number) => void;
+  hideOverlay: () => void;
+}
 
-  useEffect(() => {
-    pathnameRef.current = pathname
-  }, [pathname])
+const PageTransitionOverlayContext = createContext<PageTransitionOverlayContextType | undefined>(undefined);
 
-  // Show immediately on internal navigation click and keep for minimum time
+export const usePageTransitionOverlay = () => {
+  const context = useContext(PageTransitionOverlayContext);
+  if (!context) {
+    throw new Error('usePageTransitionOverlay must be used within a PageTransitionOverlayProvider');
+  }
+  return context;
+};
+
+export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const pathname = usePathname();
+  const [show, setShow] = useState(false);
+  const minUntil = useRef<number>(0);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showOverlay = useCallback((minDuration: number = 800) => {
+    setShow(true);
+    minUntil.current = Date.now() + minDuration;
+  }, []);
+
+  const hideOverlay = useCallback(() => {
+    const now = Date.now();
+    const delay = Math.max(500, minUntil.current - now);
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    hideTimer.current = setTimeout(() => setShow(false), delay);
+  }, []);
+
+  // Listen for native <a> tag clicks
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null
-      if (!target) return
-      const a = target.closest('a') as HTMLAnchorElement | null
-      if (!a) return
-      if (a.target && a.target !== '_self') return
-      const href = a.getAttribute('href') || ''
-      if (href === pathnameRef.current) return
-      if (!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:')) return
-      setShow(true)
-      minUntil.current = Date.now() + 800 // 최소 800ms 유지
-    }
-    document.addEventListener('click', onClick, true)
-    return () => document.removeEventListener('click', onClick, true)
-  }, [])
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const a = target.closest('a') as HTMLAnchorElement | null;
+      if (!a) return;
+      if (a.target && a.target !== '_self') return;
+      const href = a.getAttribute('href') || '';
+      if (href === pathname) return;
+      if (!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+      showOverlay();
+    };
+    document.addEventListener('click', onClick, true);
+    return () => document.removeEventListener('click', onClick, true);
+  }, [pathname, showOverlay]);
 
+  // Listen for pathname changes (e.g., from router.push)
   useEffect(() => {
-    // 경로 변경 시: 오버레이 유지 후 자연스럽게 제거
-    setShow(true)
-    const now = Date.now()
-    const delay = Math.max(500, minUntil.current - now) // 최소 500ms 또는 클릭 기준 최소시간 보장
-    if (hideTimer.current) clearTimeout(hideTimer.current)
-    hideTimer.current = setTimeout(() => setShow(false), delay)
-    return () => {
-      if (hideTimer.current) clearTimeout(hideTimer.current)
-    }
-  }, [pathname])
-
-  if (!show) return null
+    showOverlay(); // Show overlay on route change
+    hideOverlay(); // Schedule hiding
+  }, [pathname, showOverlay, hideOverlay]);
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-white/40 backdrop-blur-sm transition-opacity duration-700 opacity-100 animate-fadeout">
-    </div>
-  )
+    <PageTransitionOverlayContext.Provider value={{ showOverlay, hideOverlay }}>
+      {children}
+      {show && (
+        <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-white/40 backdrop-blur-sm transition-opacity duration-700 opacity-100 animate-fadeout">
+        </div>
+      )}
+    </PageTransitionOverlayContext.Provider>
+  );
+};
+
+// This component is now just a wrapper for the provider
+export default function PageTransitionOverlay() {
+  return null; // The actual overlay is rendered by the provider
 }

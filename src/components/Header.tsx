@@ -6,11 +6,13 @@ import { useEffect, useState } from 'react'
 import { useSupabase } from '@/components/supabase-provider'
 import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js'
 import { localSignOut } from '@/app/login/localActions'
+import Dock from '@/components/Dock'
+import { LuWorkflow, LuFolderKanban, LuMegaphone, LuLightbulb, LuCalendarDays, LuFolderOpen } from 'react-icons/lu'
 
 const nav = [
   { href: '/projects', label: '프로젝트' },
   { href: '/notices', label: '공지사항' },
-  { href: '/ideas', label: '아이디어 모음' },
+  { href: '/ideas', label: '아이디어' },
   { href: '/calendar', label: '캘린더' },
   { href: '/files', label: '파일 공유' },
 ]
@@ -55,7 +57,6 @@ const Header = () => {
     }
   }, [supabase])
 
-  // Re-evaluate local auth on route change (after server redirects)
   useEffect(() => {
     const hasLocal = typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
     setLocalAuthed(hasLocal)
@@ -73,7 +74,6 @@ const Header = () => {
     }
   }, [pathname])
 
-  // Also update when the tab regains focus (cookie may have changed)
   useEffect(() => {
     const onFocus = () => {
       const hasLocal = typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
@@ -110,28 +110,16 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-b dark:border-gray-700">
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link href="/" className="text-xl font-bold">
-          미래·사회변화주도 프로젝트
-        </Link>
-        <nav className="flex items-center gap-4">
-          <ul className="flex gap-2">
-            {nav.map((item) => {
-              const active = pathname?.startsWith(item.href)
-              const cls = active
-                ? 'px-3 py-1 rounded-md bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-semibold'
-                : 'px-3 py-1 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              return (
-                <li key={item.href}>
-                  <Link href={item.href} className={cls}>{item.label}</Link>
-                </li>
-              )
-            })}
-          </ul>
-          <div className="ml-2">
+      <div className="container mx-auto px-4 relative h-18.5">
+        {/* Vertically-centered title and actions */}
+        <div className="h-full flex items-center justify-between">
+          <Link href="/" className="text-xl font-bold">미래·사회변화주도 프로젝트</Link>
+          <div>
             {authed ? (
               <div className="flex items-center gap-2">
-                {accountLabel && (<Link href="/profile" className="px-2 py-1 text-sm rounded border dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{accountLabel}</Link>)}
+                {accountLabel && (
+                  <Link href="/profile" className="px-2 py-1 text-sm rounded border dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{accountLabel}</Link>
+                )}
                 <form action={localSignOut}>
                   <button
                     type="submit"
@@ -143,15 +131,41 @@ const Header = () => {
                 </form>
               </div>
             ) : (
-              <Link href="/login" className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm">
-                로그인 / 회원가입
-              </Link>
+              <Link href="/login" className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm">로그인 / 회원가입</Link>
             )}
           </div>
-        </nav>
+        </div>
+
+        {/* Centered dock at bottom within header (no global CSS edits) */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
+          <Dock
+            panelHeight={58}
+            dockHeight={72}
+            baseItemSize={40}
+            magnification={44}
+            distance={160}
+            items={nav.map((item) => ({
+              icon: (() => {
+                const map: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+                  '/projects': LuWorkflow,
+                  '/notices': LuMegaphone,
+                  '/ideas': LuLightbulb,
+                  '/calendar': LuCalendarDays,
+                  '/files': LuFolderOpen,
+                }
+                const Cmp = map[item.href] ?? LuWorkflow
+                return <Cmp size={24} aria-hidden className={pathname?.startsWith(item.href) ? 'text-blue-300' : 'text-white'} />
+              })(),
+              label: item.label,
+              onClick: () => router.push(item.href),
+              className: pathname?.startsWith(item.href) ? 'ring-2 ring-blue-400' : ''
+            }))}
+          />
+        </div>
       </div>
     </header>
   )
 }
 
 export default Header
+
