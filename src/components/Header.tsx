@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -21,12 +21,27 @@ const Header = () => {
   const { supabase, session } = useSupabase()
   const [user, setUser] = useState<User | null>(session?.user ?? null)
   const [localAuthed, setLocalAuthed] = useState(false)
+  const [accountLabel, setAccountLabel] = useState<string | null>(session?.user?.email ?? null)
 
   useEffect(() => {
     let mounted = true
     ;(async () => {
       const res = await supabase.auth.getUser()
       if (mounted) setUser(res.data.user ?? null)
+      if (mounted) {
+        if (res.data.user?.email) {
+          setAccountLabel(res.data.user.email)
+        } else if (typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')) {
+          fetch('/api/me', { cache: 'no-store' })
+            .then(r => r.json())
+            .then(j => {
+              const p = j?.principal
+              const label = (p && (p.username || p.email)) || null
+              setAccountLabel(label)
+            })
+            .catch(() => {})
+        }
+      }
     })()
     const {
       data: { subscription },
@@ -42,13 +57,39 @@ const Header = () => {
 
   // Re-evaluate local auth on route change (after server redirects)
   useEffect(() => {
-    setLocalAuthed(typeof document !== 'undefined' && document.cookie.includes('local_session_present=1'))
+    const hasLocal = typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
+    setLocalAuthed(hasLocal)
+    if (!user?.email && hasLocal) {
+      fetch('/api/me', { cache: 'no-store' })
+        .then(r => r.json())
+        .then(j => {
+          const p = j?.principal
+          const label = (p && (p.username || p.email)) || null
+          setAccountLabel(label)
+        })
+        .catch(() => {})
+    } else if (user?.email) {
+      setAccountLabel(user.email)
+    }
   }, [pathname])
 
   // Also update when the tab regains focus (cookie may have changed)
   useEffect(() => {
     const onFocus = () => {
-      setLocalAuthed(typeof document !== 'undefined' && document.cookie.includes('local_session_present=1'))
+      const hasLocal = typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
+      setLocalAuthed(hasLocal)
+      if (!user?.email && hasLocal) {
+        fetch('/api/me', { cache: 'no-store' })
+          .then(r => r.json())
+          .then(j => {
+            const p = j?.principal
+            const label = (p && (p.username || p.email)) || null
+            setAccountLabel(label)
+          })
+          .catch(() => {})
+      } else if (user?.email) {
+        setAccountLabel(user.email)
+      }
     }
     if (typeof window !== 'undefined') {
       window.addEventListener('focus', onFocus)
@@ -90,7 +131,7 @@ const Header = () => {
           <div className="ml-2">
             {authed ? (
               <div className="flex items-center gap-2">
-                {user?.email && <span className="text-sm text-gray-600 dark:text-gray-400">{user.email}</span>}
+                {accountLabel && <span className="text-sm text-gray-600 dark:text-gray-400">{accountLabel}</span>}
                 <form action={localSignOut}>
                   <button
                     type="submit"
