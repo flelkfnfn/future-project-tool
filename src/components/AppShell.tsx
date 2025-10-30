@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useMemo, useState } from 'react'
 import ChatSidebar from '@/components/ChatSidebar'
@@ -13,6 +13,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => { setMounted(true) }, [])
 
   const [chatOpen, setChatOpen] = useState<boolean>(true)
+  // Keep panel container mounted during close animation
+  const [panelVisible, setPanelVisible] = useState<boolean>(true)
   const [addOpen, setAddOpen] = useState<boolean>(false)
   const [createRoomOpen, setCreateRoomOpen] = useState<boolean>(false)
   const [manageRoom, setManageRoom] = useState<{ id: number; name: string } | null>(null)
@@ -26,6 +28,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, [])
   useEffect(() => {
     try { localStorage.setItem('chat_open', chatOpen ? '1' : '0') } catch {}
+  }, [chatOpen])
+
+  // Orchestrate slide-out before collapsing width to 0
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null
+    if (chatOpen) {
+      setPanelVisible(true)
+    } else {
+      timer = setTimeout(() => setPanelVisible(false), 450)
+    }
+    return () => { if (timer) clearTimeout(timer) }
   }, [chatOpen])
 
   const gridCls = useMemo(() => {
@@ -51,14 +64,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="col-span-1 hidden lg:block" />
       </div>
 
-      {/* 1) 항상 마운트: ChatSidebar는 계속 존재하고, open prop만 바뀜 */}
-      <div className="fixed right-4 top-16 bottom-4 hidden lg:block z-30">
+      {/* 1) �׻� ����Ʈ: ChatSidebar�� ���?�����ϰ�, open prop�� �ٲ� */}
+      <div className={`fixed right-4 top-16 bottom-4 hidden lg:block z-30 ${panelVisible ? 'w-80' : 'w-0'} ${(chatOpen && !addOpen) ? 'pointer-events-auto' : 'pointer-events-none'}`}>
         <div className={
-            chatOpen ? "h-full w-80 overflow-visible"
-                    : "h-full w-80 overflow-x-hidden overflow-y-visible"}>
+            panelVisible ? "h-full w-80 overflow-visible"
+                         : "h-full w-0 overflow-x-hidden overflow-y-visible"}>
           <ChatSidebar
-            open={chatOpen && !addOpen}             // ← addOpen일 땐 닫힌 상태로 슬라이드 아웃
-            onToggle={() => setChatOpen((v) => !v)} // ← 이 토글이 transform 전환을 유발
+            open={chatOpen && !addOpen}             // �� addOpen�� �� ���� ���·� �����̵� �ƿ�
+            onToggle={() => setChatOpen((v) => !v)} // �� �� �����?transform ��ȯ�� ����
+            showToggle={panelVisible && !addOpen}
             onAdd={() => setAddOpen(true)}
             onCreateRoom={() => setCreateRoomOpen(true)}
             onManageRoom={setManageRoom}
@@ -66,9 +80,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      {/* 2) 닫힌 상태일 때만 표시되는 플로팅 버튼은 유지 */}
-      {!chatOpen && !addOpen && (
-        <div className="absolute right-full bottom-16 z-20 flex flex-col items-center gap-2 pointer-events-auto mr-2">
+      {/* 2) ���� ������ ���� ǥ�õǴ� �÷��� ��ư�� ���� */}
+      {!panelVisible && !addOpen && (
+        <div className="fixed right-4 bottom-16 z-40 flex flex-col items-center gap-2 pointer-events-auto">
           <AddLauncher onOpen={() => setAddOpen(true)} />
           <button
             type="button"
@@ -91,4 +105,3 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   );
 
 }
-
