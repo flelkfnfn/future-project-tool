@@ -131,7 +131,7 @@ const Header = () => {
           <div className="ml-2">
             {authed ? (
               <div className="flex items-center gap-2">
-                {accountLabel && <span className="text-sm text-gray-600 dark:text-gray-400">{accountLabel}</span>}
+                {accountLabel && (<Link href="/profile" className="px-2 py-1 text-sm rounded border dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{accountLabel}</Link>)}
                 <form action={localSignOut}>
                   <button
                     type="submit"
