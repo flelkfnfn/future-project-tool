@@ -90,7 +90,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         <h2 className="font-semibold">Danger Zone</h2>
         <form action={deleteAccount} className="space-y-2">                                                                                   
           <label className="flex flex-col text-sm">                                                                                           
-            <span>삭제를 위해 "DELETE"를 입력하세요.</span>                                                                                               
+            <span>삭제를 위해 DELETE를 입력하세요.</span>                                                                                               
             <input name="confirm" className="border px-2 py-1 rounded" placeholder="DELETE" />                                                
           </label>                                                                                                                            
           <button className="px-3 py-1 rounded bg-red-600 text-white">계정 삭제</button>                                                      
