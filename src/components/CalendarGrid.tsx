@@ -85,7 +85,7 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
                     <span className="truncate">{e.title}</span>
                     <AuthGuardForm action={deleteEvent} confirmMessage="일정을 삭제하시겠습니까?">
                       <input type="hidden" name="id" value={e.id} />
-                      <button type="submit" className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 ml-2" onClick={(ev) => ev.stopPropagation()}>삭제</button>
+                      <button type="submit" className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 ml-2" onClick={(ev) => ev.stopPropagation()}>X</button>
                     </AuthGuardForm>
                   </div>
                 ))}
