@@ -96,6 +96,12 @@ async function deleteLocalUser(formData: FormData) {
   revalidatePath('/admin')
 }
 
+interface LocalUser {
+  id: number
+  username: string
+  role: string
+}
+
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string }> }) {
   const auth = await getAuth()
   const p = auth.principal
@@ -118,7 +124,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 </tr>
               </thead>
               <tbody>
-                {(users ?? []).map((u: any) => (
+                {(users ?? []).map((u: LocalUser) => (
                   <tr key={u.id} className="border-t">
                     <td className="p-2 align-top">{u.id}</td>
                     <td className="p-2 align-top">{u.username}</td>
