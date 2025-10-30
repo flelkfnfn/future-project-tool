@@ -34,11 +34,11 @@ export default async function NoticesPage() {
           {((notices as unknown as Notice[]) ?? []).map((notice: Notice) => (
             <li
               key={notice.id}
-              className="bg-white p-6 border rounded-lg shadow-sm hover:shadow-md transition-shadow flex justify-between items-start"
+              className="bg-white dark:bg-gray-800 p-6 border dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow flex justify-between items-start"
             >
               <div>
-                <h2 className="text-2xl font-semibold text-gray-800">{notice.title}</h2>
-                <p className="mt-2 text-gray-600 whitespace-pre-wrap">{notice.content}</p>
+                <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{notice.title}</h2>
+                <p className="mt-2 text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{notice.content}</p>
               </div>
               <AuthGuardForm
                 action={deleteNotice}
@@ -58,7 +58,7 @@ export default async function NoticesPage() {
       ) : (
         <div className="text-center py-24">
           <svg
-            className="mx-auto h-12 w-12 text-gray-400"
+            className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

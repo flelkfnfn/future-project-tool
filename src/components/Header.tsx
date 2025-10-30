@@ -7,7 +7,7 @@ import { useSupabase } from '@/components/supabase-provider'
 import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js'
 import { localSignOut } from '@/app/login/localActions'
 import Dock from '@/components/Dock'
-import { LuWorkflow, LuFolderKanban, LuMegaphone, LuLightbulb, LuCalendarDays, LuFolderOpen } from 'react-icons/lu'
+import { LuWorkflow, LuFolderKanban, LuMegaphone, LuLightbulb, LuCalendarDays, LuFolderOpen, LuUserRound } from 'react-icons/lu'
 
 const nav = [
   { href: '/projects', label: '프로젝트' },
@@ -118,13 +118,13 @@ const Header = () => {
             {authed ? (
               <div className="flex items-center gap-2">
                 {accountLabel && (
-                  <Link href="/profile" className="px-2 py-1 text-sm rounded border dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">{accountLabel}</Link>
+                  <Link href="/profile" aria-label="프로필" className="px-2 py-2 text-sm rounded border dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"><LuUserRound size={20} aria-hidden /></Link>
                 )}
                 <form action={localSignOut}>
                   <button
                     type="submit"
                     onClick={handleLogout}
-                    className="bg-rose-500 text-white px-3 py-1 rounded hover:bg-rose-600 text-sm"
+                    className="bg-rose-500 text-white px-3 py-2 rounded hover:bg-rose-600 text-sm"
                   >
                     로그아웃
                   </button>
@@ -168,4 +168,3 @@ const Header = () => {
 }
 
 export default Header
-
