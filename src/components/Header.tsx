@@ -7,6 +7,7 @@ import { useSupabase } from '@/components/supabase-provider'
 import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js'
 import { localSignOut } from '@/app/login/localActions'
 import Dock from '@/components/Dock'
+import { usePageTransitionOverlay } from '@/components/PageTransitionOverlay'
 import { LuWorkflow, LuFolderKanban, LuMegaphone, LuLightbulb, LuCalendarDays, LuFolderOpen, LuUserRound } from 'react-icons/lu'
 
 const nav = [
@@ -21,6 +22,7 @@ const Header = () => {
   const router = useRouter()
   const pathname = usePathname()
   const { supabase, session } = useSupabase()
+  const { showOverlay } = usePageTransitionOverlay()
   const [user, setUser] = useState<User | null>(session?.user ?? null)
   const [localAuthed, setLocalAuthed] = useState(false)
   const [accountLabel, setAccountLabel] = useState<string | null>(session?.user?.email ?? null)
@@ -102,6 +104,7 @@ const Header = () => {
   }, [])
 
   const handleLogout: () => Promise<void> = async () => {
+    showOverlay()
     await supabase.auth.signOut()
     router.push('/login')
   }
@@ -144,22 +147,27 @@ const Header = () => {
             baseItemSize={40}
             magnification={44}
             distance={160}
-            items={nav.map((item) => ({
-              icon: (() => {
-                const map: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-                  '/projects': LuWorkflow,
-                  '/notices': LuMegaphone,
-                  '/ideas': LuLightbulb,
-                  '/calendar': LuCalendarDays,
-                  '/files': LuFolderOpen,
-                }
-                const Cmp = map[item.href] ?? LuWorkflow
-                return <Cmp size={24} aria-hidden className={pathname?.startsWith(item.href) ? 'text-blue-300' : 'text-white'} />
-              })(),
-              label: item.label,
-              onClick: () => router.push(item.href),
-              className: pathname?.startsWith(item.href) ? 'ring-2 ring-blue-400' : ''
-            }))}
+            items={nav.map((item) => {
+              const map: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+                '/projects': LuWorkflow,
+                '/notices': LuMegaphone,
+                '/ideas': LuLightbulb,
+                '/calendar': LuCalendarDays,
+                '/files': LuFolderOpen,
+              }
+              const Cmp = map[item.href] ?? LuFolderKanban
+              return {
+                icon: (
+                  <>
+                    <Link href={item.href} aria-label={item.label as string} className="absolute inset-0 z-10" />
+                    <Cmp size={24} aria-hidden className={pathname?.startsWith(item.href) ? 'text-blue-600 dark:text-blue-300' : 'text-slate-700 dark:text-gray-200'} />
+                  </>
+                ),
+                label: <span className="text-white dark:text-gray-200">{item.label}</span>,
+                onClick: () => {},
+                className: pathname?.startsWith(item.href) ? 'ring-2 ring-blue-400' : ''
+              }
+            })}
           />
         </div>
       </div>

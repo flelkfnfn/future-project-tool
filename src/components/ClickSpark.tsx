@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 
 interface ClickSparkProps {
-  sparkColor?: string;
+  sparkColor?: string; // Optional override. If unset, uses theme-based color.
   sparkSize?: number;
   sparkRadius?: number;
   sparkCount?: number;
@@ -20,7 +20,8 @@ interface Spark {
 }
 
 const ClickSpark = ({
-  sparkColor = '#ffd900a1',
+  // When sparkColor is undefined, pick by theme: light => navy, dark => amber-ish
+  sparkColor,
   sparkSize = 5,
   sparkRadius = 10,
   sparkCount = 7,
@@ -79,7 +80,11 @@ const ClickSpark = ({
         const x2 = spark.x + (distance + lineLength) * Math.cos(spark.angle);
         const y2 = spark.y + (distance + lineLength) * Math.sin(spark.angle);
 
-        ctx.strokeStyle = sparkColor;
+        // Resolve color on each frame so theme toggles apply immediately.
+        // Light theme: navy, Dark theme: amber-like (original default)
+        const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+        const colorResolved = sparkColor ?? (isDark ? '#ffd900a1' : '#1e3a8a');
+        ctx.strokeStyle = colorResolved;
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(x1, y1);
