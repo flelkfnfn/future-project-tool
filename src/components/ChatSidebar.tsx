@@ -266,9 +266,13 @@ export default function ChatSidebar({
 
           {authed ? (
             <>
-              <div ref={listRef} className="flex-1 overflow-auto p-3 space-y-2 text-sm min-w-0 bg-white dark:bg-gray-800">
+              <div
+                ref={listRef}
+                className="flex-1 overflow-auto p-3 space-y-2 text-sm min-w-0 bg-white dark:bg-gray-800"
+              >
                 {renderWithDayHeaders(messages).map((item, idx, arr) => {
-                  if ('header' in item) {
+                  // 날짜 헤더
+                  if ("header" in item) {
                     return (
                       <div key={`h-${item.key}`} className="sticky top-0 z-0 flex items-center justify-center py-1">
                         <span className="px-2 py-0.5 text-xs rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
@@ -278,45 +282,70 @@ export default function ChatSidebar({
                     );
                   }
 
+                  // 메시지 렌더링
                   const prev = arr[idx - 1];
-                  const isFirstOfRun = !prev || ('header' in prev) || prev.m.user !== item.m.user;
-                  const isSelf = item.m.user === username;
+                  const isFirstOfRun = !prev || ("header" in prev) || prev.m.user !== item.m.user;
+                  const isSelf = item.m.user === username; // 본인 메시지 식별
 
+                  // 말풍선 색상
                   const bubbleClass =
-                    item.m.user === 'admin'
-                      ? 'bg-amber-200 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-100'
+                    item.m.user === "admin"
+                      ? "bg-amber-200 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-100"
                       : isSelf
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100';
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100";
+
+                  // 행 정렬: 본인 메시지 오른쪽, 상대 메시지 왼쪽
+                  const rowJustify = isSelf ? "justify-end" : "justify-start";
+
+                  // 시간 라벨 공통
+                  const timeLabel = (
+                    <div
+                      className={`mb-[2px] text-[10px] ${
+                        isSelf ? "text-blue-300" : "text-gray-500 dark:text-gray-400"
+                      }`}
+                    >
+                      {new Date(item.m.ts).toLocaleTimeString("ko-KR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: false,
+                      })}
+                    </div>
+                  );
 
                   return (
-                    <div key={item.m.id} className={`flex ${isSelf ? 'justify-end' : 'justify-start'}`}>
-                      {/* ID를 말풍선 밖(위)으로 */}
+                    <div key={item.m.id} className={`flex ${rowJustify}`}>
                       <div className="max-w-[80%] flex flex-col">
+                        {/* 동일 ID 연속에서 첫 말풍선 위에만 ID 표시 (ID는 말풍선 밖 윗줄) */}
                         {isFirstOfRun && (
                           <div
                             className={`mb-1 text-[11px] ${
-                              isSelf ? 'text-blue-400 text-right pr-1' : 'text-gray-600 dark:text-gray-400'
+                              isSelf ? "text-blue-400 text-right pr-1" : "text-gray-600 dark:text-gray-400 text-left pl-1"
                             }`}
                           >
                             {item.m.user}
                           </div>
                         )}
 
-                        {/* 말풍선 */}
-                        <div className={`rounded-2xl px-3 py-2 shadow-sm ${bubbleClass}`}>
-                          <div className="whitespace-pre-wrap break-words">{item.m.text}</div>
-                          <div
-                            className={`mt-1 text-[10px] ${
-                              isSelf ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
-                            } text-right`}
-                          >
-                            {new Date(item.m.ts).toLocaleTimeString('ko-KR', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              hour12: false,
-                            })}
-                          </div>
+                        {/* 말풍선 + 시간: 본인은 [시간, 말풍선], 상대는 [말풍선, 시간] */}
+                        <div className={`flex items-end gap-2 ${rowJustify}`}>
+                          {isSelf ? (
+                            <>
+                              {/* 본인: 시간(왼쪽 외부) -> 말풍선(오른쪽) */}
+                              {timeLabel}
+                              <div className={`rounded-2xl px-3 py-2 shadow-sm ${bubbleClass}`}>
+                                <div className="whitespace-pre-wrap break-words">{item.m.text}</div>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              {/* 상대: 말풍선(왼쪽) -> 시간(오른쪽 외부) */}
+                              <div className={`rounded-2xl px-3 py-2 shadow-sm ${bubbleClass}`}>
+                                <div className="whitespace-pre-wrap break-words">{item.m.text}</div>
+                              </div>
+                              {timeLabel}
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
