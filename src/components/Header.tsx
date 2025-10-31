@@ -116,7 +116,7 @@ const Header = () => {
       <div className="container mx-auto px-4 relative h-18.5">
         {/* Vertically-centered title and actions */}
         <div className="h-full flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold">미래·사회변화주도 프로젝트</Link>
+          <Link href="/" data-no-overlay className="text-xl font-bold">미래·사회변화주도 프로젝트</Link>
           <div>
             {authed ? (
               <div className="flex items-center gap-2">

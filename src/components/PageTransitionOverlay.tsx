@@ -23,6 +23,8 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
   const [show, setShow] = useState(false);
   const minUntil = useRef<number>(0);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suppressNext = useRef<boolean>(false);
+  const isFirstPaint = useRef<boolean>(true);
 
   const showOverlay = useCallback((minDuration: number = 800) => {
     setShow(true);
@@ -43,6 +45,10 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
       if (!target) return;
       const a = target.closest('a') as HTMLAnchorElement | null;
       if (!a) return;
+      if (a.hasAttribute('data-no-overlay')) {
+        suppressNext.current = true;
+        return;
+      }
       if (a.target && a.target !== '_self') return;
       const href = a.getAttribute('href') || '';
       if (href === pathname) return;
@@ -55,8 +61,17 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
 
   // Listen for pathname changes (e.g., from router.push)
   useEffect(() => {
-    showOverlay(); // Show overlay on route change
-    hideOverlay(); // Schedule hiding
+    // Skip overlay on initial mount when landing on home
+    if (isFirstPaint.current) {
+      isFirstPaint.current = false;
+      if (pathname === '/') return;
+    }
+    if (suppressNext.current) {
+      suppressNext.current = false;
+      return;
+    }
+    showOverlay();
+    hideOverlay();
   }, [pathname, showOverlay, hideOverlay]);
 
   return (
