@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useSupabase } from "@/components/supabase-provider";
 import AddLauncher from "@/components/AddLauncher";
@@ -45,6 +45,15 @@ export default function ChatSidebar({
   const chanRef = useRef<RealtimeChannel | null>(null);
   const bcastRef = useRef<RealtimeChannel | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const scrollToBottom = useCallback((smooth: boolean = true) => {
+    const el = listRef.current;
+    if (!el) return;
+    if (smooth) {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    } else {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, []);
   const [username, setUsername] = useState<string>("guest");
 
   useEffect(() => {
@@ -153,6 +162,18 @@ export default function ChatSidebar({
     };
   }, [supabase, authed, selectedRoomId]);
 
+  // Keep scrolled to bottom on room change, new messages, or panel opening
+  useEffect(() => {
+    // Jump to bottom when room changes
+    scrollToBottom(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRoomId]);
+
+  useEffect(() => {
+    // Smooth scroll on new messages or when panel opens
+    scrollToBottom(true);
+  }, [messages, open, scrollToBottom]);
+
   const send = async () => {
     if (pending) return;
     const text = input.trim();
@@ -245,27 +266,64 @@ export default function ChatSidebar({
 
           {authed ? (
             <>
-              <div ref={listRef} className="flex-1 overflow-auto p-2 space-y-2 text-sm min-w-0">
-                {renderWithDayHeaders(messages).map((item) => (
-                  ('header' in item) ? (
-                    <div key={`h-${item.key}`} className="sticky top-0 z-0 flex items-center justify-center py-1">
-                      <span className="px-2 py-0.5 text-xs rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">{item.label}</span>
-                    </div>
-                  ) : (
-                    <div key={item.m.id} className={`rounded p-2 ${item.m.user === "admin" ? "bg-amber-200 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700" : "bg-gray-100 dark:bg-gray-700"}`}>
-                      <div className="text-gray-600 dark:text-gray-400 text-xs">
-                        {item.m.user}{" - "}
-                        {new Date(item.m.ts).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })}
+              <div ref={listRef} className="flex-1 overflow-auto p-3 space-y-2 text-sm min-w-0 bg-white dark:bg-gray-800">
+                {renderWithDayHeaders(messages).map((item, idx, arr) => {
+                  if ('header' in item) {
+                    return (
+                      <div key={`h-${item.key}`} className="sticky top-0 z-0 flex items-center justify-center py-1">
+                        <span className="px-2 py-0.5 text-xs rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+                          {item.label}
+                        </span>
                       </div>
-                      <div className={`whitespace-pre-wrap break-words ${item.m.user === "admin" ? "text-amber-900 dark:text-amber-100" : "text-gray-900 dark:text-gray-100"}`}>
-                        {item.m.text}
-                      </div>
-                    </div>
-                  )
-                ))}
-              </div>
+                    );
+                  }
 
-              <div className="p-2 border-t dark:border-gray-700 flex gap-2">
+                  const prev = arr[idx - 1];
+                  const isFirstOfRun = !prev || ('header' in prev) || prev.m.user !== item.m.user;
+                  const isSelf = item.m.user === username;
+
+                  const bubbleClass =
+                    item.m.user === 'admin'
+                      ? 'bg-amber-200 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-100'
+                      : isSelf
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100';
+
+                  return (
+                    <div key={item.m.id} className={`flex ${isSelf ? 'justify-end' : 'justify-start'}`}>
+                      {/* ID를 말풍선 밖(위)으로 */}
+                      <div className="max-w-[80%] flex flex-col">
+                        {isFirstOfRun && (
+                          <div
+                            className={`mb-1 text-[11px] ${
+                              isSelf ? 'text-blue-400 text-right pr-1' : 'text-gray-600 dark:text-gray-400'
+                            }`}
+                          >
+                            {item.m.user}
+                          </div>
+                        )}
+
+                        {/* 말풍선 */}
+                        <div className={`rounded-2xl px-3 py-2 shadow-sm ${bubbleClass}`}>
+                          <div className="whitespace-pre-wrap break-words">{item.m.text}</div>
+                          <div
+                            className={`mt-1 text-[10px] ${
+                              isSelf ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+                            } text-right`}
+                          >
+                            {new Date(item.m.ts).toLocaleTimeString('ko-KR', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false,
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="p-2 border-t dark:border-gray-700 flex gap-2 items-center">
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -274,6 +332,7 @@ export default function ChatSidebar({
                   className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-1 min-w-0 w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
                   disabled={pending}
                 />
+                <button type="button" onClick={send} disabled={pending || !input.trim()} className="px-3 py-2 rounded-md bg-blue-600 disabled:bg-blue-300 text-white text-sm hover:bg-blue-700">전송</button>
                 {pending && (
                   <div className="flex items-center px-2">
                     <span className="inline-block w-4 h-4 border-2 border-gray-400 dark:border-gray-500 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
