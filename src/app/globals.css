@@ -36,3 +36,15 @@ body::-webkit-scrollbar {
 *::-webkit-scrollbar {
   display: none;
 }
+
+/* Page transition overlay progress animation */
+@keyframes page-progress-fill {
+  0% { transform: scaleX(0); }
+  60% { transform: scaleX(0.7); }
+  100% { transform: scaleX(1); }
+}
+
+.page-progress {
+  transform-origin: left;
+  animation: page-progress-fill 1.2s ease-in-out infinite;
+}

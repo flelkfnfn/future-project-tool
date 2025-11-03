@@ -1,5 +1,4 @@
 ﻿import { createClient } from "@/lib/supabase/server";
-import { createServiceClient } from "@/lib/supabase/service";
 import { getAuth } from "@/lib/auth/session";
 import { deleteIdea, addComment, toggleLike } from "./actions";
 import AuthGuardForm from "@/components/AuthGuardForm";
@@ -18,19 +17,13 @@ type Idea = {
 export default async function IdeasPage() {
   const supabase = await createClient();
   const auth = await getAuth();
-  if (auth.principal?.source === "supabase" && auth.principal.id) {
-    try {
-      const svc = createServiceClient();
-      await svc.from('users').upsert({ id: auth.principal.id, email: auth.principal.email ?? null }, { onConflict: 'id', ignoreDuplicates: true });
-    } catch (e) {
-      console.error('ensure users row at page load error:', e);
-    }
-  }
+  // Removed page-load upsert to avoid unnecessary writes and latency.
 
   const { data: ideas, error } = await supabase
     .from("ideas")
     .select("id, title, description, idea_likes(user_id), comments(id, content, created_at, user_id)")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(100);
 
   if (error) {
     console.error("아이디어 데이터를 불러오는 중 오류:", error);

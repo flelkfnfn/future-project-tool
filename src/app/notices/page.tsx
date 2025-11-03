@@ -9,7 +9,8 @@ export default async function NoticesPage() {
   const { data: notices, error } = await supabase
     .from("notices")
     .select("id, title, content")
-    .order("id", { ascending: false });
+    .order("id", { ascending: false })
+    .limit(100);
 
   if (error) {
     return (

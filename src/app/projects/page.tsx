@@ -18,7 +18,8 @@ export default async function ProjectsPage() {
   let { data, error } = await supabase
     .from("projects")
     .select("*, project_links (*)")
-    .order("id", { ascending: false });
+    .order("id", { ascending: false })
+    .limit(100);
 
   // If the service client fails (e.g., runtime/env constraints), retry with server anon client
   if (error) {
@@ -26,7 +27,8 @@ export default async function ProjectsPage() {
     const retry = await sb
       .from("projects")
       .select("*, project_links (*)")
-      .order("id", { ascending: false });
+      .order("id", { ascending: false })
+      .limit(100);
     data = retry.data as Project[];
     error = retry.error;
   }
@@ -47,8 +49,8 @@ export default async function ProjectsPage() {
   } else {
     // Fallback: fetch separately without embedding (covers missing relationship config)
     const [{ data: projectsData, error: projectsError }, { data: linksData }] = await Promise.all([
-      supabase.from("projects").select("*").order("id", { ascending: false }),
-      supabase.from("project_links").select("id, url, title, project_id"),
+      supabase.from("projects").select("*").order("id", { ascending: false }).limit(100),
+      supabase.from("project_links").select("id, url, title, project_id").limit(2000),
     ]);
 
     if (projectsError) {
@@ -66,11 +68,18 @@ export default async function ProjectsPage() {
     }
 
     const linksArr = (Array.isArray(linksData) ? linksData : []) as ProjectLink[];
+    // Build lookup map to avoid O(n*m) filtering on large datasets
+    const byProject = new Map<number, ProjectLink[]>();
+    for (const l of linksArr) {
+      const key = Number(l.project_id);
+      const list = byProject.get(key);
+      if (list) list.push(l); else byProject.set(key, [l]);
+    }
     projects = (projectsData || []).map((p: Project) => ({
       id: p.id,
       name: p.name,
       description: p.description ?? null,
-      project_links: linksArr.filter(l => Number(l.project_id) === Number(p.id)),
+      project_links: byProject.get(Number(p.id)) ?? [],
     }));
   }
 

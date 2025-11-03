@@ -6,7 +6,11 @@ type FileItem = { id: number; name: string; url: string }
 
 export default async function FilesPage() {
   const supabase = await createClient();
-  const { data: files, error } = await supabase.from("files").select("id, name, url");
+  const { data: files, error } = await supabase
+    .from("files")
+    .select("id, name, url")
+    .order("id", { ascending: false })
+    .limit(200);
 
   if (error) {
     console.error("파일 목록을 가져오는 중 오류 발생:", error);

@@ -1,12 +1,15 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import ChatSidebar from '@/components/ChatSidebar'
+import dynamic from 'next/dynamic'
 import AddLauncher from '@/components/AddLauncher'
-import AddModal from '@/components/AddModal'
-import CreateChatRoomModal from '@/components/CreateChatRoomModal'
-import ManageChatRoomModal from '@/components/ManageChatRoomModal'
-import AddMembersModal from '@/components/AddMembersModal'
+
+// Lazy-load heavier client components to reduce initial JS/hydration
+const ChatSidebar = dynamic(() => import('@/components/ChatSidebar'), { ssr: false })
+const AddModal = dynamic(() => import('@/components/AddModal'), { ssr: false })
+const CreateChatRoomModal = dynamic(() => import('@/components/CreateChatRoomModal'), { ssr: false })
+const ManageChatRoomModal = dynamic(() => import('@/components/ManageChatRoomModal'), { ssr: false })
+const AddMembersModal = dynamic(() => import('@/components/AddMembersModal'), { ssr: false })
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)

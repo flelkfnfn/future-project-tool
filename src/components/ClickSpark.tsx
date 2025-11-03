@@ -32,6 +32,8 @@ const ClickSpark = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sparksRef = useRef<Spark[]>([]);
   const startTimeRef = useRef<number | null>(null);
+  const animIdRef = useRef<number | null>(null);
+  const runningRef = useRef<boolean>(false);
 
   const easeFunc = useCallback(
     (t: number) => {
@@ -54,8 +56,6 @@ const ClickSpark = ({
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
-    let animationId: number;
 
     const draw = (timestamp: number) => {
       if (!startTimeRef.current) {
@@ -94,13 +94,43 @@ const ClickSpark = ({
         return true;
       });
 
-      animationId = requestAnimationFrame(draw);
+      if (sparksRef.current.length > 0 && !document.hidden) {
+        animIdRef.current = requestAnimationFrame(draw);
+      } else {
+        // Stop loop when idle to save CPU/GPU
+        runningRef.current = false;
+        animIdRef.current = null;
+        startTimeRef.current = null;
+      }
     };
 
-    animationId = requestAnimationFrame(draw);
+    const start = () => {
+      if (runningRef.current) return;
+      if (document.hidden) return;
+      runningRef.current = true;
+      animIdRef.current = requestAnimationFrame(draw);
+    };
+
+    // Kick off only when there are existing sparks (should be none initially)
+    if (sparksRef.current.length > 0) start();
+
+    const onVis = () => {
+      if (document.hidden && animIdRef.current != null) {
+        cancelAnimationFrame(animIdRef.current);
+        animIdRef.current = null;
+        runningRef.current = false;
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+
+    // Expose start via ref to be used by click handler
+    (canvas as unknown as { __start?: () => void }).__start = start;
 
     return () => {
-      cancelAnimationFrame(animationId);
+      if (animIdRef.current != null) cancelAnimationFrame(animIdRef.current);
+      animIdRef.current = null;
+      runningRef.current = false;
+      document.removeEventListener('visibilitychange', onVis);
     };
   }, [sparkColor, sparkSize, sparkRadius, sparkCount, duration, easeFunc, extraScale]);
 
@@ -117,6 +147,8 @@ const ClickSpark = ({
     }));
 
     sparksRef.current.push(...newSparks);
+    const canvas = canvasRef.current as (HTMLCanvasElement & { __start?: () => void }) | null;
+    canvas?.__start?.();
   }, [sparkCount]);
 
   useEffect(() => {
