@@ -1,12 +1,22 @@
-import { createServiceClient } from "@/lib/supabase/service";
+﻿import { createServiceClient } from "@/lib/supabase/service";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import ProjectCard from "@/components/ProjectCard";
-import { unstable_noStore as noStore } from 'next/cache';
+import { unstable_noStore as noStore } from "next/cache";
 
-type ProjectLink = { id: number; url: string; title: string; project_id: number };
-type Project = { id: number; name: string; description?: string | null; project_links: ProjectLink[] };
+type ProjectLink = {
+  id: number;
+  url: string;
+  title: string;
+  project_id: number;
+};
+type Project = {
+  id: number;
+  name: string;
+  description?: string | null;
+  project_links: ProjectLink[];
+};
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export default async function ProjectsPage() {
   noStore();
@@ -39,7 +49,10 @@ export default async function ProjectsPage() {
       id: p.id,
       name: p.name,
       description: p.description ?? null,
-      project_links: (Array.isArray(p.project_links) ? p.project_links : []).map((l: ProjectLink) => ({
+      project_links: (Array.isArray(p.project_links)
+        ? p.project_links
+        : []
+      ).map((l: ProjectLink) => ({
         id: l.id,
         url: l.url,
         title: l.title,
@@ -48,32 +61,47 @@ export default async function ProjectsPage() {
     }));
   } else {
     // Fallback: fetch separately without embedding (covers missing relationship config)
-    const [{ data: projectsData, error: projectsError }, { data: linksData }] = await Promise.all([
-      supabase.from("projects").select("*").order("id", { ascending: false }).limit(100),
-      supabase.from("project_links").select("id, url, title, project_id").limit(2000),
-    ]);
+    const [{ data: projectsData, error: projectsError }, { data: linksData }] =
+      await Promise.all([
+        supabase
+          .from("projects")
+          .select("*")
+          .order("id", { ascending: false })
+          .limit(100),
+        supabase
+          .from("project_links")
+          .select("id, url, title, project_id")
+          .limit(2000),
+      ]);
 
     if (projectsError) {
-      const detail = (projectsError as { message?: string })?.message || ''
+      const detail = (projectsError as { message?: string })?.message || "";
       return (
         <div className="flex justify-center items-center h-full">
           <div className="text-center">
-            <p className="text-red-500">프로젝트를 불러오는 중 오류가 발생했습니다.</p>
-            {process.env.NODE_ENV !== 'production' && detail && (
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{String(detail)}</p>
+            <p className="text-red-500">
+              프로젝트를 불러오는 중 오류가 발생했습니다.
+            </p>
+            {process.env.NODE_ENV !== "production" && detail && (
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                {String(detail)}
+              </p>
             )}
           </div>
         </div>
       );
     }
 
-    const linksArr = (Array.isArray(linksData) ? linksData : []) as ProjectLink[];
+    const linksArr = (
+      Array.isArray(linksData) ? linksData : []
+    ) as ProjectLink[];
     // Build lookup map to avoid O(n*m) filtering on large datasets
     const byProject = new Map<number, ProjectLink[]>();
     for (const l of linksArr) {
       const key = Number(l.project_id);
       const list = byProject.get(key);
-      if (list) list.push(l); else byProject.set(key, [l]);
+      if (list) list.push(l);
+      else byProject.set(key, [l]);
     }
     projects = (projectsData || []).map((p: Project) => ({
       id: p.id,
@@ -85,9 +113,17 @@ export default async function ProjectsPage() {
 
   return (
     <div className="h-full flex flex-col">
-      <h1 className="text-3xl font-bold mb-6 px-4">프로젝트</h1>
-      <div className="flex-grow overflow-x-auto pb-4">
-        <div className="flex items-start space-x-4 px-4 py-4 min-h-full">
+      <h1 className="text-3xl font-bold mb-6 px-4 text-gray-900 dark:text-gray-100">
+        프로젝트
+      </h1>
+      <section className="mx-4 mb-4 rounded-lg border border-gray-300/80 dark:border-gray-700/70 bg-white dark:bg-gray-900/80 shadow-md ring-1 ring-gray-900/5 dark:ring-white/10">
+        <div className="px-4 py-3 border-b border-gray-200/70 dark:border-gray-700/60 bg-gray-50/70 dark:bg-gray-800/60 rounded-lg">
+          <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            프로젝트 목록
+          </h2>
+        </div>
+
+        <div className="flex items-start space-x-4 px-4 py-4 min-h-full overflow-x-auto">
           {projects.length > 0 ? (
             <>
               {projects.map((project: Project) => (
@@ -116,13 +152,13 @@ export default async function ProjectsPage() {
                   아직 생성된 프로젝트가 없습니다.
                 </h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  새로운 프로젝트를 추가해보세요.
+                  오른쪽 패널에서 프로젝트를 추가해 보세요.
                 </p>
               </div>
             </div>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }
