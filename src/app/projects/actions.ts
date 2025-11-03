@@ -63,7 +63,8 @@ export async function addLink(formData: FormData) {
     return
   }
 
-  const { error } = await supabase.from('project_links').insert({ project_id, url, title })
+  const normalizedUrl = normalizeExternalUrl(url)
+  const { error } = await supabase.from('project_links').insert({ project_id, url: normalizedUrl, title })
 
   if (error) {
     console.error("Error adding link:", error)
@@ -73,4 +74,19 @@ export async function addLink(formData: FormData) {
   // ▼▼▼ 이 부분이 추가되었습니다 ▼▼▼
   // 링크가 추가된 후에도 프로젝트 목록 페이지를 갱신하도록 합니다.
   revalidatePath('/projects')
+}
+
+function normalizeExternalUrl(input: string): string {
+  const raw = String(input || '').trim()
+  if (!raw) return ''
+  if (/^https?:\/\//i.test(raw)) return raw
+  if (/^\/\//.test(raw)) return `https:${raw}`
+  const prefixed = `https://${raw.replace(/^\/+/, '')}`
+  try {
+    // eslint-disable-next-line no-new
+    new URL(prefixed)
+    return prefixed
+  } catch {
+    return raw
+  }
 }

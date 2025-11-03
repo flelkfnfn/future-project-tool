@@ -87,7 +87,7 @@ export default async function ProjectsPage() {
     <div className="h-full flex flex-col">
       <h1 className="text-3xl font-bold mb-6 px-4">프로젝트</h1>
       <div className="flex-grow overflow-x-auto pb-4">
-        <div className="flex space-x-4 px-4">
+        <div className="flex items-start space-x-4 px-4 py-4 min-h-full">
           {projects.length > 0 ? (
             <>
               {projects.map((project: Project) => (
