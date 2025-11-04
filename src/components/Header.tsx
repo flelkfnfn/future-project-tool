@@ -112,12 +112,48 @@ const Header = () => {
   const authed = !!user || localAuthed
 
   return (
-    <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-b dark:border-gray-700">
-      <div className="container mx-auto px-4 relative h-18.5">
-        {/* Vertically-centered title and actions */}
-        <div className="h-full flex items-center justify-between">
-          <Link href="/" data-no-overlay className="text-xl font-bold">미래·사회변화주도 프로젝트</Link>
-          <div>
+    <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-b dark:border-gray-700 h-18.5">
+      <div className="container mx-auto px-4 h-full">
+        <div className="flex justify-between h-full">
+          {/* Left Section */}
+          <div className="flex flex-1 items-center justify-start">
+            <Link href="/" data-no-overlay className="text-xl font-bold">미래·사회변화주도 프로젝트</Link>
+          </div>
+
+          {/* Center Section (Dock) */}
+          <div className="flex flex-1 items-end justify-center">
+            <Dock
+              panelHeight={58}
+              dockHeight={72}
+              baseItemSize={40}
+              magnification={44}
+              distance={160}
+              items={nav.map((item) => {
+                const map: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+                  '/projects': LuWorkflow,
+                  '/notices': LuMegaphone,
+                  '/ideas': LuLightbulb,
+                  '/calendar': LuCalendarDays,
+                  '/files': LuFolderOpen,
+                }
+                const Cmp = map[item.href] ?? LuFolderKanban
+                return {
+                  icon: (
+                    <>
+                      <Link href={item.href} aria-label={item.label as string} className="absolute inset-0 z-10" />
+                      <Cmp size={24} aria-hidden className={pathname?.startsWith(item.href) ? 'text-blue-600 dark:text-blue-300' : 'text-slate-700 dark:text-gray-200'} />
+                    </>
+                  ),
+                  label: <span className="text-white dark:text-gray-200">{item.label}</span>,
+                  onClick: () => {},
+                  className: pathname?.startsWith(item.href) ? 'ring-2 ring-blue-400' : ''
+                }
+              })}
+            />
+          </div>
+
+          {/* Right Section */}
+          <div className="flex flex-1 items-center justify-end">
             {authed ? (
               <div className="flex items-center gap-2">
                 {accountLabel && (
@@ -137,38 +173,6 @@ const Header = () => {
               <Link href="/login" className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm">로그인 / 회원가입</Link>
             )}
           </div>
-        </div>
-
-        {/* Centered dock at bottom within header (no global CSS edits) */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
-          <Dock
-            panelHeight={58}
-            dockHeight={72}
-            baseItemSize={40}
-            magnification={44}
-            distance={160}
-            items={nav.map((item) => {
-              const map: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-                '/projects': LuWorkflow,
-                '/notices': LuMegaphone,
-                '/ideas': LuLightbulb,
-                '/calendar': LuCalendarDays,
-                '/files': LuFolderOpen,
-              }
-              const Cmp = map[item.href] ?? LuFolderKanban
-              return {
-                icon: (
-                  <>
-                    <Link href={item.href} aria-label={item.label as string} className="absolute inset-0 z-10" />
-                    <Cmp size={24} aria-hidden className={pathname?.startsWith(item.href) ? 'text-blue-600 dark:text-blue-300' : 'text-slate-700 dark:text-gray-200'} />
-                  </>
-                ),
-                label: <span className="text-white dark:text-gray-200">{item.label}</span>,
-                onClick: () => {},
-                className: pathname?.startsWith(item.href) ? 'ring-2 ring-blue-400' : ''
-              }
-            })}
-          />
         </div>
       </div>
     </header>
