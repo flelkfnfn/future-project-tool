@@ -2,6 +2,7 @@
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import ProjectCard from "@/components/ProjectCard";
 import { unstable_noStore as noStore } from "next/cache";
+import { LuFlaskConicalOff } from "react-icons/lu";
 
 type ProjectLink = {
   id: number;
@@ -18,8 +19,9 @@ type Project = {
 
 export const runtime = "nodejs";
 
-export default async function ProjectsPage() {
+export default async function ProjectsPage({ searchParams }: { searchParams?: { q?: string } }) {
   noStore();
+  const searchQuery = searchParams?.q || '';
   // Prefer service role for guaranteed read; fallback to anon server client if needed
   const supabase = createServiceClient();
 
@@ -111,11 +113,36 @@ export default async function ProjectsPage() {
     }));
   }
 
+  const filteredProjects = projects.filter(project => {
+    const query = searchQuery.toLowerCase();
+    const nameMatch = project.name.toLowerCase().includes(query);
+    const descMatch = project.description?.toLowerCase().includes(query);
+    return nameMatch || descMatch;
+  });
+
   return (
     <div className="h-full flex flex-col">
-      <h1 className="text-3xl font-bold mb-6 px-4 text-gray-900 dark:text-gray-100">
+      <h1 className="text-3xl font-bold mb-4 px-4 text-gray-900 dark:text-gray-100">
         프로젝트
       </h1>
+      <div className="px-4 mb-6">
+        <form action="/projects" method="GET" className="max-w-sm">
+          <div className="relative">
+            <input
+              type="search"
+              name="q"
+              defaultValue={searchQuery}
+              placeholder="프로젝트 이름 또는 설명으로 검색..."
+              className="w-full border dark:border-gray-600 rounded-md pl-3 pr-10 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button type="submit" className="absolute right-0 top-0 bottom-0 px-3 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" aria-label="Search">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
       <section className="mx-4 mb-4 rounded-lg border border-gray-300/80 dark:border-gray-700/70 bg-white dark:bg-gray-900/80 shadow-md ring-1 ring-gray-900/5 dark:ring-white/10">
         <div className="px-4 py-3 border-b border-gray-200/70 dark:border-gray-700/60 bg-gray-50/70 dark:bg-gray-800/60 rounded-lg">
           <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -124,35 +151,21 @@ export default async function ProjectsPage() {
         </div>
 
         <div className="flex items-start space-x-4 px-4 py-4 min-h-full overflow-x-auto">
-          {projects.length > 0 ? (
+          {filteredProjects.length > 0 ? (
             <>
-              {projects.map((project: Project) => (
+              {filteredProjects.map((project: Project) => (
                 <ProjectCard key={project.id} project={project} />
               ))}
             </>
           ) : (
             <div className="flex-shrink-0 w-full flex justify-center items-center">
               <div className="text-center py-24">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    vectorEffect="non-scaling-stroke"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-                  />
-                </svg>
+                <LuFlaskConicalOff className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-200">
-                  아직 생성된 프로젝트가 없습니다.
+                  {searchQuery ? '검색 결과가 없습니다.' : '아직 생성된 프로젝트가 없습니다.'}
                 </h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  오른쪽 패널에서 프로젝트를 추가해 보세요.
+                  {searchQuery ? '다른 검색어로 시도해 보세요.' : '오른쪽 패널에서 프로젝트를 추가해 보세요.'}
                 </p>
               </div>
             </div>

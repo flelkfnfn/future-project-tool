@@ -7,6 +7,7 @@ import AppShell from "@/components/AppShell";
 import { PageTransitionOverlayProvider } from "@/components/PageTransitionOverlay";
 import ClickSpark from "@/components/ClickSpark";
 import ThemeProvider from "@/components/ThemeProvider";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`${geistSans.variable} h-full antialiased`}
       >
         <ThemeProvider>
+          <Toaster position="top-center" richColors duration={2500} closeButton />
           <ClickSpark />
           <PageTransitionOverlayProvider>
             <SupabaseProvider>

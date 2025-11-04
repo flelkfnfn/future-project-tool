@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/service'
 import { hashPassword } from '@/lib/auth/local'
 import { getAuth } from '@/lib/auth/session'
+import NotFoundAdmin from '@/components/NotFoundAdmin'
 
 async function createLocalUser(formData: FormData) {
   'use server'
@@ -162,30 +163,5 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       </div>
     )
   }
-  return <div className="p-4"><p className="text-red-600">관리자만 접근 가능합니다.</p></div>
-  if (!isAdmin) {
-    redirect(`/login?error=${encodeURIComponent('관리자만 접근 가능합니다')}`)
-  }
-  const params = await searchParams
-  const error = params?.error
-  const message = params?.message
-  return (
-    <div className="max-w-md mx-auto p-4">
-      <h1 className="text-xl font-bold mb-4">로컬 사용자 관리</h1>
-      {(error || message) && (
-        <p className={`mb-4 text-sm ${error ? 'text-red-600' : 'text-green-600'}`}>{error ?? message}</p>
-      )}
-      <form action={createLocalUser} className="space-y-3">
-        <div>
-          <label className="block text-sm">아이디</label>
-          <input name="username" className="border px-2 py-1 w-full" />
-        </div>
-        <div>
-          <label className="block text-sm">비밀번호</label>
-          <input type="password" name="password" className="border px-2 py-1 w-full" />
-        </div>
-        <button className="bg-blue-600 text-white px-3 py-1 rounded">추가</button>
-      </form>
-    </div>
-  )
+  return <NotFoundAdmin />
 }

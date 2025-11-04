@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export default function AddModal({ onClose }: { onClose: () => void }) {
   const router = useRouter()
@@ -13,12 +14,18 @@ export default function AddModal({ onClose }: { onClose: () => void }) {
     try {
       const res = await fetch('/api/notices/add', { method: 'POST', body: form })
       if (!res.ok) {
-        try { const j = await res.json(); alert(j?.error ? `공지 등록 실패: ${j.error}` : '공지 등록 실패') } catch { alert('공지 등록 실패') }
+        try { 
+          const j = await res.json(); 
+          toast.error(j?.error ? `공지 등록 실패: ${j.error}` : '공지 등록 실패') 
+        } catch { 
+          toast.error('공지 등록 실패') 
+        }
         return
       }
+      toast.success('공지가 성공적으로 등록되었습니다.')
       router.refresh()
     } catch {
-      alert('네트워크 오류로 공지 등록에 실패했습니다.')
+      toast.error('네트워크 오류로 공지 등록에 실패했습니다.')
     } finally {
       onClose()
       setPending(false)
@@ -30,12 +37,18 @@ export default function AddModal({ onClose }: { onClose: () => void }) {
     try {
       const res = await fetch('/api/projects/add', { method: 'POST', body: form })
       if (!res.ok) {
-        try { const j = await res.json(); alert(j?.error ? `프로젝트 등록 실패: ${j.error}` : '프로젝트 등록 실패') } catch { alert('프로젝트 등록 실패') }
+        try { 
+          const j = await res.json(); 
+          toast.error(j?.error ? `프로젝트 등록 실패: ${j.error}` : '프로젝트 등록 실패') 
+        } catch { 
+          toast.error('프로젝트 등록 실패') 
+        }
         return
       }
+      toast.success('프로젝트가 성공적으로 등록되었습니다.')
       router.refresh()
     } catch {
-      alert('네트워크 오류로 프로젝트 등록에 실패했습니다.')
+      toast.error('네트워크 오류로 프로젝트 등록에 실패했습니다.')
     } finally {
       onClose()
       setPending(false)
@@ -47,12 +60,18 @@ export default function AddModal({ onClose }: { onClose: () => void }) {
     try {
       const res = await fetch('/api/ideas/add', { method: 'POST', body: form })
       if (!res.ok) {
-        try { const j = await res.json(); alert(j?.error ? `아이디어 등록 실패: ${j.error}` : '아이디어 등록 실패') } catch { alert('아이디어 등록 실패') }
+        try { 
+          const j = await res.json(); 
+          toast.error(j?.error ? `아이디어 등록 실패: ${j.error}` : '아이디어 등록 실패') 
+        } catch { 
+          toast.error('아이디어 등록 실패') 
+        }
         return
       }
+      toast.success('아이디어가 성공적으로 등록되었습니다.')
       router.refresh()
     } catch {
-      alert('네트워크 오류로 아이디어 등록에 실패했습니다.')
+      toast.error('네트워크 오류로 아이디어 등록에 실패했습니다.')
     } finally {
       onClose()
       setPending(false)

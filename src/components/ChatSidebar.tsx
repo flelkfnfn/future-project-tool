@@ -334,14 +334,14 @@ export default function ChatSidebar({
                               {/* 본인: 시간(왼쪽 외부) -> 말풍선(오른쪽) */}
                               {timeLabel}
                               <div className={`rounded-2xl px-3 py-2 shadow-sm ${bubbleClass}`}>
-                                <div className="whitespace-pre-wrap break-words">{item.m.text}</div>
+                                <div className="whitespace-pre-wrap break-words">{linkify(item.m.text)}</div>
                               </div>
                             </>
                           ) : (
                             <>
                               {/* 상대: 말풍선(왼쪽) -> 시간(오른쪽 외부) */}
                               <div className={`rounded-2xl px-3 py-2 shadow-sm ${bubbleClass}`}>
-                                <div className="whitespace-pre-wrap break-words">{item.m.text}</div>
+                                <div className="whitespace-pre-wrap break-words">{linkify(item.m.text)}</div>
                               </div>
                               {timeLabel}
                             </>
@@ -389,6 +389,42 @@ export default function ChatSidebar({
       </div>
     </aside>
   );
+}
+
+function linkify(text: string) {
+  if (!text) return [text];
+  const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+  const nodes = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = urlRegex.exec(text)) !== null) {
+    // Add the text before the link
+    if (match.index > lastIndex) {
+      nodes.push(text.substring(lastIndex, match.index));
+    }
+    // Add the link
+    nodes.push(
+      <a
+        key={match.index}
+        href={match[0]}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-400 hover:underline"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {match[0]}
+      </a>
+    );
+    lastIndex = urlRegex.lastIndex;
+  }
+
+  // Add the remaining text
+  if (lastIndex < text.length) {
+    nodes.push(text.substring(lastIndex));
+  }
+
+  return nodes.length > 0 ? nodes : [text];
 }
 
 function renderWithDayHeaders(list: ChatMsg[]): Array<{ header: true; key: string; label: string } | { m: ChatMsg }>{

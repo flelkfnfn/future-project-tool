@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSupabase } from '@/components/supabase-provider'
+import { toast } from 'sonner'
 
 type Props = React.FormHTMLAttributes<HTMLFormElement> & {
   confirmMessage?: string
@@ -38,7 +39,7 @@ export default function AuthGuardForm({ children, onSubmit, confirmMessage, ...r
     }
     if (!authed) {
       e.preventDefault()
-      alert('로그인이 필요합니다.')
+      toast.warning('로그인이 필요합니다.')
       return
     }
     setPending(true)
