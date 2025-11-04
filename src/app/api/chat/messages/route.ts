@@ -56,11 +56,24 @@ export async function POST(req: Request) {
     ? (auth.principal?.source === 'supabase' ? (auth.principal.email ?? 'user') : String(auth.principal?.username ?? 'user'))
     : 'user'
 
-  const { error } = await supabase.from('chat_messages').insert({ text, username, ts, room_id: roomId })
+  const { error, data } = await supabase.from('chat_messages').insert({ text, username, ts, room_id: roomId }).select('id').single()
   
   if (error) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
   }
+
+  const channel = supabase.channel(roomId ? `room-${roomId}` : 'public-room')
+  channel.send({
+    type: 'broadcast',
+    event: 'new-message',
+    payload: {
+      id: data.id,
+      text,
+      username,
+      ts,
+      room_id: roomId,
+    },
+  })
 
   return NextResponse.json({ ok: true })
 }
