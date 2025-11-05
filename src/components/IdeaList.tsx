@@ -25,10 +25,11 @@ interface IdeaListProps {
 
 export default function IdeaList({ initialIdeas }: IdeaListProps) {
   return (
-    <ul className="mt-4 space-y-4">
+    <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {initialIdeas.map((idea) => (
-        <li key={idea.id} className="p-4 border rounded-md shadow-sm">
-          <div className="flex justify-between items-start">
+        <li key={idea.id}>
+          <article className="p-4 border rounded-md shadow-sm bg-white dark:bg-gray-800">
+            <div className="flex justify-between items-start">
             <div>
               <h2 className="text-xl font-semibold">{idea.title}</h2>
               <p className="mt-2 text-gray-700 whitespace-pre-wrap">{idea.description}</p>
@@ -42,7 +43,7 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
                 삭제
               </button>
             </AuthGuardForm>
-          </div>
+            </div>
 
           <div className="mt-4 flex items-center gap-2">
             <AuthGuardForm action={toggleLike}>
@@ -98,6 +99,7 @@ export default function IdeaList({ initialIdeas }: IdeaListProps) {
               </button>
             </AuthGuardForm>
           </div>
+          </article>
         </li>
       ))}
     </ul>
