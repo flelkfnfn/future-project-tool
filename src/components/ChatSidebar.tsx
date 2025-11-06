@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useSupabase } from "@/components/supabase-provider";
+import { fetchMeCached } from "@/lib/api/meClient";
 import AddLauncher from "@/components/AddLauncher";
 
 const makeId = (text: string, user: string, ts: number) =>
@@ -50,6 +51,8 @@ export default function ChatSidebar({
   const [pending, setPending] = useState(false);
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
+  const selectedRoomIdRef = useRef<number | null>(null);
+  useEffect(() => { selectedRoomIdRef.current = selectedRoomId }, [selectedRoomId]);
   const [unread, setUnread] = useState<Record<string, number>>({}); // 'general' or room id string
   const bcastRef = useRef<RealtimeChannel | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -72,8 +75,7 @@ export default function ChatSidebar({
     }
 
     let active = true;
-    fetch("/api/me", { cache: "no-store" })
-      .then((r) => r.json())
+    fetchMeCached()
       .then((j) => {
         if (active) {
           setUsername(
@@ -118,72 +120,42 @@ export default function ChatSidebar({
     fetchRooms();
   }, [authed, supabase]);
 
-  // Fetch messages for the selected room and subscribe to channels
+  // Fetch messages only when auth/selectedRoom changes (avoid refetch on rooms change)
   useEffect(() => {
     if (!authed) {
       setMessages([]);
       return;
     }
-
     (async () => {
       // Clear messages when room changes
       setMessages([]);
       try {
-        const url = selectedRoomId
-          ? `/api/chat/messages?roomId=${selectedRoomId}`
-          : "/api/chat/messages";
-        const res = await fetch(url, {
-          cache: "no-store",
-          credentials: "include",
-        });
+        const url = selectedRoomId != null ? `/api/chat/messages?roomId=${selectedRoomId}` : "/api/chat/messages";
+        const res = await fetch(url, { cache: "no-store", credentials: "include" });
         const j = await res.json();
         if (j?.ok && Array.isArray(j.data)) {
-          const mapped: ChatMsg[] = (
-            j.data as Array<{
-              text: string;
-              user?: string;
-              ts: number;
-              room_id?: number | null;
-            }>
-          ).map((r) => ({
-            id: makeId(r.text, r.user ?? "user", r.ts),
-            text: r.text,
-            user: r.user ?? "user",
-            ts: r.ts,
-            room_id: r.room_id,
-          }));
+          const mapped: ChatMsg[] = (j.data as Array<{ text: string; user?: string; ts: number; room_id?: number | null }>).
+            map((r) => ({ id: makeId(r.text, r.user ?? "user", r.ts), text: r.text, user: r.user ?? "user", ts: r.ts, room_id: r.room_id }));
           setMessages(dedupe(mapped));
-          const key =
-            selectedRoomId == null ? "general" : String(selectedRoomId);
+          const key = selectedRoomId == null ? "general" : String(selectedRoomId);
           setUnread((prev) => ({ ...prev, [key]: 0 }));
         }
       } catch {}
     })();
+  }, [authed, selectedRoomId]);
 
-    const messageHandler = ({
-      payload: r,
-    }: {
-      payload: ChatMessagePayload;
-    }) => {
-      const incoming: ChatMsg = {
-        id: makeId(r.text, r.username, r.ts),
-        text: r.text,
-        user: r.username,
-        ts: r.ts,
-        room_id: r.room_id,
-      };
-      if (
-        (selectedRoomId == null && incoming.room_id == null) ||
-        (selectedRoomId != null && incoming.room_id === selectedRoomId)
-      ) {
+  // Subscribe to realtime channels; depend on rooms, keep latest selectedRoomId via ref to avoid resubscribing on selection change
+  useEffect(() => {
+    if (!authed) return;
+
+    const messageHandler = ({ payload: r }: { payload: ChatMessagePayload }) => {
+      const incoming: ChatMsg = { id: makeId(r.text, r.username, r.ts), text: r.text, user: r.username, ts: r.ts, room_id: r.room_id };
+      const currentRoomId = selectedRoomIdRef.current;
+      if ((currentRoomId == null && incoming.room_id == null) || (currentRoomId != null && incoming.room_id === currentRoomId)) {
         setMessages((prev) => dedupe([...prev, incoming]));
-        listRef.current?.scrollTo({
-          top: listRef.current.scrollHeight,
-          behavior: "smooth",
-        });
+        listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
       } else {
-        const key =
-          incoming.room_id == null ? "general" : String(incoming.room_id);
+        const key = incoming.room_id == null ? "general" : String(incoming.room_id);
         setUnread((prev) => ({ ...prev, [key]: (prev[key] ?? 0) + 1 }));
       }
     };
@@ -203,7 +175,7 @@ export default function ChatSidebar({
       channels.forEach((channel) => channel.unsubscribe());
       publicChannel.unsubscribe();
     };
-  }, [supabase, authed, selectedRoomId, rooms]);
+  }, [supabase, authed, rooms]);
 
   // Keep scrolled to bottom on room change, new messages, or panel opening
   useEffect(() => {

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useSupabase } from '@/components/supabase-provider'
+import { fetchMeCached } from '@/lib/api/meClient'
 import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js'
 import { localSignOut } from '@/app/login/localActions'
 import Dock from '@/components/Dock'
@@ -36,8 +37,7 @@ const Header = () => {
         if (res.data.user?.email) {
           setAccountLabel(res.data.user.email)
         } else if (typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')) {
-          fetch('/api/me', { cache: 'no-store' })
-            .then(r => r.json())
+          fetchMeCached()
             .then(j => {
               const p = j?.principal
               const label = (p && (p.username || p.email)) || null
@@ -63,8 +63,7 @@ const Header = () => {
     const hasLocal = typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
     setLocalAuthed(hasLocal)
     if (!user?.email && hasLocal) {
-      fetch('/api/me', { cache: 'no-store' })
-        .then(r => r.json())
+      fetchMeCached()
         .then(j => {
           const p = j?.principal
           const label = (p && (p.username || p.email)) || null
@@ -81,8 +80,7 @@ const Header = () => {
       const hasLocal = typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
       setLocalAuthed(hasLocal)
       if (!user?.email && hasLocal) {
-        fetch('/api/me', { cache: 'no-store' })
-          .then(r => r.json())
+        fetchMeCached()
           .then(j => {
             const p = j?.principal
             const label = (p && (p.username || p.email)) || null

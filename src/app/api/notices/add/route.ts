@@ -3,6 +3,7 @@ import { getAuth } from "@/lib/auth/session"
 import { createServiceClient } from "@/lib/supabase/service"
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
   const auth = await getAuth()
