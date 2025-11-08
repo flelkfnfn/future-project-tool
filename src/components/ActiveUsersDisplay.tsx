@@ -21,19 +21,22 @@ export default function ActiveUsersDisplay() {
       try {
         const ures = await supabase.auth.getUser();
         if (mounted) {
-          console.log('[ActiveUsers] getUser result', ures.data.user);
+          console.log("[ActiveUsers] getUser result", ures.data.user);
           setUserId(ures.data.user?.id ?? null);
           setUserEmail(ures.data.user?.email ?? undefined);
           if (!ures.data.user) {
             try {
-              const res = await fetch('/api/me', { credentials: 'include', cache: 'no-store' });
+              const res = await fetch("/api/me", {
+                credentials: "include",
+                cache: "no-store",
+              });
               const j = await res.json();
               const p = j && j.principal;
               if (p && p.id && mounted) {
                 setUserId(String(p.id));
                 const lbl = p.username || p.email || undefined;
                 setUserEmail(lbl);
-                console.log('[ActiveUsers] fallback principal', p);
+                console.log("[ActiveUsers] fallback principal", p);
               }
             } catch {}
           }
@@ -56,11 +59,19 @@ export default function ActiveUsersDisplay() {
 
   useEffect(() => {
     if (!supabase) return;
-    const effectiveUserId = (session && session.user && session.user.id) ? session.user.id : userId;
-    console.log('[ActiveUsers] effectiveUserId', effectiveUserId, 'session?', !!session);
+    const effectiveUserId =
+      session && session.user && session.user.id ? session.user.id : userId;
+    console.log(
+      "[ActiveUsers] effectiveUserId",
+      effectiveUserId,
+      "session?",
+      !!session
+    );
     if (!effectiveUserId) {
       if (channelRef.current) {
-        try { supabase.removeChannel(channelRef.current); } catch {}
+        try {
+          supabase.removeChannel(channelRef.current);
+        } catch {}
         channelRef.current = null;
         currentKeyRef.current = null;
       }
@@ -68,7 +79,9 @@ export default function ActiveUsersDisplay() {
     }
     // If the channel exists with a different key, recreate
     if (channelRef.current && currentKeyRef.current !== effectiveUserId) {
-      try { supabase.removeChannel(channelRef.current); } catch {}
+      try {
+        supabase.removeChannel(channelRef.current);
+      } catch {}
       channelRef.current = null;
       currentKeyRef.current = null;
     }
@@ -111,7 +124,7 @@ export default function ActiveUsersDisplay() {
     });
     channelRef.current = channel;
     currentKeyRef.current = effectiveUserId;
-  }, [supabase, session, userId]);
+  }, [supabase, session, userId, userEmail]);
 
   // Update presence payload label without recreating channel
   useEffect(() => {
@@ -120,7 +133,10 @@ export default function ActiveUsersDisplay() {
     (async () => {
       try {
         const effectiveEmail = session?.user?.email ?? userEmail;
-        await ch.track({ email: effectiveEmail ?? undefined, online_at: new Date().toISOString() });
+        await ch.track({
+          email: effectiveEmail ?? undefined,
+          online_at: new Date().toISOString(),
+        });
       } catch {}
     })();
   }, [session, userEmail]);
@@ -129,39 +145,47 @@ export default function ActiveUsersDisplay() {
   useEffect(() => {
     return () => {
       if (channelRef.current) {
-        try { supabase.removeChannel(channelRef.current); } catch {}
+        try {
+          supabase.removeChannel(channelRef.current);
+        } catch {}
         channelRef.current = null;
       }
     };
   }, [supabase]);
 
   return (
-    <div className="p-3 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur">
-      <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2">
+    <div className="p-3 rounded-lg shadow-lg border border-gray-200/80 dark:border-gray-700/60 bg-white/70 dark:bg-gray-800/70 backdrop-blur-md">
+      <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 px-1">
         활동 중인 사용자
       </h3>
       {(session?.user?.id ?? userId) ? (
         activeUsers.length > 0 ? (
-          <ul className="space-y-1.5">
+          <ul className="space-y-1 divide-y divide-gray-200/50 dark:divide-gray-700/50">
             {activeUsers.map((user) => (
               <li
                 key={user.presence_key}
-                className="flex items-center gap-2 text-xs text-gray-800 dark:text-gray-200"
+                className="flex items-center gap-2 p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-colors cursor-pointer"
               >
-                <span className="w-2 h-2 rounded-full bg-green-500" />
-                <span>{user.email}</span>
+                <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                <span className="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">
+                  {user.email}
+                </span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            현재 활동 중인 사용자가 없습니다.
-          </p>
+          <div className="text-center py-3">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              현재 활동 중인 다른 사용자가 없습니다.
+            </p>
+          </div>
         )
       ) : (
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          로그인이 필요합니다.
-        </p>
+        <div className="text-center py-3">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            로그인이 필요합니다.
+          </p>
+        </div>
       )}
     </div>
   );

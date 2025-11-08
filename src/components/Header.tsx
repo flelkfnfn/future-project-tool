@@ -57,6 +57,7 @@ const Header = () => {
       mounted = false
       subscription.unsubscribe()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase])
 
   useEffect(() => {
@@ -70,11 +71,10 @@ const Header = () => {
           setAccountLabel(label)
         })
         .catch(() => {})
-    } else if (user?.email) {
-      setAccountLabel(user.email)
-    }
-  }, [pathname])
-
+          } else if (user?.email) {
+            setAccountLabel(user.email)
+          }
+        }, [pathname, user])
   useEffect(() => {
     const onFocus = () => {
       const hasLocal = typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')

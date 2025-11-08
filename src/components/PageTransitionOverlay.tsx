@@ -30,13 +30,13 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
     target: number;
     step: number;
     interval: number;
-    finishMs: number;
   } | null>(null);
   const minUntil = useRef<number>(0);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const suppressNext = useRef<boolean>(false);
   const isFirstPaint = useRef<boolean>(true);
+  const finishMsRef = useRef<number>(300);
 
   const showOverlay = useCallback((minDuration: number = 800) => {
     setShow(true);
@@ -69,8 +69,8 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
     const target = 0.90 + Math.random() * 0.06; // 90%~96%
     const step = 0.06 + Math.random() * 0.05;   // easing factor
     const interval = 90 + Math.floor(Math.random() * 70); // 90~160ms
-    const finishMs = 220 + Math.floor(Math.random() * 180); // 220~400ms
-    setVariant({ gradient, spinner, backdrop, msg, target, step, interval, finishMs });
+    finishMsRef.current = 220 + Math.floor(Math.random() * 180); // 220~400ms
+    setVariant({ gradient, spinner, backdrop, msg, target, step, interval });
     if (progTimer.current) clearInterval(progTimer.current);
     progTimer.current = setInterval(() => {
       setProgress((p) => {
@@ -85,7 +85,7 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
     const delay = Math.max(500, minUntil.current - now);
     if (progTimer.current) { clearInterval(progTimer.current); progTimer.current = null; }
     // Fast ramp to 100%
-    const finMs = variant?.finishMs ?? 300;
+    const finMs = finishMsRef.current;
     const t0 = Date.now();
     const fin = setInterval(() => {
       setProgress((p) => {
