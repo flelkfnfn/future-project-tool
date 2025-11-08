@@ -19,9 +19,10 @@ type Project = {
 
 export const runtime = "nodejs";
 
-export default async function ProjectsPage({ searchParams }: { searchParams?: { q?: string } }) {
+export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   noStore();
-  const searchQuery = searchParams?.q || '';
+  const params = await searchParams;
+  const searchQuery = params?.q || '';
   // Prefer service role for guaranteed read; fallback to anon server client if needed
   const supabase = createServiceClient();
 

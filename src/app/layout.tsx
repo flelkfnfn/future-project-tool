@@ -30,16 +30,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`${geistSans.variable} h-full antialiased`}
       >
-        <ThemeProvider>
-          <Toaster position="top-center" richColors duration={2500} closeButton />
-          <ClickSpark />
-          <PageTransitionOverlayProvider>
-            <SupabaseProvider>
+        <SupabaseProvider>
+          <ThemeProvider>
+            <Toaster position="top-center" richColors duration={2500} closeButton />
+            <ClickSpark />
+            <PageTransitionOverlayProvider>
               <Header />
               <AppShell>{children}</AppShell>
-            </SupabaseProvider>
-          </PageTransitionOverlayProvider>
-        </ThemeProvider>
+            </PageTransitionOverlayProvider>
+          </ThemeProvider>
+        </SupabaseProvider>
       </body>
     </html>
   );

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { LuBell, LuBellOff } from "react-icons/lu";
 import dynamic from "next/dynamic";
 import AddLauncher from "@/components/AddLauncher";
+import ActiveUsersDisplay from "./ActiveUsersDisplay";
 
 // Lazy-load heavier client components to reduce initial JS/hydration
 const ChatSidebar = dynamic(() => import("@/components/ChatSidebar"), {
@@ -23,13 +24,11 @@ const ManageChatRoomModal = dynamic(
 const AddMembersModal = dynamic(() => import("@/components/AddMembersModal"), {
   ssr: false,
 });
-
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
-
   const [chatOpen, setChatOpen] = useState<boolean>(true);
   // Keep panel container mounted during close animation
   const [panelVisible, setPanelVisible] = useState<boolean>(true);
@@ -48,7 +47,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   >("unknown");
   const [enablingPush, setEnablingPush] = useState<boolean>(false);
   const [disablingPush, setDisablingPush] = useState<boolean>(false);
-
   useEffect(() => {
     try {
       const v = localStorage.getItem("chat_open");
@@ -60,7 +58,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       localStorage.setItem("chat_open", chatOpen ? "1" : "0");
     } catch {}
   }, [chatOpen]);
-
   // Orchestrate slide-out before collapsing width to 0
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -73,7 +70,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       if (timer) clearTimeout(timer);
     };
   }, [chatOpen]);
-
   // Evaluate current push availability/subscription
   useEffect(() => {
     const evalStatus = async () => {
@@ -102,22 +98,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     };
     evalStatus();
   }, []);
-
   const gridCls = useMemo(() => {
     return "grid grid-cols-6 gap-4 w-full";
   }, []);
-
   if (!mounted) {
     return <main className="w-full p-4 overflow-x-hidden"></main>;
   }
-
   const openAddMembersModal = () => {
     if (manageRoom) {
       setAddMembersRoom(manageRoom);
       setManageRoom(null);
     }
   };
-
   return (
     <main className="w-full p-4 overflow-x-hidden">
       <div className={gridCls}>
@@ -125,8 +117,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className={"col-span-4 min-w-0"}>{children}</div>
         <div className="col-span-1 hidden lg:block" />
       </div>
-
-      {/* 1) �׻� ����Ʈ: ChatSidebar�� ���?�����ϰ�, open prop�� �ٲ� */}
+      {/* Chat Sidebar */}
       <div
         className={`fixed right-4 top-16 bottom-4 hidden lg:block z-51 ${
           panelVisible ? "w-80" : "w-0"
@@ -142,8 +133,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           }
         >
           <ChatSidebar
-            open={chatOpen && !addOpen} // �� addOpen�� �� ���� ���·� �����̵� �ƿ�
-            onToggle={() => setChatOpen((v) => !v)} // �� �� �����?transform ��ȯ�� ����
+            open={chatOpen && !addOpen}
+            onToggle={() => setChatOpen((v) => !v)}
             showToggle={panelVisible && !addOpen}
             onAdd={() => setAddOpen(true)}
             onCreateRoom={() => setCreateRoomOpen(true)}
@@ -151,8 +142,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           />
         </div>
       </div>
-
-      {/* 2) ���� ������ ���� ǥ�õǴ� �÷��� ��ư�� ���� */}
+      {/* Floating Action Buttons */}
       {!panelVisible && !addOpen && (
         <div className="fixed right-4 bottom-16 z-40 flex flex-col items-center gap-2 pointer-events-auto">
           <AddLauncher onOpen={() => setAddOpen(true)} />
@@ -168,12 +158,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               fill="currentColor"
               className="w-6 h-6"
             >
-              <path d="M18 10c0 3.866-3.582 7-8 7-1.102 0-2.147-.187-3.095-.525-.226-.081-.477-.07-.692.037L3.3 17.4a.75.75 0 01-1.05-.836l.616-2.463a.75.75 0 00-.18-.705A6.97 6.97 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7z" />
+              <path
+                d="M18 10c0 3.866-3.582 7-8 7-1.102 0-2.147-.187-3.095-.525-.226-.081-.477-.07-.692.037L3.3 17.4a.75.75 0
+01-1.05-.836l.616-2.463a.75.75 0 00-.18-.705A6.97 6.97 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7z"
+              />
             </svg>
           </button>
         </div>
       )}
-
+      {/* Modals */}
       {addOpen && <AddModal onClose={() => setAddOpen(false)} />}
       {createRoomOpen && (
         <CreateChatRoomModal onClose={() => setCreateRoomOpen(false)} />
@@ -193,9 +186,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           onClose={() => setAddMembersRoom(null)}
         />
       )}
-
-      {/* Push toggle: top-left icon only, no text; avoid header overlap via top-20 */}
-      <div className="fixed left-4 top-25 z-50">
+      {/* Push toggle & Active Users List: top-left */}
+      <div className="fixed left-4 top-24 z-50 flex flex-col gap-4">
         <button
           type="button"
           aria-label={pushStatus === "enabled" ? "알림 끄기" : "알림 켜기"}
@@ -257,6 +249,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <LuBellOff className="w-5 h-5 text-gray-500 dark:text-gray-300" />
           )}
         </button>
+        <ActiveUsersDisplay />
       </div>
     </main>
   );

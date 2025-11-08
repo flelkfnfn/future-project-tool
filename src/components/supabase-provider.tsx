@@ -1,7 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { createContext, useContext, useEffect, useState } from 'react'
 
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -21,6 +21,7 @@ export default function SupabaseProvider({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const [supabase] = useState(() => createClient())
   const [session, setSession] = useState<Session | null>(null); // State to hold session
 
@@ -44,8 +45,8 @@ export default function SupabaseProvider({
   }, [router, supabase])
 
   return (
-    <Context.Provider value={{ supabase, session }}> {/* Pass session to context */}
-      <>{children}</>
+    <Context.Provider value={{ supabase, session }}>
+      {children}
     </Context.Provider>
   )
 }

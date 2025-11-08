@@ -153,9 +153,14 @@ const Header = () => {
           {/* Right Section */}
           <div className="flex flex-1 items-center justify-end">
             {authed ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
                 {accountLabel && (
-                  <Link href="/profile" aria-label="프로필" className="px-2 py-2 text-sm rounded border dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"><LuUserRound size={20} aria-hidden /></Link>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{accountLabel}</span>
+                    <Link href="/profile" aria-label="프로필" className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <LuUserRound size={20} className="text-gray-700 dark:text-gray-300" />
+                    </Link>
+                  </div>
                 )}
                 <form action={localSignOut}>
                   <button
