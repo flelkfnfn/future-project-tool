@@ -369,7 +369,7 @@ export default function ChatSidebar({
             <>
               <div
                 ref={listRef}
-                className="flex-1 overflow-auto p-3 space-y-2 text-sm min-w-0 bg-white dark:bg-gray-800"
+                className="flex-1 overflow-auto p-3 space-y-2 text-sm min-w-0 bg-white dark:bg-gray-800 overscroll-contain"
               >
                 <div className="p-3 space-y-2">
                   {renderWithDayHeaders(messages).map((item, idx, arr) => {
