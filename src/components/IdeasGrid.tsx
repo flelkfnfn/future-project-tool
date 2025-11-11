@@ -6,28 +6,51 @@ import { deleteIdea, toggleLike } from "@/app/ideas/actions";
 import IdeaModal, { Idea } from "@/components/IdeaModal";
 
 function truncate(s: string, n: number) {
+
   if (!s) return "";
+
   return s.length > n ? s.slice(0, n) + "..." : s;
+
 }
 
+
+
 export default function IdeasGrid({
+
   ideas,
+
   currentUserId,
+
 }: {
+
   ideas: Idea[];
+
   currentUserId: string | null;
+
 }) {
+
   const [selected, setSelected] = useState<Idea | null>(null);
 
+
+
   return (
+
     <>
+
       <ul className="grid grid-cols-3 gap-6">
+
         {ideas.map((idea) => {
+
           const likeCount = idea.idea_likes.length;
+
           const userHasLiked = idea.idea_likes.some(
+
             (l) => l.user_id === currentUserId
+
           );
-          const t = truncate(idea.title, 10);
+
+
+
           const d = truncate(idea.description ?? "", 100);
           return (
             <li key={idea.id}>
@@ -44,9 +67,9 @@ export default function IdeasGrid({
                 }}
               >
                 <div className="flex justify-between items-start gap-3">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 break-words">
-                      {t}
+                  <div className="flex-grow min-w-0">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 overflow-hidden whitespace-nowrap text-ellipsis">
+                      {idea.title}
                     </h3>
                     <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 break-words">
                       {d}
@@ -59,7 +82,7 @@ export default function IdeasGrid({
                     <input type="hidden" name="id" value={idea.id} />
                     <button
                       type="submit"
-                      className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
+                      className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 whitespace-nowrap"
                       data-no-modal
                     >
                       삭제
