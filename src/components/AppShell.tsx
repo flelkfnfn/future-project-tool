@@ -7,6 +7,7 @@ import { LuBell, LuBellOff } from "react-icons/lu";
 import dynamic from "next/dynamic";
 import AddLauncher from "@/components/AddLauncher";
 import ActiveUsersDisplay from "./ActiveUsersDisplay";
+import DataChangeNotifier from "./DataChangeNotifier";
 
 // Lazy-load heavier client components to reduce initial JS/hydration
 const ChatSidebar = dynamic(() => import("@/components/ChatSidebar"), {
@@ -251,6 +252,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </button>
         <ActiveUsersDisplay />
       </div>
+      <DataChangeNotifier />
     </main>
   );
 }

@@ -78,7 +78,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         <form action={changePassword} className="flex gap-2 items-end">
           <label className="flex flex-col text-sm">
             <span>새 비밀번호</span>
-            <input type="password" name="new_password" className="border px-2 py-1 rounded" required />
+            <input type="password" name="new_password" autoComplete="new-password" className="border px-2 py-1 rounded" required />
           </label>
           <button className="px-3 py-1 rounded bg-blue-600 text-white">변경</button>
         </form>

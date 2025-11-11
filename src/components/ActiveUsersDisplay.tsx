@@ -21,7 +21,6 @@ export default function ActiveUsersDisplay() {
       try {
         const ures = await supabase.auth.getUser();
         if (mounted) {
-          console.log("[ActiveUsers] getUser result", ures.data.user);
           setUserId(ures.data.user?.id ?? null);
           setUserEmail(ures.data.user?.email ?? undefined);
           if (!ures.data.user) {
@@ -36,7 +35,6 @@ export default function ActiveUsersDisplay() {
                 setUserId(String(p.id));
                 const lbl = p.username || p.email || undefined;
                 setUserEmail(lbl);
-                console.log("[ActiveUsers] fallback principal", p);
               }
             } catch {}
           }
@@ -61,12 +59,6 @@ export default function ActiveUsersDisplay() {
     if (!supabase) return;
     const effectiveUserId =
       session && session.user && session.user.id ? session.user.id : userId;
-    console.log(
-      "[ActiveUsers] effectiveUserId",
-      effectiveUserId,
-      "session?",
-      !!session
-    );
     if (!effectiveUserId) {
       if (channelRef.current) {
         try {
@@ -108,7 +100,6 @@ export default function ActiveUsersDisplay() {
 
     channel.subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
-        console.log("Presence SUBSCRIBED for key", effectiveUserId);
         try {
           const effectiveEmail = session?.user?.email ?? userEmail;
           await channel.track({

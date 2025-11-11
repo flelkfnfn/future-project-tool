@@ -30,6 +30,8 @@ type ChatMessagePayload = {
   room_id: number | null;
 };
 
+const MESSAGE_LIMIT = 200;
+
 export default function ChatSidebar({
   open = true,
   onToggle,
@@ -47,12 +49,15 @@ export default function ChatSidebar({
 }) {
   const { supabase, session } = useSupabase();
   const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const messageIdsRef = useRef<Set<string>>(new Set());
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const selectedRoomIdRef = useRef<number | null>(null);
-  useEffect(() => { selectedRoomIdRef.current = selectedRoomId }, [selectedRoomId]);
+  useEffect(() => {
+    selectedRoomIdRef.current = selectedRoomId;
+  }, [selectedRoomId]);
   const [unread, setUnread] = useState<Record<string, number>>({}); // 'general' or room id string
   const bcastRef = useRef<RealtimeChannel | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -124,38 +129,95 @@ export default function ChatSidebar({
   useEffect(() => {
     if (!authed) {
       setMessages([]);
+      messageIdsRef.current.clear();
       return;
     }
     (async () => {
       // Clear messages when room changes
       setMessages([]);
+      messageIdsRef.current.clear();
       try {
-        const url = selectedRoomId != null ? `/api/chat/messages?roomId=${selectedRoomId}` : "/api/chat/messages";
-        const res = await fetch(url, { cache: "no-store", credentials: "include" });
+        const url =
+          selectedRoomId != null
+            ? `/api/chat/messages?roomId=${selectedRoomId}`
+            : "/api/chat/messages";
+        const res = await fetch(url, {
+          cache: "no-store",
+          credentials: "include",
+        });
         const j = await res.json();
         if (j?.ok && Array.isArray(j.data)) {
-          const mapped: ChatMsg[] = (j.data as Array<{ text: string; user?: string; ts: number; room_id?: number | null }>).
-            map((r) => ({ id: makeId(r.text, r.user ?? "user", r.ts), text: r.text, user: r.user ?? "user", ts: r.ts, room_id: r.room_id }));
-          setMessages(dedupe(mapped));
-          const key = selectedRoomId == null ? "general" : String(selectedRoomId);
+          const mapped: ChatMsg[] = (
+            j.data as Array<{
+              text: string;
+              user?: string;
+              ts: number;
+              room_id?: number | null;
+            }>
+          ).map((r) => ({
+            id: makeId(r.text, r.user ?? "user", r.ts),
+            text: r.text,
+            user: r.user ?? "user",
+            ts: r.ts,
+            room_id: r.room_id,
+          }));
+          const deduped = dedupe(mapped);
+          setMessages(deduped);
+          messageIdsRef.current = new Set(deduped.map((m) => m.id));
+          const key =
+            selectedRoomId == null ? "general" : String(selectedRoomId);
           setUnread((prev) => ({ ...prev, [key]: 0 }));
         }
       } catch {}
     })();
   }, [authed, selectedRoomId]);
 
+  const appendMessage = useCallback((msg: ChatMsg) => {
+    setMessages((prev) => {
+      if (messageIdsRef.current.has(msg.id)) return prev;
+      let next = [...prev, msg];
+      messageIdsRef.current.add(msg.id);
+      if (next.length > MESSAGE_LIMIT) {
+        const overflow = next.length - MESSAGE_LIMIT;
+        const removed = next.slice(0, overflow);
+        for (const r of removed) {
+          messageIdsRef.current.delete(r.id);
+        }
+        next = next.slice(overflow);
+      }
+      return next;
+    });
+  }, []);
+
   // Subscribe to realtime channels; depend on rooms, keep latest selectedRoomId via ref to avoid resubscribing on selection change
   useEffect(() => {
     if (!authed) return;
 
-    const messageHandler = ({ payload: r }: { payload: ChatMessagePayload }) => {
-      const incoming: ChatMsg = { id: makeId(r.text, r.username, r.ts), text: r.text, user: r.username, ts: r.ts, room_id: r.room_id };
+    const messageHandler = ({
+      payload: r,
+    }: {
+      payload: ChatMessagePayload;
+    }) => {
+      const incoming: ChatMsg = {
+        id: makeId(r.text, r.username, r.ts),
+        text: r.text,
+        user: r.username,
+        ts: r.ts,
+        room_id: r.room_id,
+      };
       const currentRoomId = selectedRoomIdRef.current;
-      if ((currentRoomId == null && incoming.room_id == null) || (currentRoomId != null && incoming.room_id === currentRoomId)) {
-        setMessages((prev) => dedupe([...prev, incoming]));
-        listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
+      if (
+        (currentRoomId == null && incoming.room_id == null) ||
+        (currentRoomId != null && incoming.room_id === currentRoomId)
+      ) {
+        appendMessage(incoming);
+        listRef.current?.scrollTo({
+          top: listRef.current.scrollHeight,
+          behavior: "smooth",
+        });
       } else {
-        const key = incoming.room_id == null ? "general" : String(incoming.room_id);
+        const key =
+          incoming.room_id == null ? "general" : String(incoming.room_id);
         setUnread((prev) => ({ ...prev, [key]: (prev[key] ?? 0) + 1 }));
       }
     };
@@ -175,7 +237,7 @@ export default function ChatSidebar({
       channels.forEach((channel) => channel.unsubscribe());
       publicChannel.unsubscribe();
     };
-  }, [supabase, authed, rooms]);
+  }, [supabase, authed, rooms, appendMessage]);
 
   // Keep scrolled to bottom on room change, new messages, or panel opening
   useEffect(() => {
@@ -218,19 +280,17 @@ export default function ChatSidebar({
         credentials: "include",
       });
       const j = await res.json().catch(() => ({}));
-      if (res.ok && j?.ok !== false) {
-        setMessages((prev) => dedupe([...prev, msg]));
-      } else {
+      if (!res.ok || j?.ok === false) {
         bcastRef.current?.send({
           type: "broadcast",
           event: "message",
           payload: msg,
         });
-        setMessages((prev) => dedupe([...prev, msg]));
       }
+      appendMessage(msg);
     } catch {
       const now = Date.now();
-      const msg: ChatMsg = {
+      const fallback: ChatMsg = {
         id: makeId(text, username, now),
         text,
         user: username,
@@ -240,9 +300,9 @@ export default function ChatSidebar({
       bcastRef.current?.send({
         type: "broadcast",
         event: "message",
-        payload: msg,
+        payload: fallback,
       });
-      setMessages((prev) => dedupe([...prev, msg]));
+      appendMessage(fallback);
     } finally {
       setInput("");
       setPending(false);

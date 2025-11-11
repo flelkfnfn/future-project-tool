@@ -42,7 +42,7 @@ function LoginInner() {
             <form action={localSignIn} className="space-y-4">
               <div>
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">아이디</label>
-                <input id="username" name="username" className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" required />
+                <input id="username" name="username" autoComplete="username" className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" required />
               </div>
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">비밀번호</label>
@@ -51,6 +51,7 @@ function LoginInner() {
                     type={signInPwVisible ? 'text' : 'password'}
                     id="password"
                     name="password"
+                    autoComplete="current-password"
                     onKeyUp={handleCaps(setSignInCaps)}
                     onKeyDown={handleCaps(setSignInCaps)}
                     className="mt-1 block w-full px-3 py-2 pr-12 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
@@ -74,7 +75,7 @@ function LoginInner() {
             <form action={localSignUp} className="space-y-4">
               <div>
                 <label htmlFor="new_username" className="block text-sm font-medium text-gray-700 dark:text-gray-300">아이디</label>
-                <input id="new_username" name="username" className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" required />
+                <input id="new_username" name="username" autoComplete="username" className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" required />
               </div>
               <div>
                 <label htmlFor="new_password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">비밀번호</label>
@@ -83,6 +84,7 @@ function LoginInner() {
                     type={signUpPwVisible ? 'text' : 'password'}
                     id="new_password"
                     name="password"
+                    autoComplete="new-password"
                     onKeyUp={handleCaps(setSignUpCaps)}
                     onKeyDown={handleCaps(setSignUpCaps)}
                     className="mt-1 block w-full px-3 py-2 pr-12 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
@@ -98,7 +100,7 @@ function LoginInner() {
               </div>
               <div>
                 <label htmlFor="gmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Gmail</label>
-                <input type="email" id="gmail" name="gmail" className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="example@gmail.com" required />
+                <input type="email" id="gmail" name="gmail" autoComplete="email" className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" placeholder="example@gmail.com" required />
               </div>
               <button type="submit" className="w-full py-2 px-4 bg-gray-700 text-white rounded-md shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">회원가입</button>
               <FormPendingController />

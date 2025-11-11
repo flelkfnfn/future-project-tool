@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { emitLocalDataChange } from '@/components/DataChangeNotifier'
 
 export default function AddModal({ onClose }: { onClose: () => void }) {
   const router = useRouter()
@@ -22,7 +23,7 @@ export default function AddModal({ onClose }: { onClose: () => void }) {
         }
         return
       }
-      toast.success('공지가 성공적으로 등록되었습니다.')
+      emitLocalDataChange({ label: "공지", type: "added" })
       router.refresh()
     } catch {
       toast.error('네트워크 오류로 공지 등록에 실패했습니다.')
@@ -45,7 +46,7 @@ export default function AddModal({ onClose }: { onClose: () => void }) {
         }
         return
       }
-      toast.success('프로젝트가 성공적으로 등록되었습니다.')
+      emitLocalDataChange({ label: "프로젝트", type: "added" })
       router.refresh()
     } catch {
       toast.error('네트워크 오류로 프로젝트 등록에 실패했습니다.')
@@ -68,7 +69,7 @@ export default function AddModal({ onClose }: { onClose: () => void }) {
         }
         return
       }
-      toast.success('아이디어가 성공적으로 등록되었습니다.')
+      emitLocalDataChange({ label: "아이디어", type: "added" })
       router.refresh()
     } catch {
       toast.error('네트워크 오류로 아이디어 등록에 실패했습니다.')
