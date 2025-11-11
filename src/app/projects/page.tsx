@@ -151,7 +151,7 @@ export default async function ProjectsPage({ searchParams }: { searchParams: Pro
           </h2>
         </div>
 
-        <div className="flex items-start space-x-4 px-4 py-4 min-h-full overflow-x-auto">
+        <div className="project-scroll-container flex items-start space-x-4 px-4 py-4 overflow-x-auto">
           {filteredProjects.length > 0 ? (
             <>
               {filteredProjects.map((project: Project) => (

@@ -48,3 +48,46 @@ body::-webkit-scrollbar {
   transform-origin: left;
   animation: page-progress-fill 1.2s ease-in-out infinite;
 }
+
+/* Custom scrollbar for project-scroll-container */
+.project-scroll-container::-webkit-scrollbar {
+  display: block; /* Re-enable scrollbar for this container */
+  height: 6px; /* Make it thinner */
+}
+
+.project-scroll-container::-webkit-scrollbar-track {
+  background: transparent; /* Make track transparent */
+  border-radius: 10px;
+}
+
+.project-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(136, 136, 136, 0.5); /* Semi-transparent grey */
+  border-radius: 10px;
+}
+
+.project-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(85, 85, 85, 0.8); /* Darker on hover */
+}
+
+/* For dark mode */
+.dark .project-scroll-container::-webkit-scrollbar-track {
+  background: transparent; /* Make track transparent */
+}
+
+.dark .project-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(102, 102, 102, 0.5); /* Semi-transparent dark grey */
+}
+
+.dark .project-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(153, 153, 153, 0.8); /* Lighter on hover */
+}
+
+/* Firefox scrollbar styling */
+.project-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(136, 136, 136, 0.5) transparent; /* Semi-transparent thumb, transparent track */
+}
+
+.dark .project-scroll-container {
+    scrollbar-color: rgba(102, 102, 102, 0.5) transparent; /* Semi-transparent dark thumb, transparent track */
+}
