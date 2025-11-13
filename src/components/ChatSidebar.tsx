@@ -33,17 +33,9 @@ type ChatMessagePayload = {
 const MESSAGE_LIMIT = 200;
 
 export default function ChatSidebar({
-  open = true,
-  onToggle,
-  showToggle = true,
-  onAdd,
   onCreateRoom,
   onManageRoom,
 }: {
-  open?: boolean;
-  onToggle?: () => void;
-  showToggle?: boolean;
-  onAdd?: () => void;
   onCreateRoom?: () => void;
   onManageRoom?: (room: { id: number; name: string }) => void;
 }) {
@@ -249,7 +241,7 @@ export default function ChatSidebar({
   useEffect(() => {
     // Smooth scroll on new messages or when panel opens
     scrollToBottom(true);
-  }, [messages, open, scrollToBottom]);
+  }, [messages, scrollToBottom]);
 
   const send = async () => {
     if (pending) return;
@@ -317,276 +309,232 @@ export default function ChatSidebar({
     }
   };
 
-  const panelStyle: React.CSSProperties = {
-    transform: open
-      ? "translateX(0%) translateY(0px)"
-      : "translateX(100%) translateY(10px)",
-    transition:
-      "transform 420ms cubic-bezier(0.2, 0, 0, 1), box-shadow 420ms cubic-bezier(0.2, 0, 0, 1)",
-    willChange: "transform",
-  };
-
-  const overlayStyle: React.CSSProperties = {
-    opacity: open ? 1 : 0,
-    transition: "opacity 420ms cubic-bezier(0.2, 0, 0, 1)",
-    background: "linear-gradient(to left, rgba(0,0,0,0.06), rgba(0,0,0,0))",
-    pointerEvents: "none",
-  };
-
   const selectedRoom = useMemo(
     () => (selectedRoomId ? rooms.find((r) => r.id === selectedRoomId) : null),
     [rooms, selectedRoomId]
   );
 
   return (
-    <aside className="h-full">
-      <div className="sticky top-16 h-[calc(100vh-6rem)] overflow-visible">
-        <div className="absolute inset-0" style={overlayStyle} aria-hidden />
-        <div
-          className="absolute inset-0 flex flex-col border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 min-w-0"
-          style={panelStyle}
-          aria-hidden={!open}
-        >
-          <div className="p-2 pr-4 border-b dark:border-gray-700 flex items-center gap-2 overflow-x-auto">
-            <div className="relative">
-              <button
-                onClick={() => setSelectedRoomId(null)}
-                className={`h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${
-                  selectedRoomId === null
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-                }`}
-              >
-                일반
-              </button>
-              {(unread["general"] ?? 0) > 0 && (
-                <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center">
-                  {Math.min(99, unread["general"] ?? 0)}
-                </span>
-              )}
-            </div>
-            {rooms.map((room) => (
-              <div className="relative" key={room.id}>
-                <button
-                  onClick={() => setSelectedRoomId(room.id)}
-                  className={`h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold truncate p-1 ${
-                    selectedRoomId === room.id
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-                  }`}
-                  title={room.name}
-                >
-                  {room.name}
-                </button>
-                {(unread[String(room.id)] ?? 0) > 0 && (
-                  <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center">
-                    {Math.min(99, unread[String(room.id)] ?? 0)}
-                  </span>
-                )}
-              </div>
-            ))}
-            <button
-              onClick={onCreateRoom}
-              className="h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-            </button>
-          </div>
-
-          <div className="px-3 py-2 border-b dark:border-gray-700 font-semibold flex items-center justify-between text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800">
-            <span>{selectedRoom?.name ?? "일반 채팅"}</span>
-            {selectedRoom && onManageRoom && (
-              <button
-                onClick={() => onManageRoom(selectedRoom)}
-                className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                </svg>
-              </button>
-            )}
-          </div>
-
-          {authed ? (
-            <>
-              <div
-                ref={listRef}
-                className="flex-1 overflow-auto p-3 space-y-2 text-sm min-w-0 bg-white dark:bg-gray-800 overscroll-contain"
-              >
-                <div className="p-3 space-y-2">
-                  {renderWithDayHeaders(messages).map((item, idx, arr) => {
-                    // 날짜 헤더
-                    if ("header" in item) {
-                      return (
-                        <div
-                          key={`h-${item.key}`}
-                          className="sticky -top-3 z-20 flex items-center justify-center py-1 bg-white dark:bg-gray-800"
-                        >
-                          <span className="px-2 py-0.5 text-xs rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
-                            {item.label}
-                          </span>
-                        </div>
-                      );
-                    }
-
-                    // 메시지 렌더링
-                    const prev = arr[idx - 1];
-                    const isFirstOfRun =
-                      !prev || "header" in prev || prev.m.user !== item.m.user;
-                    const isSelf = item.m.user === username; // 본인 메시지 식별
-
-                    // 말풍선 색상
-                    const bubbleClass =
-                      item.m.user === "admin"
-                        ? "bg-amber-200 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-100"
-                        : isSelf
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100";
-
-                    // 행 정렬: 본인 메시지 오른쪽, 상대 메시지 왼쪽
-                    const rowJustify = isSelf ? "justify-end" : "justify-start";
-
-                    // 시간 라벨 공통
-                    const timeLabel = (
-                      <div
-                        className={`mb-[2px] text-[10px] ${
-                          isSelf
-                            ? "text-blue-300"
-                            : "text-gray-500 dark:text-gray-400"
-                        }`}
-                      >
-                        {new Date(item.m.ts).toLocaleTimeString("ko-KR", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: false,
-                        })}
-                      </div>
-                    );
-
-                    return (
-                      <div key={item.m.id} className={`flex ${rowJustify}`}>
-                        <div className="max-w-[80%] flex flex-col">
-                          {/* 동일 ID 연속에서 첫 말풍선 위에만 ID 표시 (ID는 말풍선 밖 윗줄) */}
-                          {isFirstOfRun && (
-                            <div
-                              className={`mb-1 text-[11px] ${
-                                isSelf
-                                  ? "text-blue-400 text-right pr-1"
-                                  : "text-gray-600 dark:text-gray-400 text-left pl-1"
-                              }`}
-                            >
-                              {item.m.user}
-                            </div>
-                          )}
-
-                          {/* 말풍선 + 시간: 본인은 [시간, 말풍선], 상대는 [말풍선, 시간] */}
-                          <div className={`flex items-end gap-2 ${rowJustify}`}>
-                            {isSelf ? (
-                              <>
-                                {/* 본인: 시간(왼쪽 외부) -> 말풍선(오른쪽) */}
-                                {timeLabel}
-                                <div
-                                  className={`rounded-2xl px-3 py-2 shadow-sm ${bubbleClass}`}
-                                >
-                                  <div className="whitespace-pre-wrap break-words">
-                                    {linkify(item.m.text)}
-                                  </div>
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                {/* 상대: 말풍선(왼쪽) -> 시간(오른쪽 외부) */}
-                                <div
-                                  className={`rounded-2xl px-3 py-2 shadow-sm ${bubbleClass}`}
-                                >
-                                  <div className="whitespace-pre-wrap break-words">
-                                    {linkify(item.m.text)}
-                                  </div>
-                                </div>
-                                {timeLabel}
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-              <div className="p-2 border-t dark:border-gray-700 flex gap-2 items-center">
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={onKeyDown}
-                  placeholder="메시지 입력"
-                  className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-1 min-w-0 w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
-                  disabled={pending}
-                />
-                <button
-                  type="button"
-                  onClick={send}
-                  disabled={pending || !input.trim()}
-                  className="px-3 py-2 rounded-md bg-blue-600 disabled:bg-blue-300 text-white text-sm hover:bg-blue-700"
-                >
-                  전송
-                </button>
-                {pending && (
-                  <div className="flex items-center px-2">
-                    <span
-                      className="inline-block w-4 h-4 border-2 border-gray-400 dark:border-gray-500 border-t-transparent rounded-full animate-spin"
-                      aria-hidden="true"
-                    />
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center p-4 text-sm text-gray-600 dark:text-gray-400">
-              로그인 후 채팅을 이용하실 수 있습니다.
-            </div>
-          )}
-
-          {showToggle && (
-            <div className="absolute right-full bottom-16 z-20 flex flex-col items-center gap-2 pointer-events-auto mr-2">
-              <AddLauncher onOpen={onAdd ?? (() => {})} />
-              <button
-                type="button"
-                onClick={onToggle}
-                className="w-12 h-12 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 flex items-center justify-center"
-                aria-label={open ? "채팅 닫기" : "채팅 열기"}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  className="w-6 h-6"
-                >
-                  <path d="M18 10c0 3.866-3.582 7-8 7-1.102 0-2.147-.187-3.095-.525-.226-.081-.477-.07-.692.037L3.3 17.4a.75.75 0 01-1.05-.836l.616-2.463a.75.75 0 00-.18-.705A6.97 6.97 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7z" />
-                </svg>
-              </button>
-            </div>
+    <div
+      className="h-full w-full flex flex-col border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 min-w-0"
+    >
+      <div className="p-2 pr-4 border-b dark:border-gray-700 flex items-center gap-2 overflow-x-auto">
+        <div className="relative">
+          <button
+            onClick={() => setSelectedRoomId(null)}
+            className={`h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${
+              selectedRoomId === null
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+            }`}
+          >
+            일반
+          </button>
+          {(unread["general"] ?? 0) > 0 && (
+            <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center">
+              {Math.min(99, unread["general"] ?? 0)}
+            </span>
           )}
         </div>
+        {rooms.map((room) => (
+          <div className="relative" key={room.id}>
+            <button
+              onClick={() => setSelectedRoomId(room.id)}
+              className={`h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold truncate p-1 ${
+                selectedRoomId === room.id
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+              }`}
+              title={room.name}
+            >
+              {room.name}
+            </button>
+            {(unread[String(room.id)] ?? 0) > 0 && (
+              <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center">
+                {Math.min(99, unread[String(room.id)] ?? 0)}
+              </span>
+            )}
+          </div>
+        ))}
+        <button
+          onClick={onCreateRoom}
+          className="h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+        </button>
       </div>
-    </aside>
+
+      <div className="px-3 py-2 border-b dark:border-gray-700 font-semibold flex items-center justify-between text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800">
+        <span>{selectedRoom?.name ?? "일반 채팅"}</span>
+        {selectedRoom && onManageRoom && (
+          <button
+            onClick={() => onManageRoom(selectedRoom)}
+            className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {authed ? (
+        <>
+          <div
+            ref={listRef}
+            className="flex-1 overflow-auto p-3 space-y-2 text-sm min-w-0 bg-white dark:bg-gray-800 overscroll-contain"
+          >
+            <div className="p-3 space-y-2">
+              {renderWithDayHeaders(messages).map((item, idx, arr) => {
+                // 날짜 헤더
+                if ("header" in item) {
+                  return (
+                    <div
+                      key={`h-${item.key}`}
+                      className="sticky -top-3 z-20 flex items-center justify-center py-1 bg-white dark:bg-gray-800"
+                    >
+                      <span className="px-2 py-0.5 text-xs rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+                        {item.label}
+                      </span>
+                    </div>
+                  );
+                }
+
+                // 메시지 렌더링
+                const prev = arr[idx - 1];
+                const isFirstOfRun =
+                  !prev || "header" in prev || prev.m.user !== item.m.user;
+                const isSelf = item.m.user === username; // 본인 메시지 식별
+
+                // 말풍선 색상
+                const bubbleClass =
+                  item.m.user === "admin"
+                    ? "bg-amber-200 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 text-amber-900 dark:text-amber-100"
+                    : isSelf
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100";
+
+                // 행 정렬: 본인 메시지 오른쪽, 상대 메시지 왼쪽
+                const rowJustify = isSelf ? "justify-end" : "justify-start";
+
+                // 시간 라벨 공통
+                const timeLabel = (
+                  <div
+                    className={`mb-[2px] text-[10px] ${
+                      isSelf
+                        ? "text-blue-300"
+                        : "text-gray-500 dark:text-gray-400"
+                    }`}
+                  >
+                    {new Date(item.m.ts).toLocaleTimeString("ko-KR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false,
+                    })}
+                  </div>
+                );
+
+                return (
+                  <div key={item.m.id} className={`flex ${rowJustify}`}>
+                    <div className="max-w-[80%] flex flex-col">
+                      {/* 동일 ID 연속에서 첫 말풍선 위에만 ID 표시 (ID는 말풍선 밖 윗줄) */}
+                      {isFirstOfRun && (
+                        <div
+                          className={`mb-1 text-[11px] ${
+                            isSelf
+                              ? "text-blue-400 text-right pr-1"
+                              : "text-gray-600 dark:text-gray-400 text-left pl-1"
+                          }`}
+                        >
+                          {item.m.user}
+                        </div>
+                      )}
+
+                      {/* 말풍선 + 시간: 본인은 [시간, 말풍선], 상대는 [말풍선, 시간] */}
+                      <div className={`flex items-end gap-2 ${rowJustify}`}>
+                        {isSelf ? (
+                          <>
+                            {/* 본인: 시간(왼쪽 외부) -> 말풍선(오른쪽) */}
+                            {timeLabel}
+                            <div
+                              className={`rounded-2xl px-3 py-2 shadow-sm ${bubbleClass}`}
+                            >
+                              <div className="whitespace-pre-wrap break-words">
+                                {linkify(item.m.text)}
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {/* 상대: 말풍선(왼쪽) -> 시간(오른쪽 외부) */}
+                            <div
+                              className={`rounded-2xl px-3 py-2 shadow-sm ${bubbleClass}`}
+                            >
+                              <div className="whitespace-pre-wrap break-words">
+                                {linkify(item.m.text)}
+                              </div>
+                            </div>
+                            {timeLabel}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="p-2 border-t dark:border-gray-700 flex gap-2 items-center">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder="메시지 입력"
+              className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-1 min-w-0 w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
+              disabled={pending}
+            />
+            <button
+              type="button"
+              onClick={send}
+              disabled={pending || !input.trim()}
+              className="px-3 py-2 rounded-md bg-blue-600 disabled:bg-blue-300 text-white text-sm hover:bg-blue-700"
+            >
+              전송
+            </button>
+            {pending && (
+              <div className="flex items-center px-2">
+                <span
+                  className="inline-block w-4 h-4 border-2 border-gray-400 dark:border-gray-500 border-t-transparent rounded-full animate-spin"
+                  aria-hidden="true"
+                />
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="flex-1 flex items-center justify-center p-4 text-sm text-gray-600 dark:text-gray-400">
+          로그인 후 채팅을 이용하실 수 있습니다.
+        </div>
+      )}
+    </div>
   );
 }
 
