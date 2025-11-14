@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { ensurePushEnabled, disablePush } from "@/lib/notifications/client";
 import { toast } from "sonner";
 import { LuBell, LuBellOff, LuSparkles } from "react-icons/lu";
@@ -21,6 +21,13 @@ export default function SettingsClient({
   >("unknown");
   const [enablingPush, setEnablingPush] = useState<boolean>(false);
   const [disablingPush, setDisablingPush] = useState<boolean>(false);
+  const [homeVariant, setHomeVariant] = useState<HomeVariant>(defaultVariant);
+  const [savingVariant, startSavingVariant] = useTransition();
+  const [, setStoragePath] = useState<string>("");
+
+  useEffect(() => {
+    setHomeVariant(defaultVariant);
+  }, [defaultVariant]);
 
   useEffect(() => {
     const evalStatus = async () => {
@@ -96,6 +103,26 @@ export default function SettingsClient({
     } finally {
       setEnablingPush(false);
     }
+  };
+
+  const handleHomeVariantChange = (nextVariant: HomeVariant) => {
+    if (homeVariant === nextVariant) return;
+    const previousVariant = homeVariant;
+    setHomeVariant(nextVariant);
+    startSavingVariant(async () => {
+      try {
+        await updateHomeVariant(nextVariant);
+        toast.success(
+          nextVariant === "modern"
+            ? "모던 홈 화면을 활성화했어요."
+            : "클래식 홈 화면을 선택했습니다."
+        );
+      } catch (error) {
+        console.error(error);
+        setHomeVariant(previousVariant);
+        toast.error("홈 화면 모드를 변경하지 못했습니다.");
+      }
+    });
   };
 
   return (
