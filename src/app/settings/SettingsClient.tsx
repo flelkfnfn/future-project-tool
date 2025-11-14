@@ -7,13 +7,11 @@ import { LuBell, LuBellOff, LuSparkles } from "react-icons/lu";
 import { updateHomeVariant } from "./actions";
 import type { HomeVariant } from "@/lib/home-variant";
 
-type SettingsClientProps = {
-  defaultVariant: HomeVariant;
-};
-
 export default function SettingsClient({
   defaultVariant,
-}: SettingsClientProps) {
+}: {
+  defaultVariant: HomeVariant;
+}) {
   const [pushStatus, setPushStatus] = useState<
     "unknown" | "enabled" | "disabled" | "denied" | "unsupported"
   >("unknown");
