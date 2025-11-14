@@ -1,5 +1,6 @@
 "use client";
 
+import { LuPlus, LuEllipsisVertical } from "react-icons/lu";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useSupabase } from "@/components/supabase-provider";
@@ -315,9 +316,7 @@ export default function ChatSidebar({
   );
 
   return (
-    <div
-      className="h-full w-full flex flex-col border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 min-w-0"
-    >
+    <div className="h-full w-full flex flex-col border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 min-w-0">
       <div className="p-2 pr-4 border-b dark:border-gray-700 flex items-center gap-2 overflow-x-auto">
         <div className="relative">
           <button
@@ -360,20 +359,7 @@ export default function ChatSidebar({
           onClick={onCreateRoom}
           className="h-10 w-10 rounded-full flex-shrink-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
+          <LuPlus className="h-6 w-6" />
         </button>
       </div>
 
@@ -384,14 +370,7 @@ export default function ChatSidebar({
             onClick={() => onManageRoom(selectedRoom)}
             className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-            </svg>
+            <LuEllipsisVertical className="h-5 w-5" />
           </button>
         )}
       </div>

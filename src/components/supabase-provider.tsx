@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -21,25 +21,39 @@ export default function SupabaseProvider({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const pathname = usePathname();
   const [supabase] = useState(() => createClient());
   const [session, setSession] = useState<Session | null>(null); // State to hold session
 
   useEffect(() => {
+    let isMounted = true;
+    let handledInitialSession = false;
+
     // Fetch initial session
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      if (!isMounted) return;
       setSession(initialSession);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (!isMounted) return;
       setSession(nextSession);
-      // Refresh on any auth state change to sync server/client
-      router.refresh();
+
+      // Skip the synthetic INITIAL_SESSION event that fires on mount
+      if (!handledInitialSession && event === "INITIAL_SESSION") {
+        handledInitialSession = true;
+        return;
+      }
+      handledInitialSession = true;
+
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+        router.refresh();
+      }
     });
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, [router, supabase]);

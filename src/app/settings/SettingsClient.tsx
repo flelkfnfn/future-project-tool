@@ -1,9 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ensurePushEnabled, disablePush } from "@/lib/notifications/client";
 import { toast } from "sonner";
-import { LuBell, LuBellOff } from "react-icons/lu";
+import { LuBell, LuBellOff, LuSave, LuFolderOpen } from "react-icons/lu";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function SettingsClient() {
   const [pushStatus, setPushStatus] = useState<
@@ -11,6 +20,8 @@ export default function SettingsClient() {
   >("unknown");
   const [enablingPush, setEnablingPush] = useState<boolean>(false);
   const [disablingPush, setDisablingPush] = useState<boolean>(false);
+  const [storagePath, setStoragePath] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const evalStatus = async () => {
@@ -38,6 +49,11 @@ export default function SettingsClient() {
       }
     };
     evalStatus();
+
+    const savedPath = localStorage.getItem("storagePath");
+    if (savedPath) {
+      setStoragePath(savedPath);
+    }
   }, []);
 
   const handleTogglePush = async () => {
@@ -86,33 +102,98 @@ export default function SettingsClient() {
     }
   };
 
+  const handleSaveStoragePath = () => {
+    localStorage.setItem("storagePath", storagePath);
+    toast.success("저장 경로를 저장했습니다.");
+  };
+
+  const handleFolderSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      // Due to browser security, we only get the folder name, not the full path.
+      // The webkitRelativePath will give us the path relative to the selected folder,
+      // but the actual folder name is usually the first part of this path.
+      const folderName = files[0].webkitRelativePath.split('/')[0];
+      setStoragePath(folderName);
+      toast.info("브라우저 보안 정책으로 인해 폴더 이름만 가져올 수 있습니다.");
+    }
+  };
+
   return (
     <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div>
-                <h3 className="font-medium">푸시 알림</h3>
-                <p className="text-sm text-gray-500">
-                    {pushStatus === 'enabled' ? '활성화됨' : '비활성화됨'}
-                </p>
-            </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>푸시 알림</CardTitle>
+          <CardDescription>
+            {pushStatus === "enabled" ? "활성화됨" : "비활성화됨"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500">
+              새로운 알림을 받을지 여부를 설정합니다.
+            </p>
             <button
-                type="button"
-                aria-label={pushStatus === "enabled" ? "알림 끄기" : "알림 켜기"}
-                onClick={handleTogglePush}
-                className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur transition-colors ${
-                    pushStatus === "enabled"
-                    ? "hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                    : "hover:bg-gray-50 dark:hover:bg-gray-700/60"
-                }`}
-                disabled={enablingPush || disablingPush || pushStatus === 'unsupported' || pushStatus === 'denied'}
-                >
-                {pushStatus === "enabled" ? (
-                    <LuBell className="w-5 h-5 text-emerald-600" />
-                ) : (
-                    <LuBellOff className="w-5 h-5 text-gray-500 dark:text-gray-300" />
-                )}
+              type="button"
+              aria-label={pushStatus === "enabled" ? "알림 끄기" : "알림 켜기"}
+              onClick={handleTogglePush}
+              className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur transition-colors ${
+                pushStatus === "enabled"
+                  ? "hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                  : "hover:bg-gray-50 dark:hover:bg-gray-700/60"
+              }`}
+              disabled={
+                enablingPush ||
+                disablingPush ||
+                pushStatus === "unsupported" ||
+                pushStatus === "denied"
+              }
+            >
+              {pushStatus === "enabled" ? (
+                <LuBell className="w-5 h-5 text-emerald-600" />
+              ) : (
+                <LuBellOff className="w-5 h-5 text-gray-500 dark:text-gray-300" />
+              )}
             </button>
-        </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>파일 저장 위치</CardTitle>
+          <CardDescription>
+            페이지와 파일이 저장될 기본 경로를 설정합니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center space-x-2">
+            <Input
+              value={storagePath}
+              onChange={(e) => setStoragePath(e.target.value)}
+              placeholder="예: C:\Users\YourUser\Documents"
+            />
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFolderSelect}
+              // @ts-ignore
+              webkitdirectory=""
+              directory=""
+              hidden
+            />
+            <Button onClick={() => fileInputRef.current?.click()}>
+              <LuFolderOpen className="mr-2 h-4 w-4" />
+              폴더 선택
+            </Button>
+            <Button onClick={handleSaveStoragePath}>
+              <LuSave className="mr-2 h-4 w-4" />
+              저장
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
+
+
