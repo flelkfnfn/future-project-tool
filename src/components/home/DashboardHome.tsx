@@ -76,7 +76,7 @@ export default function DashboardHome({
   return (
     <div className="space-y-8">
       <DashboardTour />
-      <section className="relative overflow-hidden rounded-3xl border border-gray-200/80 bg-gradient-to-br from-white via-slate-50 to-blue-50 p-8 shadow-sm dark:border-gray-800/80 dark:from-gray-900 dark:via-gray-900 dark:to-slate-900">
+      <section className="relative overflow-hidden rounded-3xl border-2 border-gray-200/80 bg-gradient-to-br from-white via-slate-50 to-blue-50 p-8 shadow-xl shadow-gray-200/80 dark:border-gray-700/70 dark:from-gray-900 dark:via-gray-900 dark:to-slate-900 dark:shadow-black/40">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.2),_transparent_60%)]" />
         <div className="relative flex flex-col gap-6">
           <div>
@@ -98,7 +98,7 @@ export default function DashboardHome({
                 <Link
                   key={stat.label}
                   href={stat.href}
-                  className="group flex items-center justify-between rounded-2xl border border-gray-200/70 bg-white/80 px-4 py-5 text-left shadow-sm ring-1 ring-transparent transition hover:-translate-y-0.5 hover:ring-blue-200 dark:border-gray-800/60 dark:bg-gray-900/80 dark:hover:ring-gray-600"
+                  className="group flex items-center justify-between rounded-2xl border-2 border-gray-200/70 bg-white/90 px-4 py-5 text-left shadow-lg shadow-gray-200/70 ring-1 ring-transparent transition hover:-translate-y-0.5 hover:ring-blue-200 dark:border-gray-700/70 dark:bg-gray-900/80 dark:shadow-black/30 dark:hover:ring-gray-500"
                 >
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -170,52 +170,6 @@ export default function DashboardHome({
         </SectionCard>
       </div>
 
-      <SectionCard
-        title="프로젝트 스냅샷"
-        description="최근 업데이트된 프로젝트를 검토하고, 필요하면 바로 이동하세요."
-        actionLabel="프로젝트 전체 보기"
-        actionHref="/projects"
-      >
-        {projects.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {projects.map((project) => (
-              <article
-                key={project.id}
-                className="group flex flex-col justify-between rounded-2xl border border-gray-200/70 bg-white/80 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 dark:border-gray-800/70 dark:bg-gray-900/70 dark:hover:border-gray-600"
-              >
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    {project.name}
-                  </h3>
-                  {project.description && (
-                    <p className="mt-2 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
-                      {project.description}
-                    </p>
-                  )}
-                </div>
-                <div className="mt-4 flex items-center justify-between text-sm text-blue-600 dark:text-blue-300">
-                  <Link
-                    href="/projects"
-                    className="inline-flex items-center gap-1 font-medium"
-                    aria-label={`${project.name} 상세로 이동`}
-                  >
-                    상세 보기
-                    <LuArrowUpRight className="h-4 w-4" aria-hidden />
-                  </Link>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    링크 {project.project_links.length}개
-                  </span>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            title="표시할 프로젝트가 없습니다."
-            description="새 프로젝트를 생성하거나 권한을 요청하세요."
-          />
-        )}
-      </SectionCard>
     </div>
   );
 }
@@ -234,7 +188,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-gray-200/70 bg-white/80 p-6 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70">
+    <section className="rounded-3xl border-2 border-gray-200/80 bg-white/90 p-6 shadow-xl shadow-gray-200/70 dark:border-gray-700/70 dark:bg-gray-900/70 dark:shadow-black/30">
       <div className="flex flex-wrap items-center gap-4">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">

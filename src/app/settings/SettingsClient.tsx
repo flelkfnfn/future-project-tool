@@ -3,11 +3,19 @@
 import { useEffect, useState } from "react";
 import { ensurePushEnabled, disablePush } from "@/lib/notifications/client";
 import { toast } from "sonner";
-import { LuBell, LuBellOff } from "react-icons/lu";
+import { LuBell, LuBellOff, LuSparkles } from "react-icons/lu";
+import { updateHomeVariant } from "./actions";
+import type { HomeVariant } from "@/lib/home-variant";
+
+type SettingsClientProps = {
+  defaultVariant: HomeVariant;
+};
 
 export default function SettingsClient({
   defaultVariant,
-}: SettingsClientProps) {
+}: {
+  defaultVariant: HomeVariant;
+}) {
   const [pushStatus, setPushStatus] = useState<
     "unknown" | "enabled" | "disabled" | "denied" | "unsupported"
   >("unknown");
@@ -92,7 +100,44 @@ export default function SettingsClient({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between p-4 border rounded-lg">
+      <div className="rounded-lg border border-gray-200/80 bg-white/80 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70">
+        <div className="flex flex-wrap items-center gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <LuSparkles className="h-4 w-4 text-blue-500" aria-hidden />
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                홈 화면 모드
+              </h3>
+            </div>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              로그인 시 기본으로 보여줄 메인 홈 스타일을 선택하세요.
+            </p>
+          </div>
+          <div className="ml-auto flex items-center gap-2 rounded-full border border-gray-200/80 bg-gray-50/70 p-1 dark:border-gray-700 dark:bg-gray-800/50">
+            {(["classic", "modern"] as HomeVariant[]).map((variant) => {
+              const selected = homeVariant === variant;
+              return (
+                <button
+                  key={variant}
+                  type="button"
+                  aria-pressed={selected}
+                  disabled={savingVariant}
+                  onClick={() => handleHomeVariantChange(variant)}
+                  className={`rounded-full px-3 py-1 text-sm font-medium transition ${
+                    selected
+                      ? "bg-white text-blue-600 shadow-sm dark:bg-gray-900"
+                      : "text-gray-500 hover:text-gray-700 dark:text-gray-300"
+                  }`}
+                >
+                  {variant === "classic" ? "클래식" : "모던"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between rounded-lg border border-gray-200/80 bg-white/80 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70">
         <div>
           <h3 className="font-medium">푸시 알림</h3>
           <p className="text-sm text-gray-500">
