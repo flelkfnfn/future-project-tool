@@ -1,145 +1,154 @@
-﻿"use client";
-
-import { motion } from "framer-motion";
+import MarketingLanding from "@/components/home/MarketingLanding";
+import DashboardHome, {
+  type DashboardData,
+  type UpcomingDeadline,
+} from "@/components/home/DashboardHome";
+import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
+import { getAuth } from "@/lib/auth/session";
 import {
-  LuFolderKanban,
-  LuMessageSquare,
-  LuMegaphone,
-  LuLightbulb,
-  LuCalendarDays,
-  LuFolderOpen,
-} from "react-icons/lu";
+  HOME_VARIANT_COOKIE,
+  parseHomeVariant,
+} from "@/lib/home-variant";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/database.types";
+import { unstable_noStore as noStore } from "next/cache";
+import { cookies } from "next/headers";
 
-const features = [
-  {
-    name: "프로젝트별 게시 공간",
-    description:
-      "프로젝트별 게시 공간의 용도, 결정 사항 등을 기록하고 관리합니다.",
-    icon: LuFolderKanban,
-  },
-  {
-    name: "자유로운 게시판",
-    description:
-      "자유로운 게시판의 성격을 살린 채팅과 결합하여 소통할 수 있습니다.",
-    icon: LuMessageSquare,
-  },
-  {
-    name: "자동화된 공지 발송",
-    description:
-      "자동화된 공지 발송은 모든 게시물에 이메일로 발송되며, 사용자에게 체크리스트를 제공합니다.",
-    icon: LuMegaphone,
-  },
-  {
-    name: "아이디어 브레인스토밍",
-    description:
-      "아이디어 브레인스토밍은 자유롭게 아이디어를 제안하고, 서로의 '좋아요' 의견을 눌러줍니다.",
-    icon: LuLightbulb,
-  },
-  {
-    name: "팀 캘린더",
-    description: "팀의 마감일과 주요 일정을 공유하고 관리합니다.",
-    icon: LuCalendarDays,
-  },
-  {
-    name: "파일 라이브러리",
-    description: "프로젝트 관련 파일들을 공유하고 관리하는 공간입니다.",
-    icon: LuFolderOpen,
-  },
-];
+type CalendarEventRow = {
+  id: number;
+  title: string;
+  description?: string | null;
+  event_date: string;
+};
 
-export default function Home() {
-  return (
-    <div className="relative min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900 rounded-t-3xl overflow-hidden border-t border-x border-gray-200/70 bg-white/70 dark:border-gray-800/70 dark:bg-gray-900/60">
-      {/* 배경 ?�테?? 그리??+ 블러 그라?�언??*/}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 [mask-image:radial-gradient(60%_50%_at_50%_0%,#000,transparent)]"
-      >
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(120,119,198,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(120,119,198,0.06)_1px,transparent_1px)] bg-[size:32px_32px]" />
-        <div className="absolute left-1/2 top-[-120px] h-[420px] w-[800px] -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-400/25 via-indigo-400/20 to-cyan-400/20 blur-3xl dark:from-blue-500/20 dark:via-indigo-500/20 dark:to-cyan-500/20" />
-      </div>
+type NoticeRow = {
+  id: number;
+  title: string;
+  content: string;
+};
 
-      <div className="w-full max-w-none px-4 py-8">
-        {/* Hero */}
-        <section className="relative overflow-hidden rounded-3xl border border-gray-200/70 bg-white/70 shadow-sm backdrop-blur dark:border-gray-800/70 dark:bg-gray-900/60">
-          <div className="absolute -right-10 -top-10 h-64 w-64 rounded-full bg-gradient-to-tr from-indigo-400/20 to-sky-400/10 blur-2xl" />
-          <div className="absolute -bottom-10 -left-10 h-64 w-64 rounded-full bg-gradient-to-tr from-cyan-400/20 to-emerald-400/10 blur-2xl" />
-          <div className="relative isolate px-6 py-20 sm:px-12 lg:px-16">
-            <motion.h1
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45 }}
-              className="text-center text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-50 sm:text-6xl"
-            >
-              미래·사회변화주도 프로젝트
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.08 }}
-              className="mx-auto mt-6 max-w-2xl text-center text-lg leading-8 text-gray-600 dark:text-gray-300"
-            >
-              상단 메뉴를 통해 원하는 기능으로 이동하세요.
-            </motion.p>
+type ProjectLinkRow = {
+  id: number;
+  url: string;
+  title: string;
+  project_id: number;
+};
 
-            </div>
-        </section>
+type ProjectRow = {
+  id: number;
+  name: string;
+  description?: string | null;
+  project_links?: ProjectLinkRow[] | null;
+};
 
-        {/* ?�개 ?�션 */}
-        <motion.section
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="mx-auto my-16 max-w-4xl text-center"
-        >
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 sm:text-3xl">
-            프로젝트별 게시 공간
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-base text-gray-700 dark:text-gray-300">
-            미래·사회변화주도 프로젝트의 활동 내용을 기록하고 관리합니다. 프로젝트에 대한 아이디어든, 제안이든 함께 이야기 나누며 발전시켜 나갑니다.
-          </p>
-        </motion.section>
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-        {/* 핵심 기능 */}
-        <section className="mx-auto max-w-6xl">
-          <h2 className="mb-8 text-center text-2xl font-bold text-gray-900 dark:text-gray-100 sm:mb-12 sm:text-3xl">
-            핵심 기능
-          </h2>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <motion.article
-                  key={feature.name}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.45, delay: index * 0.06 }}
-                  className="group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white/80 p-5 shadow-sm ring-1 ring-transparent transition hover:-translate-y-1 hover:shadow-md hover:ring-indigo-200 dark:border-gray-800/70 dark:bg-gray-900/60 dark:hover:ring-indigo-500/20"
-                >
-                  {/* 카드 상단 인디케이터 */}
-                  <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-indigo-400/60 via-sky-400/60 to-cyan-400/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100 transition group-hover:scale-105 dark:bg-indigo-500/10 dark:text-indigo-300 dark:ring-indigo-500/20">
-                      <Icon size={20} aria-hidden />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                        {feature.name}
-                      </h3>
-                      <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-400">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </div>
-                </motion.article>
-              );
-            })}
-          </div>
-        </section>
-      </div>
-    </div>
+export default async function HomePage() {
+  noStore();
+  const auth = await getAuth();
+  const jar = await cookies();
+  const preferredVariant = parseHomeVariant(
+    jar.get(HOME_VARIANT_COOKIE)?.value
   );
+
+  if (!auth.authenticated || !auth.principal) {
+    return <MarketingLanding />;
+  }
+
+  if (preferredVariant === "classic") {
+    return <MarketingLanding />;
+  }
+
+  let userName = "사용자";
+  if (auth.principal.source === "local") {
+    userName = auth.principal.username;
+  } else {
+    userName = auth.principal.email ?? userName;
+    try {
+      const supabase = await createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      userName =
+        (session?.user.user_metadata?.full_name as string | undefined) ||
+        auth.principal.email ||
+        userName;
+    } catch {
+      /* ignore name fetch errors */
+    }
+  }
+
+  const dashboardData = await getDashboardData();
+
+  return <DashboardHome userName={userName} {...dashboardData} />;
 }
 
+async function getDashboardData(): Promise<DashboardData> {
+  const supabase = createServiceClient() as SupabaseClient<Database>;
+  const nowISO = new Date().toISOString();
+
+  const [deadlinesRes, noticesRes, projectsRes] = await Promise.all([
+    supabase
+      .from("calendar_events")
+      .select("id, title, description, event_date")
+      .gte("event_date", nowISO)
+      .order("event_date", { ascending: true })
+      .limit(4),
+    supabase
+      .from("notices")
+      .select("id, title, content")
+      .order("id", { ascending: false })
+      .limit(4),
+    supabase
+      .from("projects")
+      .select("id, name, description, project_links (id, url, title, project_id)")
+      .order("id", { ascending: false })
+      .limit(4),
+  ]);
+
+  const deadlines = mapDeadlines(deadlinesRes);
+  const notices = noticesRes.error ? [] : (noticesRes.data as NoticeRow[]) ?? [];
+  const projects = mapProjects(projectsRes);
+
+  return { deadlines, notices, projects };
+}
+
+function mapDeadlines(response: {
+  data: CalendarEventRow[] | null;
+  error: unknown;
+}): UpcomingDeadline[] {
+  if (response.error || !response.data) return [];
+  return response.data.map((event) => {
+    const eventDate = new Date(event.event_date);
+    const now = new Date();
+    const diff = eventDate.getTime() - now.getTime();
+    const daysRemaining = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    return {
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      event_date: event.event_date,
+      daysRemaining,
+    };
+  });
+}
+
+function mapProjects(response: {
+  data: ProjectRow[] | null;
+  error: unknown;
+}): DashboardData["projects"] {
+  if (response.error || !response.data) return [];
+
+  return response.data.map((project) => ({
+    id: project.id,
+    name: project.name,
+    description: project.description,
+    project_links: (project.project_links ?? []).map((link) => ({
+      id: link.id,
+      title: link.title,
+      url: link.url,
+    })),
+  }));
+}
