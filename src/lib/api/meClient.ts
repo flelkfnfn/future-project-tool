@@ -4,6 +4,7 @@ type Principal = { username?: string | null; email?: string | null }
 export type MeResponse = { ok: boolean; principal?: Principal }
 
 let memoryCache: { at: number; data: MeResponse } | null = null
+let inflight: Promise<MeResponse> | null = null
 const SS_KEY = 'me_cache_v1'
 
 function now() { return Date.now() }
@@ -31,15 +32,24 @@ export async function fetchMeCached(ttlMs = 30000): Promise<MeResponse> {
     return ss.data
   }
 
-  try {
-    const res = await fetch('/api/me', { cache: 'no-store', credentials: 'include' })
-    const data = (await res.json()) as MeResponse
-    const entry = { at: now(), data }
-    memoryCache = entry
-    writeSession(entry)
-    return data
-  } catch {
-    return { ok: false }
+  if (inflight) {
+    return inflight
   }
-}
 
+  inflight = (async () => {
+    try {
+      const res = await fetch('/api/me', { cache: 'no-store', credentials: 'include' })
+      const data = (await res.json()) as MeResponse
+      const entry = { at: now(), data }
+      memoryCache = entry
+      writeSession(entry)
+      return data
+    } catch {
+      return { ok: false }
+    } finally {
+      inflight = null
+    }
+  })()
+
+  return inflight
+}
