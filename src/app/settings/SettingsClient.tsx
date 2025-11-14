@@ -119,7 +119,7 @@ export default function SettingsClient({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-gray-200/80 bg-white/80 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70">
+      <div className="rounded-2xl border-2 border-gray-200/80 bg-white/80 p-5 shadow-lg shadow-gray-200/70 dark:border-gray-700/70 dark:bg-gray-900/70 dark:shadow-black/40">
         <div className="flex flex-wrap items-center gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -156,7 +156,7 @@ export default function SettingsClient({
         </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-lg border border-gray-200/80 bg-white/80 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70">
+      <div className="flex items-center justify-between rounded-2xl border-2 border-gray-200/80 bg-white/80 p-5 shadow-lg shadow-gray-200/70 dark:border-gray-700/70 dark:bg-gray-900/70 dark:shadow-black/40">
         <div>
           <h3 className="font-medium text-gray-900 dark:text-gray-100">
             알림
