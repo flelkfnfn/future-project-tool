@@ -113,7 +113,7 @@ export default function SettingsClient() {
       // Due to browser security, we only get the folder name, not the full path.
       // The webkitRelativePath will give us the path relative to the selected folder,
       // but the actual folder name is usually the first part of this path.
-      const folderName = files[0].webkitRelativePath.split('/')[0];
+      const folderName = files[0].webkitRelativePath.split("/")[0];
       setStoragePath(folderName);
       toast.info("브라우저 보안 정책으로 인해 폴더 이름만 가져올 수 있습니다.");
     }
@@ -176,7 +176,7 @@ export default function SettingsClient() {
               type="file"
               ref={fileInputRef}
               onChange={handleFolderSelect}
-              // @ts-ignore
+              // @ts-expect-error - webkitdirectory는 표준 TS 타입에 없음
               webkitdirectory=""
               directory=""
               hidden
@@ -195,5 +195,3 @@ export default function SettingsClient() {
     </div>
   );
 }
-
-
