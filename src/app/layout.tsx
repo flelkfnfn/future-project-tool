@@ -31,8 +31,8 @@ export const metadata: Metadata = {
   description: "미래·사회변화주도 프로젝트 협업 틀",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = cookies();
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
   const motionPreference = parseMotionPreference(
     cookieStore.get(MOTION_PREFERENCE_COOKIE)?.value
   );
