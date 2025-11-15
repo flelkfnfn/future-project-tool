@@ -88,7 +88,7 @@ export async function POST(req: Request) {
     type: "broadcast",
     event: "new-message",
     payload: {
-      id: data.id,
+      id: String(data.id), // Ensure ID is a string
       text,
       username,
       ts,

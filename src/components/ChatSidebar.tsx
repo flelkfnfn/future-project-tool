@@ -55,6 +55,7 @@ export default function ChatSidebar({
   const [unread, setUnread] = useState<Record<string, number>>({}); // 'general' or room id string
   const bcastRef = useRef<RealtimeChannel | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const scrollToBottom = useCallback((smooth: boolean = true) => {
     const el = listRef.current;
     if (!el) return;
@@ -168,7 +169,9 @@ export default function ChatSidebar({
 
   const appendMessage = useCallback((msg: ChatMsg) => {
     setMessages((prev) => {
-      if (messageIdsRef.current.has(msg.id)) return prev;
+      if (messageIdsRef.current.has(msg.id)) {
+        return prev;
+      }
       let next = [...prev, msg];
       messageIdsRef.current.add(msg.id);
       if (next.length > MESSAGE_LIMIT) {
@@ -300,38 +303,110 @@ export default function ChatSidebar({
     scrollToBottom(true);
   }, [messages, scrollToBottom]);
 
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto"; // Reset height to recalculate
+      textareaRef.current.style.height =
+        textareaRef.current.scrollHeight + "px";
+      scrollToBottom(true); // Scroll to bottom when textarea resizes
+    }
+  }, [input, scrollToBottom]);
+
   const send = async () => {
     if (pending) return;
+
     const text = input.trim();
+
     if (!text) return;
 
+    // Handle AI command separately
+
+    if (text.startsWith("/ai ")) {
+      setPending(true);
+
+      setInput("AI가 답변을 생성중입니다..."); // Placeholder text
+
+      try {
+        const prompt = text.substring(4).trim();
+
+        if (!prompt) {
+          toast.error("AI에게 질문할 내용을 입력해 주세요.");
+
+          setInput(text); // Restore original text
+
+          return;
+        }
+
+        const aiRes = await fetch("/api/ai/help", {
+          method: "POST",
+
+          headers: { "Content-Type": "application/json" },
+
+          body: JSON.stringify({ prompt }),
+        });
+
+        const result = await aiRes.json();
+
+        if (!aiRes.ok || !result.ok) {
+          const errorDetails =
+            result.details || "자세한 내용을 보려면 서버 로그를 확인하세요.";
+
+          toast.error("AI 응답을 가져오는 데 실패했습니다.", {
+            description: errorDetails,
+          });
+
+          setInput(text); // Restore original text on failure
+        } else {
+          setInput(result.text); // Replace input with AI response
+        }
+      } finally {
+        setPending(false);
+      }
+
+      return; // Stop further execution for AI commands
+    }
+
+    // Regular message sending logic
+
     setPending(true);
+
     const now = Date.now();
+
     const msg: ChatMsg = {
       id: makeId(text, username, now),
+
       text,
+
       user: username,
+
       ts: now,
+
       room_id: selectedRoomId,
     };
 
     appendMessage(msg);
+
     scrollToBottom(true);
+
+    setInput(""); // Clear input after sending
 
     try {
       const ok = await persistMessage(msg);
+
       if (!ok) {
         handleSendFailure(msg);
       }
     } finally {
-      setInput("");
+      // setInput is already cleared, setPending is the only thing left
+
       setPending(false);
     }
   };
 
-  const onKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+  const onKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
     if (pending) return;
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       send();
     }
@@ -509,13 +584,15 @@ export default function ChatSidebar({
             </div>
           </div>
           <div className="p-2 border-t dark:border-gray-700 flex gap-2 items-center">
-            <input
+            <textarea
+              ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKeyDown}
-              placeholder="메시지 입력"
-              className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-1 min-w-0 w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="/ai 로 생성..."
+              className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-1 min-w-0 w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 resize-none overflow-hidden"
               disabled={pending}
+              rows={1} // Start with 1 row
             />
             <button
               type="button"
