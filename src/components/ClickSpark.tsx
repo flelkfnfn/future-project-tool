@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useCallback } from 'react';
+import { useMotionPreference } from './MotionPreferenceProvider';
 
 interface ClickSparkProps {
   sparkColor?: string; // Optional override. If unset, uses theme-based color.
@@ -29,6 +30,8 @@ const ClickSpark = ({
   easing = 'ease-out',
   extraScale = 1.0,
 }: ClickSparkProps) => {
+  const { resolved } = useMotionPreference();
+  const reducedMotion = resolved === 'reduced';
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sparksRef = useRef<Spark[]>([]);
   const startTimeRef = useRef<number | null>(null);
@@ -52,6 +55,7 @@ const ClickSpark = ({
   );
 
   useEffect(() => {
+    if (reducedMotion) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -132,7 +136,7 @@ const ClickSpark = ({
       runningRef.current = false;
       document.removeEventListener('visibilitychange', onVis);
     };
-  }, [sparkColor, sparkSize, sparkRadius, sparkCount, duration, easeFunc, extraScale]);
+  }, [sparkColor, sparkSize, sparkRadius, sparkCount, duration, easeFunc, extraScale, reducedMotion]);
 
   const handleClick = useCallback((e: MouseEvent) => {
     const x = e.clientX;
@@ -152,6 +156,7 @@ const ClickSpark = ({
   }, [sparkCount]);
 
   useEffect(() => {
+    if (reducedMotion) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -168,7 +173,11 @@ const ClickSpark = ({
       window.removeEventListener('resize', resizeCanvas);
       document.body.removeEventListener('mousedown', handleClick);
     };
-  }, [handleClick]);
+  }, [handleClick, reducedMotion]);
+
+  if (reducedMotion) {
+    return null;
+  }
 
   return (
     <canvas

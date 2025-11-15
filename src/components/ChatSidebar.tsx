@@ -1,11 +1,11 @@
 "use client";
 
-import { LuPlus, LuEllipsisVertical } from "react-icons/lu";
+import { LuPlus, LuEllipsisVertical, LuMessageCircle } from "react-icons/lu";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useSupabase } from "@/components/supabase-provider";
 import { fetchMeCached } from "@/lib/api/meClient";
-import AddLauncher from "@/components/AddLauncher";
+import MotionAwareSpinner from "@/components/ui/MotionAwareSpinner";
 
 const makeId = (text: string, user: string, ts: number) =>
   `${ts}:${user}:${text}`;
@@ -381,7 +381,7 @@ export default function ChatSidebar({
             ref={listRef}
             className="flex-1 overflow-auto p-3 space-y-2 text-sm min-w-0 bg-white dark:bg-gray-800 overscroll-contain"
           >
-            <div className="p-3 space-y-2">
+            <div className="space-y-2">
               {renderWithDayHeaders(messages).map((item, idx, arr) => {
                 // 날짜 헤더
                 if ("header" in item) {
@@ -500,9 +500,9 @@ export default function ChatSidebar({
             </button>
             {pending && (
               <div className="flex items-center px-2">
-                <span
-                  className="inline-block w-4 h-4 border-2 border-gray-400 dark:border-gray-500 border-t-transparent rounded-full animate-spin"
-                  aria-hidden="true"
+                <MotionAwareSpinner
+                  className="inline-block w-4 h-4 border-2 border-gray-400 dark:border-gray-500 border-t-transparent rounded-full"
+                  label="메시지 전송 중"
                 />
               </div>
             )}

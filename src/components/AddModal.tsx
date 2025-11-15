@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { emitLocalDataChange } from '@/components/DataChangeNotifier'
+import MotionAwareSpinner from '@/components/ui/MotionAwareSpinner'
 
 export default function AddModal({ onClose }: { onClose: () => void }) {
   const router = useRouter()
@@ -89,7 +90,7 @@ export default function AddModal({ onClose }: { onClose: () => void }) {
         </button>
         {pending && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70 dark:bg-gray-800/70 rounded-lg">
-            <div className="h-8 w-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+            <MotionAwareSpinner className="h-8 w-8 rounded-full border-4 border-blue-500 border-t-transparent" />
           </div>
         )}
         {!mode ? (

@@ -12,6 +12,7 @@ import {
 import React, { Children, cloneElement, useEffect, useMemo, useRef, useState } from 'react';
 
 import './Dock.css';
+import { useMotionPreference } from '@/components/MotionPreferenceProvider';
 
 export type DockItemData = {
   icon: React.ReactNode;
@@ -54,6 +55,8 @@ function DockItem({
 }: DockItemProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isHovered = useMotionValue(0);
+  const { resolved } = useMotionPreference();
+  const reducedMotion = resolved === "reduced";
 
   const mouseDistance = useTransform(mouseX, val => {
     const rect = ref.current?.getBoundingClientRect() ?? {
@@ -70,8 +73,8 @@ function DockItem({
     <motion.div
       ref={ref}
       style={{
-        width: size,
-        height: size
+        width: reducedMotion ? baseItemSize : size,
+        height: reducedMotion ? baseItemSize : size
       }}
       onHoverStart={() => isHovered.set(1)}
       onHoverEnd={() => isHovered.set(0)}
@@ -100,6 +103,8 @@ type DockLabelProps = {
 
 function DockLabel({ children, className = '', isHovered }: DockLabelProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const { resolved } = useMotionPreference();
+  const reducedMotion = resolved === "reduced";
 
   useEffect(() => {
     if (!isHovered) return;
@@ -108,6 +113,14 @@ function DockLabel({ children, className = '', isHovered }: DockLabelProps) {
     });
     return () => unsubscribe();
   }, [isHovered]);
+
+  if (reducedMotion) {
+    return isVisible ? (
+      <div className={`dock-label ${className}`} role="tooltip" style={{ transform: 'translateX(-50%)' }}>
+        {children}
+      </div>
+    ) : null;
+  }
 
   return (
     <AnimatePresence>
@@ -150,16 +163,20 @@ export default function Dock({
 }: DockProps) {
   const mouseX = useMotionValue(Infinity);
   const isHovered = useMotionValue(0);
+  const { resolved } = useMotionPreference();
+  const reducedMotion = resolved === "reduced";
+
+  const displayMagnification = reducedMotion ? baseItemSize : magnification;
 
   const maxHeight = useMemo(
-    () => Math.max(dockHeight, magnification + magnification / 2 + 4),
-    [magnification, dockHeight]
+    () => Math.max(dockHeight, displayMagnification + displayMagnification / 2 + 4),
+    [displayMagnification, dockHeight]
   );
   const heightRow = useTransform(isHovered, [0, 1], [panelHeight, maxHeight]);
   const height = useSpring(heightRow, spring);
 
   return (
-    <motion.div style={{ height, scrollbarWidth: 'none' }} className="dock-outer">
+    <motion.div style={{ height: reducedMotion ? panelHeight : height, scrollbarWidth: 'none' }} className="dock-outer">
       <motion.div
         onMouseMove={({ pageX }) => {
           isHovered.set(1);
@@ -182,7 +199,7 @@ export default function Dock({
             mouseX={mouseX}
             spring={spring}
             distance={distance}
-            magnification={magnification}
+            magnification={displayMagnification}
             baseItemSize={baseItemSize}
           >
             <DockIcon>{item.icon}</DockIcon>

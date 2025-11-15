@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useMotionPreference } from './MotionPreferenceProvider';
 
 interface FuzzyTextProps {
   children: React.ReactNode;
@@ -22,8 +23,11 @@ const FuzzyText: React.FC<FuzzyTextProps> = ({
   hoverIntensity = 0.5
 }) => {
   const canvasRef = useRef<HTMLCanvasElement & { cleanupFuzzyText?: () => void }>(null);
+  const { resolved } = useMotionPreference();
+  const reducedMotion = resolved === 'reduced';
 
   useEffect(() => {
+    if (reducedMotion) return;
     let animationFrameId: number;
     let isCancelled = false;
     const canvas = canvasRef.current;
@@ -171,7 +175,23 @@ const FuzzyText: React.FC<FuzzyTextProps> = ({
         canvas.cleanupFuzzyText();
       }
     };
-  }, [children, fontSize, fontWeight, fontFamily, color, enableHover, baseIntensity, hoverIntensity]);
+  }, [children, fontSize, fontWeight, fontFamily, color, enableHover, baseIntensity, hoverIntensity, reducedMotion]);
+
+  if (reducedMotion) {
+    return (
+      <span
+        style={{
+          fontSize,
+          fontWeight,
+          fontFamily,
+          color,
+          display: 'inline-block'
+        }}
+      >
+        {children}
+      </span>
+    );
+  }
 
   return <canvas ref={canvasRef} />;
 };

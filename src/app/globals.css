@@ -91,3 +91,17 @@ body::-webkit-scrollbar {
 .dark .project-scroll-container {
     scrollbar-color: rgba(102, 102, 102, 0.5) transparent; /* Semi-transparent dark thumb, transparent track */
 }
+
+/* Motion reduction preference */
+html[data-motion="reduced"] {
+  scroll-behavior: auto;
+}
+
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0ms !important;
+  transition-delay: 0ms !important;
+}

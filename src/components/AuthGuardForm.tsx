@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSupabase } from '@/components/supabase-provider'
 import { toast } from 'sonner'
+import MotionAwareSpinner from '@/components/ui/MotionAwareSpinner'
 
 type Props = React.FormHTMLAttributes<HTMLFormElement> & {
   confirmMessage?: string
@@ -55,7 +56,7 @@ export default function AuthGuardForm({ children, onSubmit, confirmMessage, ...r
       {children}
       {pending && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 transition-opacity duration-200 pointer-events-auto">
-          <div className="h-6 w-6 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+          <MotionAwareSpinner className="h-6 w-6 rounded-full border-4 border-blue-500 border-t-transparent" />
         </div>
       )}
     </form>

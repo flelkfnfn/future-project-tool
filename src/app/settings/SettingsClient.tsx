@@ -3,19 +3,21 @@
 import { useEffect, useState, useTransition } from "react";
 import { ensurePushEnabled, disablePush } from "@/lib/notifications/client";
 import { toast } from "sonner";
-import { LuBell, LuBellOff, LuSparkles } from "react-icons/lu";
-import { updateHomeVariant } from "./actions";
+import { LuBell, LuBellOff, LuSparkles, LuAccessibility } from "react-icons/lu";
+import { updateHomeVariant, updateMotionPreference } from "./actions";
 import type { HomeVariant } from "@/lib/home-variant";
+import type { MotionPreference } from "@/lib/motion-preference";
+import { useMotionPreference } from "@/components/MotionPreferenceProvider";
 
 type SettingsClientProps = {
   defaultVariant: HomeVariant;
+  defaultMotionPreference: MotionPreference;
 };
 
 export default function SettingsClient({
   defaultVariant,
-}: {
-  defaultVariant: HomeVariant;
-}) {
+  defaultMotionPreference,
+}: SettingsClientProps) {
   const [pushStatus, setPushStatus] = useState<
     "unknown" | "enabled" | "disabled" | "denied" | "unsupported"
   >("unknown");
@@ -23,11 +25,19 @@ export default function SettingsClient({
   const [disablingPush, setDisablingPush] = useState<boolean>(false);
   const [homeVariant, setHomeVariant] = useState<HomeVariant>(defaultVariant);
   const [savingVariant, startSavingVariant] = useTransition();
+  const [motionPreference, setMotionPreference] =
+    useState<MotionPreference>(defaultMotionPreference);
+  const [savingMotion, startSavingMotion] = useTransition();
+  const { setMode: setMotionMode } = useMotionPreference();
   const [, setStoragePath] = useState<string>("");
 
   useEffect(() => {
     setHomeVariant(defaultVariant);
   }, [defaultVariant]);
+
+  useEffect(() => {
+    setMotionPreference(defaultMotionPreference);
+  }, [defaultMotionPreference]);
 
   useEffect(() => {
     const evalStatus = async () => {
@@ -125,6 +135,28 @@ export default function SettingsClient({
     });
   };
 
+  const handleMotionPreferenceChange = (nextPreference: MotionPreference) => {
+    if (motionPreference === nextPreference) return;
+    const prev = motionPreference;
+    setMotionPreference(nextPreference);
+    setMotionMode(nextPreference);
+    startSavingMotion(async () => {
+      try {
+        await updateMotionPreference(nextPreference);
+        toast.success(
+          nextPreference === "reduced"
+            ? "애니메이션을 최소화했어요."
+            : "시스템 설정을 따르게 전환했어요."
+        );
+      } catch (error) {
+        console.error(error);
+        setMotionPreference(prev);
+        setMotionMode(prev);
+        toast.error("모션 설정을 저장하지 못했어요.");
+      }
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-gray-200/80 bg-white/80 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70">
@@ -157,6 +189,43 @@ export default function SettingsClient({
                   }`}
                 >
                   {variant === "classic" ? "클래식" : "모던"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-gray-200/80 bg-white/80 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70">
+        <div className="flex flex-wrap items-center gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <LuAccessibility className="h-4 w-4 text-emerald-500" aria-hidden />
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                애니메이션 줄이기
+              </h3>
+            </div>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              페이지 전환, 클릭 이펙트 등 시각적 움직임을 최소화합니다.
+            </p>
+          </div>
+          <div className="ml-auto flex items-center gap-2 rounded-full border border-gray-200/80 bg-gray-50/70 p-1 dark:border-gray-700 dark:bg-gray-800/50">
+            {(["system", "reduced"] as MotionPreference[]).map((pref) => {
+              const selected = motionPreference === pref;
+              return (
+                <button
+                  key={pref}
+                  type="button"
+                  aria-pressed={selected}
+                  disabled={savingMotion}
+                  onClick={() => handleMotionPreferenceChange(pref)}
+                  className={`rounded-full px-3 py-1 text-sm font-medium transition ${
+                    selected
+                      ? "bg-white text-emerald-600 shadow-sm dark:bg-gray-900"
+                      : "text-gray-500 hover:text-gray-700 dark:text-gray-300"
+                  }`}
+                >
+                  {pref === "system" ? "시스템 기본값" : "최소화"}
                 </button>
               );
             })}

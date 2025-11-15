@@ -86,10 +86,6 @@ export default function DashboardHome({
             <h1 className="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-50">
               오늘 할 일과 새 소식을 한눈에 확인해 보세요.
             </h1>
-            <p className="mt-3 text-base text-gray-600 dark:text-gray-300">
-              최근 업데이트된 프로젝트와 다가오는 마감, 공지사항을 기반으로
-              개인화된 대시보드를 구성했습니다.
-            </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             {stats.map((stat) => {
@@ -121,7 +117,7 @@ export default function DashboardHome({
       <div className="grid gap-8 lg:grid-cols-2">
         <SectionCard
           title="다가오는 마감일"
-          description="최근 추가된 일정 중 가장 빠른 4가지를 보여드려요."
+          description="" //최근 추가된 일정 중 가장 빠른 4가지를 보여드려요.
           actionLabel="전체 일정 보기"
           actionHref="/calendar"
         >
@@ -141,7 +137,7 @@ export default function DashboardHome({
 
         <SectionCard
           title="새 알림 & 공지"
-          description="가장 최근에 등록된 공지 4건을 모아서 보여드려요."
+          description="" //가장 최근에 등록된 공지 4건을 모아서 보여드려요.
           actionLabel="공지 전체 보기"
           actionHref="/notices"
         >
@@ -169,7 +165,6 @@ export default function DashboardHome({
           )}
         </SectionCard>
       </div>
-
     </div>
   );
 }

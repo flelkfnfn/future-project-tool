@@ -9,6 +9,12 @@ import ClickSpark from "@/components/ClickSpark";
 import ThemeProvider from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
 import AuthRefreshWatcher from "@/components/AuthRefreshWatcher";
+import { cookies } from "next/headers";
+import {
+  MOTION_PREFERENCE_COOKIE,
+  parseMotionPreference,
+} from "@/lib/motion-preference";
+import { MotionPreferenceProvider } from "@/components/MotionPreferenceProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,21 +32,34 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = cookies();
+  const motionPreference = parseMotionPreference(
+    cookieStore.get(MOTION_PREFERENCE_COOKIE)?.value
+  );
+  const htmlMotion = motionPreference === "reduced" ? "reduced" : "full";
+
   return (
-    <html lang="ko" className="h-full" suppressHydrationWarning>
+    <html
+      lang="ko"
+      className="h-full"
+      data-motion={htmlMotion}
+      suppressHydrationWarning
+    >
       <body
-        className={`${geistSans.variable} h-full antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       >
         <SupabaseProvider>
           <AuthRefreshWatcher />
-          <ThemeProvider>
-            <Toaster position="top-center" richColors duration={2500} closeButton />
-            <ClickSpark />
-            <PageTransitionOverlayProvider>
-              <Header />
-              <AppShell>{children}</AppShell>
-            </PageTransitionOverlayProvider>
-          </ThemeProvider>
+          <MotionPreferenceProvider initialPreference={motionPreference}>
+            <ThemeProvider>
+              <Toaster position="top-center" richColors duration={2500} closeButton />
+              <ClickSpark />
+              <PageTransitionOverlayProvider>
+                <Header />
+                <AppShell>{children}</AppShell>
+              </PageTransitionOverlayProvider>
+            </ThemeProvider>
+          </MotionPreferenceProvider>
         </SupabaseProvider>
       </body>
     </html>

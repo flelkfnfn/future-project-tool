@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
+import { useMotionPreference } from './MotionPreferenceProvider'
 
 interface PageTransitionOverlayContextType {
   showOverlay: (minDuration?: number) => void;
@@ -20,6 +21,8 @@ export const usePageTransitionOverlay = () => {
 
 export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
+  const { resolved } = useMotionPreference();
+  const reducedMotion = resolved === 'reduced';
   const [show, setShow] = useState(false);
   const [progress, setProgress] = useState(0);
   const [variant, setVariant] = useState<{
@@ -39,6 +42,11 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
   const finishMsRef = useRef<number>(300);
 
   const showOverlay = useCallback((minDuration: number = 800) => {
+    if (reducedMotion) {
+      setShow(false);
+      setProgress(0);
+      return;
+    }
     setShow(true);
     setProgress(0);
     minUntil.current = Date.now() + minDuration;
@@ -78,9 +86,14 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
         return next > target ? target : next;
       });
     }, interval);
-  }, []);
+  }, [reducedMotion]);
 
   const hideOverlay = useCallback(() => {
+    if (reducedMotion) {
+      setShow(false);
+      setProgress(0);
+      return;
+    }
     const now = Date.now();
     const delay = Math.max(500, minUntil.current - now);
     if (progTimer.current) { clearInterval(progTimer.current); progTimer.current = null; }
@@ -99,7 +112,7 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
       setShow(false);
       setProgress(0);
     }, Math.max(delay, 320));
-  }, []);
+  }, [reducedMotion]);
 
   // Listen for native <a> tag clicks
   useEffect(() => {
@@ -148,7 +161,7 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
   return (
     <PageTransitionOverlayContext.Provider value={{ showOverlay, hideOverlay }}>
       {children}
-      {show && (
+      {show && !reducedMotion && (
         <div className={`pointer-events-none fixed inset-0 z-40 flex items-center justify-center ${variant?.backdrop ?? 'bg-white/60 dark:bg-black/40'} backdrop-blur-sm transition-opacity duration-500 opacity-100`}>
           <div
             role="status"

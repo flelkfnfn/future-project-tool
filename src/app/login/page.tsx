@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { useSearchParams } from 'next/navigation'
 import { localSignIn, localSignUp } from './localActions'
+import MotionAwareSpinner from '@/components/ui/MotionAwareSpinner'
 
 function LoginInner() {
   const searchParams = useSearchParams()
@@ -132,7 +133,10 @@ function FormPendingController() {
   return (
     <div ref={ref} className="mt-2 h-4">
       {pending ? (
-        <span className="inline-block align-middle w-4 h-4 border-2 border-gray-400 dark:border-gray-600 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+        <MotionAwareSpinner
+          className="inline-block align-middle w-4 h-4 border-2 border-gray-400 dark:border-gray-600 border-t-transparent rounded-full"
+          label="폼 제출 중"
+        />
       ) : null}
     </div>
   )
