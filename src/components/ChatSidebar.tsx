@@ -1,11 +1,12 @@
 "use client";
 
-import { LuPlus, LuEllipsisVertical, LuMessageCircle } from "react-icons/lu";
+import { LuPlus, LuEllipsisVertical } from "react-icons/lu";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useSupabase } from "@/components/supabase-provider";
 import { fetchMeCached } from "@/lib/api/meClient";
 import MotionAwareSpinner from "@/components/ui/MotionAwareSpinner";
+import { toast } from "sonner";
 
 const makeId = (text: string, user: string, ts: number) =>
   `${ts}:${user}:${text}`;
@@ -182,6 +183,61 @@ export default function ChatSidebar({
     });
   }, []);
 
+  const broadcastLocalMessage = useCallback((msg: ChatMsg) => {
+    bcastRef.current?.send({
+      type: "broadcast",
+      event: "message",
+      payload: msg,
+    });
+  }, []);
+
+  const persistMessage = useCallback(async (msg: ChatMsg) => {
+    try {
+      const fd = new FormData();
+      fd.append("text", msg.text);
+      fd.append("ts", String(msg.ts));
+      if (msg.room_id != null) {
+        fd.append("room_id", String(msg.room_id));
+      }
+      const res = await fetch("/api/chat/messages", {
+        method: "POST",
+        body: fd,
+        credentials: "include",
+      });
+      const j = await res.json().catch(() => ({}));
+      return res.ok && j?.ok !== false;
+    } catch (error) {
+      console.error("persistMessage error:", error);
+      return false;
+    }
+  }, []);
+
+  const retrySend = useCallback(
+    async (msg: ChatMsg) => {
+      const ok = await persistMessage(msg);
+      if (ok) {
+        toast.success("메시지를 다시 보냈어요.");
+      } else {
+        toast.error("다시 보내기에 실패했어요.");
+      }
+    },
+    [persistMessage]
+  );
+
+  const handleSendFailure = useCallback(
+    (msg: ChatMsg) => {
+      broadcastLocalMessage(msg);
+      toast.error("메시지를 전송하지 못했어요.", {
+        description: "네트워크 상태를 확인한 뒤 다시 시도해 주세요.",
+        action: {
+          label: "재시도",
+          onClick: () => retrySend(msg),
+        },
+      });
+    },
+    [broadcastLocalMessage, retrySend]
+  );
+
   // Subscribe to realtime channels; depend on rooms, keep latest selectedRoomId via ref to avoid resubscribing on selection change
   useEffect(() => {
     if (!authed) return;
@@ -250,52 +306,23 @@ export default function ChatSidebar({
     if (!text) return;
 
     setPending(true);
+    const now = Date.now();
+    const msg: ChatMsg = {
+      id: makeId(text, username, now),
+      text,
+      user: username,
+      ts: now,
+      room_id: selectedRoomId,
+    };
+
+    appendMessage(msg);
+    scrollToBottom(true);
+
     try {
-      const now = Date.now();
-      const msg: ChatMsg = {
-        id: makeId(text, username, now),
-        text,
-        user: username,
-        ts: now,
-        room_id: selectedRoomId,
-      };
-
-      const fd = new FormData();
-      fd.append("text", msg.text);
-      fd.append("ts", String(msg.ts));
-      if (selectedRoomId != null) {
-        fd.append("room_id", String(selectedRoomId));
+      const ok = await persistMessage(msg);
+      if (!ok) {
+        handleSendFailure(msg);
       }
-
-      const res = await fetch("/api/chat/messages", {
-        method: "POST",
-        body: fd,
-        credentials: "include",
-      });
-      const j = await res.json().catch(() => ({}));
-      if (!res.ok || j?.ok === false) {
-        bcastRef.current?.send({
-          type: "broadcast",
-          event: "message",
-          payload: msg,
-        });
-      }
-      appendMessage(msg);
-    } catch {
-      const now = Date.now();
-      const fallback: ChatMsg = {
-        id: makeId(text, username, now),
-        text,
-        user: username,
-        ts: now,
-        room_id: selectedRoomId,
-      };
-      bcastRef.current?.send({
-        type: "broadcast",
-        event: "message",
-        payload: fallback,
-      });
-      appendMessage(fallback);
     } finally {
       setInput("");
       setPending(false);
