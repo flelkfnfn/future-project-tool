@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
 } from "react";
@@ -28,6 +29,9 @@ type ThemeProviderProps = {
   children: React.ReactNode;
 };
 
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 export default function ThemeProvider({
   initialPreference,
   children,
@@ -41,7 +45,7 @@ export default function ThemeProvider({
     setMode(initialPreference);
   }, [initialPreference]);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const html = document.documentElement;
     const body = document.body;
     const applyTheme = (next: ResolvedTheme) => {
