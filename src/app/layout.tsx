@@ -15,6 +15,10 @@ import {
   parseMotionPreference,
 } from "@/lib/motion-preference";
 import { MotionPreferenceProvider } from "@/components/MotionPreferenceProvider";
+import {
+  THEME_PREFERENCE_COOKIE,
+  parseThemePreference,
+} from "@/lib/theme-preference";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,21 +41,33 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     cookieStore.get(MOTION_PREFERENCE_COOKIE)?.value
   );
   const htmlMotion = motionPreference === "reduced" ? "reduced" : "full";
+  const themePreference = parseThemePreference(
+    cookieStore.get(THEME_PREFERENCE_COOKIE)?.value
+  );
+  const htmlTheme =
+    themePreference === "dark"
+      ? "dark"
+      : themePreference === "light"
+      ? "light"
+      : "system";
+  const htmlDarkClass = htmlTheme === "dark" ? "dark" : "";
 
   return (
     <html
       lang="ko"
-      className="h-full"
+      className={`h-full ${htmlDarkClass}`}
       data-motion={htmlMotion}
+      data-theme={htmlTheme}
       suppressHydrationWarning
     >
       <body
-        className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} h-full antialiased ${htmlDarkClass}`}
+        data-theme={htmlTheme}
       >
         <SupabaseProvider>
           <AuthRefreshWatcher />
           <MotionPreferenceProvider initialPreference={motionPreference}>
-            <ThemeProvider>
+            <ThemeProvider initialPreference={themePreference}>
               <Toaster position="top-center" richColors duration={2500} closeButton />
               <ClickSpark />
               <PageTransitionOverlayProvider>

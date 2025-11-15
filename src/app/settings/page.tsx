@@ -8,12 +8,19 @@ import {
   MOTION_PREFERENCE_COOKIE,
   parseMotionPreference,
 } from "@/lib/motion-preference";
+import {
+  THEME_PREFERENCE_COOKIE,
+  parseThemePreference,
+} from "@/lib/theme-preference";
 
 export default async function SettingsPage() {
   const jar = await cookies();
   const variant = parseHomeVariant(jar.get(HOME_VARIANT_COOKIE)?.value);
   const motionPreference = parseMotionPreference(
     jar.get(MOTION_PREFERENCE_COOKIE)?.value
+  );
+  const themePreference = parseThemePreference(
+    jar.get(THEME_PREFERENCE_COOKIE)?.value
   );
 
   return (
@@ -27,6 +34,7 @@ export default async function SettingsPage() {
       <SettingsClient
         defaultVariant={variant}
         defaultMotionPreference={motionPreference}
+        defaultThemePreference={themePreference}
       />
     </div>
   );

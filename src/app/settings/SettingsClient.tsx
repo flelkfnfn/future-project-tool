@@ -3,20 +3,35 @@
 import { useEffect, useState, useTransition } from "react";
 import { ensurePushEnabled, disablePush } from "@/lib/notifications/client";
 import { toast } from "sonner";
-import { LuBell, LuBellOff, LuSparkles, LuAccessibility } from "react-icons/lu";
-import { updateHomeVariant, updateMotionPreference } from "./actions";
+import {
+  LuBell,
+  LuBellOff,
+  LuSparkles,
+  LuAccessibility,
+  LuSun,
+  LuMoon,
+} from "react-icons/lu";
+import {
+  updateHomeVariant,
+  updateMotionPreference,
+  updateThemePreference,
+} from "./actions";
 import type { HomeVariant } from "@/lib/home-variant";
 import type { MotionPreference } from "@/lib/motion-preference";
+import type { ThemePreference } from "@/lib/theme-preference";
 import { useMotionPreference } from "@/components/MotionPreferenceProvider";
+import { useThemePreference } from "@/components/ThemeProvider";
 
 type SettingsClientProps = {
   defaultVariant: HomeVariant;
   defaultMotionPreference: MotionPreference;
+  defaultThemePreference: ThemePreference;
 };
 
 export default function SettingsClient({
   defaultVariant,
   defaultMotionPreference,
+  defaultThemePreference,
 }: SettingsClientProps) {
   const [pushStatus, setPushStatus] = useState<
     "unknown" | "enabled" | "disabled" | "denied" | "unsupported"
@@ -29,6 +44,10 @@ export default function SettingsClient({
     useState<MotionPreference>(defaultMotionPreference);
   const [savingMotion, startSavingMotion] = useTransition();
   const { setMode: setMotionMode } = useMotionPreference();
+  const [themePreference, setThemePreference] =
+    useState<ThemePreference>(defaultThemePreference);
+  const [savingTheme, startSavingTheme] = useTransition();
+  const { setMode: setThemeMode } = useThemePreference();
   const [, setStoragePath] = useState<string>("");
 
   useEffect(() => {
@@ -38,6 +57,10 @@ export default function SettingsClient({
   useEffect(() => {
     setMotionPreference(defaultMotionPreference);
   }, [defaultMotionPreference]);
+
+  useEffect(() => {
+    setThemePreference(defaultThemePreference);
+  }, [defaultThemePreference]);
 
   useEffect(() => {
     const evalStatus = async () => {
@@ -135,6 +158,30 @@ export default function SettingsClient({
     });
   };
 
+  const handleThemePreferenceChange = (nextPreference: ThemePreference) => {
+    if (themePreference === nextPreference) return;
+    const prev = themePreference;
+    setThemePreference(nextPreference);
+    setThemeMode(nextPreference);
+    startSavingTheme(async () => {
+      try {
+        await updateThemePreference(nextPreference);
+        toast.success(
+          nextPreference === "dark"
+            ? "다크 테마를 적용했어요."
+            : nextPreference === "light"
+            ? "라이트 테마를 적용했어요."
+            : "시스템 테마를 따르게 전환했어요."
+        );
+      } catch (error) {
+        console.error(error);
+        setThemePreference(prev);
+        setThemeMode(prev);
+        toast.error("테마 설정을 저장하지 못했어요.");
+      }
+    });
+  };
+
   const handleMotionPreferenceChange = (nextPreference: MotionPreference) => {
     if (motionPreference === nextPreference) return;
     const prev = motionPreference;
@@ -189,6 +236,48 @@ export default function SettingsClient({
                   }`}
                 >
                   {variant === "classic" ? "클래식" : "모던"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-gray-200/80 bg-white/80 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70">
+        <div className="flex flex-wrap items-center gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <LuSun className="h-4 w-4 text-amber-500" aria-hidden />
+              <LuMoon className="h-4 w-4 text-indigo-500" aria-hidden />
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                테마 모드
+              </h3>
+            </div>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              라이트·다크·시스템 중 원하는 테마를 선택하세요.
+            </p>
+          </div>
+          <div className="ml-auto flex items-center gap-2 rounded-full border border-gray-200/80 bg-gray-50/70 p-1 dark:border-gray-700 dark:bg-gray-800/50">
+            {(["system", "light", "dark"] as ThemePreference[]).map((pref) => {
+              const selected = themePreference === pref;
+              return (
+                <button
+                  key={pref}
+                  type="button"
+                  aria-pressed={selected}
+                  disabled={savingTheme}
+                  onClick={() => handleThemePreferenceChange(pref)}
+                  className={`rounded-full px-3 py-1 text-sm font-medium transition ${
+                    selected
+                      ? "bg-white text-amber-600 shadow-sm dark:bg-gray-900"
+                      : "text-gray-500 hover:text-gray-700 dark:text-gray-300"
+                  }`}
+                >
+                  {pref === "system"
+                    ? "시스템"
+                    : pref === "light"
+                    ? "라이트"
+                    : "다크"}
                 </button>
               );
             })}
