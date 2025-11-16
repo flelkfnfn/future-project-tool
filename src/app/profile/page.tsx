@@ -3,18 +3,34 @@ import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { getAuth } from '@/lib/auth/session'
 import { createServiceClient } from '@/lib/supabase/service'
-import { hashPassword } from '@/lib/auth/local'
+import { hashPassword, verifyPassword } from '@/lib/auth/local'
 
 async function changePassword(formData: FormData) {
   'use server'
   const auth = await getAuth()
   if (!auth.authenticated) redirect('/login')
   const p = auth.principal
+  const currentPassword = String(formData.get('current_password') ?? '')
   const newPassword = String(formData.get('new_password') ?? '')
-  if (!newPassword) redirect('/profile?error=' + encodeURIComponent('PASSWORD_REQUIRED'))
+  if (!currentPassword || !newPassword) redirect('/profile?error=' + encodeURIComponent('PASSWORD_REQUIRED'))
   if (!p || p.source !== 'local') redirect('/profile?error=' + encodeURIComponent('UNSUPPORTED'))
   if (p.username === 'admin') redirect('/profile?error=' + encodeURIComponent('FORBIDDEN'))
+  
   const svc = createServiceClient()
+  
+  const { data: user, error: fetchError } = await svc.from('local_users').select('password_hash, salt').eq('username', p.username).single()
+
+  if (fetchError || !user) {
+    redirect('/profile?error=' + encodeURIComponent(fetchError?.message || 'USER_NOT_FOUND'))
+    return
+  }
+
+  const isPasswordCorrect = verifyPassword(currentPassword, user.salt, user.password_hash)
+  if (!isPasswordCorrect) {
+    redirect('/profile?error=' + encodeURIComponent('INVALID_CURRENT_PASSWORD'))
+    return
+  }
+
   const { salt, hash } = hashPassword(newPassword)
   const { error } = await svc.from('local_users').update({ password_hash: hash, salt }).eq('username', p.username)
   if (error) redirect('/profile?error=' + encodeURIComponent(error.message))
@@ -75,12 +91,16 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       </div>
       <div className="border rounded p-3 space-y-3">
         <h2 className="font-semibold">비밀번호 변경</h2>
-        <form action={changePassword} className="flex gap-2 items-end">
+        <form action={changePassword} className="flex flex-col gap-2">
+          <label className="flex flex-col text-sm">
+            <span>현재 비밀번호</span>
+            <input type="password" name="current_password" autoComplete="current-password" className="border px-2 py-1 rounded" required />
+          </label>
           <label className="flex flex-col text-sm">
             <span>새 비밀번호</span>
             <input type="password" name="new_password" autoComplete="new-password" className="border px-2 py-1 rounded" required />
           </label>
-          <button className="px-3 py-1 rounded bg-blue-600 text-white">변경</button>
+          <button className="px-3 py-1 rounded bg-blue-600 text-white self-start">변경</button>
         </form>
         {p?.source !== 'local' && (
           <p className="text-xs text-gray-500">비밀번호 변경은 로컬 계정에서만 가능합니다.</p>

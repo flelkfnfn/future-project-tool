@@ -33,6 +33,7 @@ type ChatMessagePayload = {
 };
 
 const MESSAGE_LIMIT = 200;
+const CONTEXT_HISTORY_LIMIT = 12;
 
 export default function ChatSidebar({
   onCreateRoom,
@@ -313,6 +314,25 @@ export default function ChatSidebar({
     }
   }, [input, scrollToBottom]);
 
+  const buildAiContextHistory = useCallback(() => {
+    const isSameRoom = (roomId: number | null | undefined) => {
+      if (selectedRoomId === null) {
+        return roomId === null || typeof roomId === "undefined";
+      }
+      return roomId === selectedRoomId;
+    };
+
+    const relevantMessages = messages.filter((m) => isSameRoom(m.room_id));
+    const limited = relevantMessages.slice(-CONTEXT_HISTORY_LIMIT);
+
+    return limited
+      .map((m) => ({
+        user: m.user,
+        text: m.text.trim(),
+      }))
+      .filter((entry) => entry.text.length > 0);
+  }, [messages, selectedRoomId]);
+
   const send = async () => {
     if (pending) return;
 
@@ -321,14 +341,17 @@ export default function ChatSidebar({
     if (!text) return;
 
     // Handle AI command separately
+    const isContextAwareCommand = text.startsWith("/aicon ");
+    const isAiCommand = isContextAwareCommand || text.startsWith("/ai ");
 
-    if (text.startsWith("/ai ")) {
+    if (isAiCommand) {
       setPending(true);
 
       setInput("AI가 답변을 생성중입니다..."); // Placeholder text
 
       try {
-        const prompt = text.substring(4).trim();
+        const commandPrefix = isContextAwareCommand ? "/aicon " : "/ai ";
+        const prompt = text.substring(commandPrefix.length).trim();
 
         if (!prompt) {
           toast.error("AI에게 질문할 내용을 입력해 주세요.");
@@ -338,12 +361,24 @@ export default function ChatSidebar({
           return;
         }
 
+        const bodyPayload: {
+          prompt: string;
+          history?: Array<{ user: string; text: string }>;
+        } = { prompt };
+
+        if (isContextAwareCommand) {
+          const history = buildAiContextHistory();
+          if (history.length > 0) {
+            bodyPayload.history = history;
+          }
+        }
+
         const aiRes = await fetch("/api/ai/help", {
           method: "POST",
 
           headers: { "Content-Type": "application/json" },
 
-          body: JSON.stringify({ prompt }),
+          body: JSON.stringify(bodyPayload),
         });
 
         const result = await aiRes.json();
@@ -589,7 +624,7 @@ export default function ChatSidebar({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKeyDown}
-              placeholder="/ai 로 생성..."
+              placeholder="/ai, aicon 으로 생성..."
               className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-1 min-w-0 w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 resize-none overflow-hidden"
               disabled={pending}
               rows={1} // Start with 1 row

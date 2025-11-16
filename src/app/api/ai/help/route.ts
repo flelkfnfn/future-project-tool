@@ -1,8 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 
+type HistoryEntry = {
+  user: string;
+  text: string;
+};
+
+function normalizeHistory(rawHistory: unknown): HistoryEntry[] {
+  if (!Array.isArray(rawHistory)) {
+    return [];
+  }
+
+  return rawHistory
+    .map((entry) => {
+      if (
+        !entry ||
+        typeof entry !== "object" ||
+        typeof (entry as { text?: unknown }).text !== "string"
+      ) {
+        return null;
+      }
+      const userValue =
+        typeof (entry as { user?: unknown }).user === "string"
+          ? (entry as { user: string }).user
+          : "participant";
+      const textValue = (entry as { text: string }).text.trim();
+      if (!textValue) {
+        return null;
+      }
+      return {
+        user: userValue,
+        text: textValue,
+      };
+    })
+    .filter((entry): entry is HistoryEntry => entry !== null);
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { prompt } = await req.json();
+    const { prompt, history } = await req.json();
 
     if (!prompt) {
       return NextResponse.json(
@@ -25,10 +60,19 @@ export async function POST(req: NextRequest) {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
 
     const systemPrompt = process.env.GEMINI_SYSTEM_PROMPT;
-    let fullPrompt = prompt;
-    if (systemPrompt) {
-      fullPrompt = `${systemPrompt}\n\n${prompt}`;
-    }
+    const historyEntries = normalizeHistory(history);
+    const historyText =
+      historyEntries.length > 0
+        ? historyEntries
+            .map((entry) => `${entry.user}: ${entry.text}`)
+            .join("\n")
+        : "";
+    const composedPrompt = historyText
+      ? `${historyText}\n\n현재 질문: ${prompt}`
+      : prompt;
+    const fullPrompt = systemPrompt
+      ? `${systemPrompt}\n\n${composedPrompt}`
+      : composedPrompt;
 
     const result = await model.generateContent(fullPrompt);
     const response = result.response;
