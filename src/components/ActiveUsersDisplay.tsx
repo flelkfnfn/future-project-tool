@@ -3,6 +3,11 @@
 import { useSupabase } from "@/components/supabase-provider";
 import { useEffect, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import {
+  ACTIVE_STATUS_PREF_EVENT,
+  ACTIVE_STATUS_STORAGE_KEY,
+  getActiveStatusPreferenceClient,
+} from "@/lib/active-status-preference";
 
 export default function ActiveUsersDisplay() {
   const { supabase, session } = useSupabase();
@@ -13,6 +18,12 @@ export default function ActiveUsersDisplay() {
   const [userEmail, setUserEmail] = useState<string | undefined>(undefined);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const currentKeyRef = useRef<string | null>(null);
+  const [sharePresence, setSharePresence] = useState<boolean>(() => {
+    if (typeof window === "undefined") {
+      return true;
+    }
+    return getActiveStatusPreferenceClient() === "show";
+  });
 
   // Resolve user locally to avoid relying solely on provider session timing
   useEffect(() => {
@@ -56,7 +67,42 @@ export default function ActiveUsersDisplay() {
   }, [supabase]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const updatePreference = () => {
+      setSharePresence(getActiveStatusPreferenceClient() === "show");
+    };
+    updatePreference();
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key && event.key !== ACTIVE_STATUS_STORAGE_KEY) {
+        return;
+      }
+      updatePreference();
+    };
+    const handleCustom = () => updatePreference();
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener(ACTIVE_STATUS_PREF_EVENT, handleCustom);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener(ACTIVE_STATUS_PREF_EVENT, handleCustom);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!supabase) return;
+    if (!sharePresence) {
+      if (channelRef.current) {
+        try {
+          supabase.removeChannel(channelRef.current);
+        } catch {}
+        channelRef.current = null;
+        currentKeyRef.current = null;
+      }
+      setActiveUsers([]);
+      return;
+    }
     const effectiveUserId =
       session && session.user && session.user.id ? session.user.id : userId;
     if (!effectiveUserId) {
@@ -115,12 +161,12 @@ export default function ActiveUsersDisplay() {
     });
     channelRef.current = channel;
     currentKeyRef.current = effectiveUserId;
-  }, [supabase, session, userId, userEmail]);
+  }, [supabase, session, userId, userEmail, sharePresence]);
 
   // Update presence payload label without recreating channel
   useEffect(() => {
     const ch = channelRef.current;
-    if (!ch) return;
+    if (!ch || !sharePresence) return;
     (async () => {
       try {
         const effectiveEmail = session?.user?.email ?? userEmail;
@@ -130,7 +176,7 @@ export default function ActiveUsersDisplay() {
         });
       } catch {}
     })();
-  }, [session, userEmail]);
+  }, [session, userEmail, sharePresence]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -149,7 +195,13 @@ export default function ActiveUsersDisplay() {
       <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-2 px-1">
         활동 중인 사용자
       </h3>
-      {(session?.user?.id ?? userId) ? (
+      {!sharePresence ? (
+        <div className="text-center py-3">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            현재 활동 중 표시를 꺼두어 목록을 볼 수 없습니다.
+          </p>
+        </div>
+      ) : (session?.user?.id ?? userId) ? (
         activeUsers.length > 0 ? (
           <ul className="space-y-1 divide-y divide-gray-200/50 dark:divide-gray-700/50">
             {activeUsers.map((user) => (

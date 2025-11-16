@@ -83,7 +83,6 @@ function normalizeExternalUrl(input: string): string {
   if (/^\/\//.test(raw)) return `https:${raw}`
   const prefixed = `https://${raw.replace(/^\/+/, '')}`
   try {
-    // eslint-disable-next-line no-new
     new URL(prefixed)
     return prefixed
   } catch {

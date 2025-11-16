@@ -10,28 +10,37 @@ import {
   LuAccessibility,
   LuSun,
   LuMoon,
+  LuUserCheck,
+  LuUserX,
 } from "react-icons/lu";
 import {
   updateHomeVariant,
   updateMotionPreference,
   updateThemePreference,
+  updateActiveStatusPreference,
 } from "./actions";
 import type { HomeVariant } from "@/lib/home-variant";
 import type { MotionPreference } from "@/lib/motion-preference";
 import type { ThemePreference } from "@/lib/theme-preference";
 import { useMotionPreference } from "@/components/MotionPreferenceProvider";
 import { useThemePreference } from "@/components/ThemeProvider";
+import {
+  persistActiveStatusPreferenceClient,
+  type ActiveStatusPreference,
+} from "@/lib/active-status-preference";
 
 type SettingsClientProps = {
   defaultVariant: HomeVariant;
   defaultMotionPreference: MotionPreference;
   defaultThemePreference: ThemePreference;
+  defaultActiveStatusPreference: ActiveStatusPreference;
 };
 
 export default function SettingsClient({
   defaultVariant,
   defaultMotionPreference,
   defaultThemePreference,
+  defaultActiveStatusPreference,
 }: SettingsClientProps) {
   const [pushStatus, setPushStatus] = useState<
     "unknown" | "enabled" | "disabled" | "denied" | "unsupported"
@@ -48,6 +57,9 @@ export default function SettingsClient({
     useState<ThemePreference>(defaultThemePreference);
   const [savingTheme, startSavingTheme] = useTransition();
   const { setMode: setThemeMode } = useThemePreference();
+  const [activeStatusPreference, setActiveStatusPreference] =
+    useState<ActiveStatusPreference>(defaultActiveStatusPreference);
+  const [savingActiveStatus, startSavingActiveStatus] = useTransition();
   const [, setStoragePath] = useState<string>("");
 
   useEffect(() => {
@@ -61,6 +73,10 @@ export default function SettingsClient({
   useEffect(() => {
     setThemePreference(defaultThemePreference);
   }, [defaultThemePreference]);
+
+  useEffect(() => {
+    setActiveStatusPreference(defaultActiveStatusPreference);
+  }, [defaultActiveStatusPreference]);
 
   useEffect(() => {
     const evalStatus = async () => {
@@ -136,6 +152,27 @@ export default function SettingsClient({
     } finally {
       setEnablingPush(false);
     }
+  };
+
+  const handleActiveStatusChange = (nextPreference: ActiveStatusPreference) => {
+    if (activeStatusPreference === nextPreference) return;
+    const previousPreference = activeStatusPreference;
+    setActiveStatusPreference(nextPreference);
+    startSavingActiveStatus(async () => {
+      try {
+        await updateActiveStatusPreference(nextPreference);
+        persistActiveStatusPreferenceClient(nextPreference);
+        toast.success(
+          nextPreference === "show"
+            ? "다시 활동 상태를 표시합니다."
+            : "현재 활동 중 표시를 끄고 숨겼어요."
+        );
+      } catch (error) {
+        console.error(error);
+        setActiveStatusPreference(previousPreference);
+        toast.error("현재 활동 중 표시 설정을 저장하지 못했어요.");
+      }
+    });
   };
 
   const handleHomeVariantChange = (nextVariant: HomeVariant) => {
@@ -315,6 +352,50 @@ export default function SettingsClient({
                   }`}
                 >
                   {pref === "system" ? "시스템 기본값" : "최소화"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-gray-200/80 bg-white/80 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70">
+        <div className="flex flex-wrap items-center gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              {activeStatusPreference === "show" ? (
+                <LuUserCheck className="h-4 w-4 text-sky-500" aria-hidden />
+              ) : (
+                <LuUserX className="h-4 w-4 text-gray-400" aria-hidden />
+              )}
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                현재 활동 중 표시
+              </h3>
+            </div>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {activeStatusPreference === "show"
+                ? "다른 사용자가 실시간 목록에서 나를 볼 수 있고, 나도 목록을 확인합니다."
+                : "내 접속 상태와 다른 사람들의 목록을 모두 숨깁니다."}
+            </p>
+          </div>
+          <div className="ml-auto flex items-center gap-2 rounded-full border border-gray-200/80 bg-gray-50/70 p-1 dark:border-gray-700 dark:bg-gray-800/50">
+            {(["show", "hide"] as ActiveStatusPreference[]).map((pref) => {
+              const selected = activeStatusPreference === pref;
+              const label = pref === "show" ? "표시" : "숨김";
+              return (
+                <button
+                  key={pref}
+                  type="button"
+                  aria-pressed={selected}
+                  disabled={savingActiveStatus}
+                  onClick={() => handleActiveStatusChange(pref)}
+                  className={`rounded-full px-3 py-1 text-sm font-medium transition ${
+                    selected
+                      ? "bg-white text-sky-600 shadow-sm dark:bg-gray-900"
+                      : "text-gray-500 hover:text-gray-700 dark:text-gray-300"
+                  } ${savingActiveStatus ? "cursor-progress" : ""}`}
+                >
+                  {label}
                 </button>
               );
             })}

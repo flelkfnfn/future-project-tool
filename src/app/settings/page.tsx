@@ -12,6 +12,10 @@ import {
   THEME_PREFERENCE_COOKIE,
   parseThemePreference,
 } from "@/lib/theme-preference";
+import {
+  ACTIVE_STATUS_PREFERENCE_COOKIE,
+  parseActiveStatusPreference,
+} from "@/lib/active-status-preference";
 
 export default async function SettingsPage() {
   const jar = await cookies();
@@ -21,6 +25,9 @@ export default async function SettingsPage() {
   );
   const themePreference = parseThemePreference(
     jar.get(THEME_PREFERENCE_COOKIE)?.value
+  );
+  const activeStatusPreference = parseActiveStatusPreference(
+    jar.get(ACTIVE_STATUS_PREFERENCE_COOKIE)?.value
   );
 
   return (
@@ -35,6 +42,7 @@ export default async function SettingsPage() {
         defaultVariant={variant}
         defaultMotionPreference={motionPreference}
         defaultThemePreference={themePreference}
+        defaultActiveStatusPreference={activeStatusPreference}
       />
     </div>
   );

@@ -3,6 +3,11 @@
 import { useSupabase } from "@/components/supabase-provider";
 import { useEffect, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import {
+  ACTIVE_STATUS_PREF_EVENT,
+  ACTIVE_STATUS_STORAGE_KEY,
+  getActiveStatusPreferenceClient,
+} from "@/lib/active-status-preference";
 
 export default function ActiveUsers() {
   const { supabase } = useSupabase();
@@ -11,6 +16,12 @@ export default function ActiveUsers() {
   >([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [userLabel, setUserLabel] = useState<string | undefined>(undefined);
+  const [sharePresence, setSharePresence] = useState<boolean>(() => {
+    if (typeof window === "undefined") {
+      return true;
+    }
+    return getActiveStatusPreferenceClient() === "show";
+  });
 
   // Resolve Supabase user once and on auth changes
   useEffect(() => {
@@ -35,10 +46,34 @@ export default function ActiveUsers() {
     };
   }, [supabase]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const updatePreference = () => {
+      setSharePresence(getActiveStatusPreferenceClient() === "show");
+    };
+    updatePreference();
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key && event.key !== ACTIVE_STATUS_STORAGE_KEY) {
+        return;
+      }
+      updatePreference();
+    };
+    const handleCustom = () => updatePreference();
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener(ACTIVE_STATUS_PREF_EVENT, handleCustom);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener(ACTIVE_STATUS_PREF_EVENT, handleCustom);
+    };
+  }, []);
+
   // Subscribe presence when user available
   useEffect(() => {
     let channel: RealtimeChannel | null = null;
-    if (supabase && userId) {
+    if (supabase && userId && sharePresence) {
       channel = supabase.channel("online-users", {
         config: {
           presence: { key: userId },
@@ -74,19 +109,25 @@ export default function ActiveUsers() {
           console.warn("Presence subscribe status:", status);
         }
       });
+    } else if (!sharePresence) {
+      setActiveUsers([]);
     }
 
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
-  }, [supabase, userId]);
+  }, [supabase, userId, userLabel, sharePresence]);
 
   return (
     <div className="p-3 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur">
       <h3 className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2">
-        현재 동 중인 사용자
+        현재 접속 중인 사용자
       </h3>
-      {userId && activeUsers.length > 0 ? (
+      {!sharePresence ? (
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          현재 활동 중 표시를 끈 상태라 목록을 볼 수 없습니다.
+        </p>
+      ) : userId && activeUsers.length > 0 ? (
         <ul className="space-y-1.5">
           {activeUsers.map((user) => (
             <li
@@ -101,8 +142,8 @@ export default function ActiveUsers() {
       ) : (
         <p className="text-xs text-gray-500 dark:text-gray-400">
           {userId
-            ? "현재 동 중인 사용자가 없습니다."
-            : "로그인 후 사용 가능합니다."}
+            ? "현재 접속 중인 사용자가 없습니다."
+            : "로그인 후 이용 가능합니다."}
         </p>
       )}
     </div>

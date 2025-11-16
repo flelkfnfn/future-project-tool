@@ -28,6 +28,8 @@ const Header = () => {
   const [localAuthed, setLocalAuthed] = useState(false)
   const [accountLabel, setAccountLabel] = useState<string | null>(session?.user?.email ?? null)
 
+  const userEmail = user?.email; // Destructure email here
+
   useEffect(() => {
     let mounted = true
     ;(async () => {
@@ -57,13 +59,14 @@ const Header = () => {
       mounted = false
       subscription.unsubscribe()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase])
 
   useEffect(() => {
     const hasLocal = typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
     setLocalAuthed(hasLocal)
-    if (!user?.email && hasLocal) {
+    if (userEmail) { // Use userEmail here
+      setAccountLabel(userEmail)
+    } else if (hasLocal) {
       fetchMeCached()
         .then(j => {
           const p = j?.principal
@@ -71,10 +74,10 @@ const Header = () => {
           setAccountLabel(label)
         })
         .catch(() => {})
-          } else if (user?.email) {
-            setAccountLabel(user.email)
-          }
-        }, [pathname, user])
+    } else {
+      setAccountLabel(null)
+    }
+  }, [pathname, userEmail, setAccountLabel])
   useEffect(() => {
     const onFocus = () => {
       const hasLocal = typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
@@ -99,7 +102,7 @@ const Header = () => {
         window.removeEventListener('focus', onFocus)
       }
     }
-  }, [])
+  }, [user, setLocalAuthed, setAccountLabel])
 
   const handleLogout: () => Promise<void> = async () => {
     showOverlay()

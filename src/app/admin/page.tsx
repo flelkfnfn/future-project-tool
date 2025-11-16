@@ -1,65 +1,12 @@
 export const runtime = 'nodejs'
-import { redirect } from 'next/navigation'
+
 import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/service'
 import { hashPassword } from '@/lib/auth/local'
 import { getAuth } from '@/lib/auth/session'
 import NotFoundAdmin from '@/components/NotFoundAdmin'
 
-async function createLocalUser(formData: FormData) {
-  'use server'
-  const username = String(formData.get('username') ?? '').trim()
-  const password = String(formData.get('password') ?? '')
-  if (!username || !password) redirect(`/admin?error=${encodeURIComponent('아이디와 비밀번호를 입력하세요')}`)
 
-  // removed email-based admin check
-  const auth = await getAuth()
-  const p1 = auth.principal
-  const isLocalAdmin = !!(auth.authenticated && p1 && p1.source === 'local' && p1.username === 'admin')
-  if (!isLocalAdmin) {
-    redirect(`/login?error=${encodeURIComponent('관리자만 접근 가능합니다')}`)
-  }
-
-  try {
-    const { salt, hash } = hashPassword(password)
-    const svc = createServiceClient()
-
-    const { data: existing, error: selErr } = await svc
-      .from('local_users')
-      .select('id, role')
-      .eq('username', username)
-      .maybeSingle()
-
-    if (selErr) redirect(`/admin?error=${encodeURIComponent(selErr.message)}`)
-
-    if (existing) {
-      const { error: upErr } = await svc
-        .from('local_users')
-        .update({ password_hash: hash, salt })
-        .eq('id', existing.id)
-      if (upErr) redirect(`/admin?error=${encodeURIComponent(upErr.message)}`)
-      redirect(`/admin?message=${encodeURIComponent('비밀번호가 변경되었습니다')}`)
-    } else {
-      const { error: insErr } = await svc
-        .from('local_users')
-        .insert({ username, password_hash: hash, salt, role: 'member' })
-      if (insErr) redirect(`/admin?error=${encodeURIComponent(insErr.message)}`)
-      redirect(`/admin?message=${encodeURIComponent('생성되었습니다')}`)
-    }
-  } catch (e: unknown) {
-    // rethrow Next redirect errors
-    if (typeof e === 'object' && e !== null && 'digest' in e) {
-      const d = (e as { digest?: unknown }).digest
-      if (typeof d === 'string' && d.startsWith('NEXT_REDIRECT')) throw e
-    }
-    let msg = 'Server error'
-    if (typeof e === 'object' && e !== null && 'message' in e) {
-      const m = (e as { message?: unknown }).message
-      if (typeof m === 'string') msg = m
-    }
-    redirect(`/admin?error=${encodeURIComponent(msg)}`)
-  }
-}
 
 // Admin actions for managing local_users
 async function addLocalUser(formData: FormData) {
@@ -103,7 +50,7 @@ interface LocalUser {
   role: string
 }
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string }> }) {
+export default async function AdminPage() {
   const auth = await getAuth()
   const p = auth.principal
   const isAdmin = !!(auth.authenticated && p && p.source === 'local' && p.username === 'admin')

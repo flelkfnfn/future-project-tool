@@ -23,7 +23,7 @@ self.addEventListener('push', (event) => {
         data: { url },
         badge: data.badge,
       });
-    } catch (e) {
+    } catch {
       // noop
     }
   })());

@@ -13,6 +13,10 @@ import {
   THEME_PREFERENCE_COOKIE,
   type ThemePreference,
 } from "@/lib/theme-preference";
+import {
+  ACTIVE_STATUS_PREFERENCE_COOKIE,
+  type ActiveStatusPreference,
+} from "@/lib/active-status-preference";
 
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 const COOKIE_OPTIONS = {
@@ -41,5 +45,13 @@ export async function updateThemePreference(
 ) {
   const jar = await cookies();
   jar.set(THEME_PREFERENCE_COOKIE, nextPreference, COOKIE_OPTIONS);
+  return { preference: nextPreference };
+}
+
+export async function updateActiveStatusPreference(
+  nextPreference: ActiveStatusPreference
+) {
+  const jar = await cookies();
+  jar.set(ACTIVE_STATUS_PREFERENCE_COOKIE, nextPreference, COOKIE_OPTIONS);
   return { preference: nextPreference };
 }

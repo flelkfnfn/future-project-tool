@@ -70,7 +70,6 @@ export async function ensurePushEnabled(): Promise<boolean> {
       return false;
     }
     return true;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     console.error("[Push] enable failed", e);
     return false;
