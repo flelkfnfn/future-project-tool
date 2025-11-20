@@ -1,7 +1,14 @@
 "use client";
 
-import { LuPlus, LuEllipsisVertical, LuSend } from "react-icons/lu";
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { LuPlus, LuEllipsisVertical, LuSend, LuInfo } from "react-icons/lu";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+  useId,
+} from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useSupabase } from "@/components/supabase-provider";
 import { fetchMeCached } from "@/lib/api/meClient";
@@ -47,6 +54,8 @@ export default function ChatSidebar({
   const messageIdsRef = useRef<Set<string>>(new Set());
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
+  const [aiHelpPinned, setAiHelpPinned] = useState(false);
+  const aiHelpTooltipId = useId();
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const selectedRoomIdRef = useRef<number | null>(null);
@@ -633,17 +642,68 @@ export default function ChatSidebar({
                 </div>
               )}
               <div className="flex gap-2 items-start">
-                <textarea
-                  ref={textareaRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={onKeyDown}
-                  placeholder="/ai, aicon 으로 생성..."
-                  className="border dark:border-gray-600 rounded-md px-3 py-2 text-sm flex-1 min-w-0 w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 resize-none overflow-hidden"
-                  disabled={pending}
-                  aria-busy={pending}
-                  rows={1} // Start with 1 row
-                />
+                <div className="relative flex-1 min-w-0">
+                  <textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={onKeyDown}
+                    placeholder="메시지를 입력하세요..."
+                    className="border dark:border-gray-600 rounded-md px-3 py-2 pr-12 text-sm w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500 resize-none overflow-hidden"
+                    disabled={pending}
+                    aria-busy={pending}
+                    rows={1} // Start with 1 row
+                  />
+                  <div
+                    className={`absolute top-2 left-3 right-3 flex justify-end text-xs ${
+                      input.length > 0 ? "hidden" : ""
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      className="inline-flex items-center justify-center w-7 h-5 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      onClick={() => setAiHelpPinned((prev) => !prev)}
+                      aria-describedby={
+                        aiHelpPinned ? aiHelpTooltipId : undefined
+                      }
+                      aria-expanded={aiHelpPinned}
+                      aria-pressed={aiHelpPinned}
+                    >
+                      <LuInfo className="h-4 w-4" />
+                    </button>
+                    {aiHelpPinned && (
+                      <div
+                        id={aiHelpTooltipId}
+                        role="tooltip"
+                        className="absolute bottom-full right-0 mb-2 w-72 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-100 shadow-lg p-3 z-20"
+                        style={{
+                          maxWidth: "min(16rem)",
+                        }}
+                      >
+                        <p className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+                          AI 명령어
+                        </p>
+                        <ul className="mt-2 space-y-1 text-xs leading-relaxed">
+                          <li className="flex items-center gap-2">
+                            <code className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800">
+                              /ai [질문]
+                            </code>
+                            <span>빠른 초안 요청</span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <code className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800">
+                              /aicon [질문]
+                            </code>
+                            <span>채팅 맥락과 함께 질문</span>
+                          </li>
+                        </ul>
+                        <p className="mt-3 text-[11px] text-gray-500 dark:text-gray-300">
+                          아이콘을 다시 누르면 도움말이 닫힙니다.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 <button
                   type="button"
                   onClick={send}
