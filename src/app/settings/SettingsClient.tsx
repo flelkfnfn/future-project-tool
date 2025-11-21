@@ -243,7 +243,7 @@ export default function SettingsClient({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-gray-200/80 bg-white/80 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70">
+      <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
         <div className="flex flex-wrap items-center gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -256,7 +256,7 @@ export default function SettingsClient({
               로그인 시 기본으로 보여줄 메인 홈 스타일을 선택하세요.
             </p>
           </div>
-          <div className="ml-auto flex items-center gap-2 rounded-full border border-gray-200/80 bg-gray-50/70 p-1 dark:border-gray-700 dark:bg-gray-800/50">
+          <div className="ml-auto flex items-center gap-2 rounded-full border border-gray-300/90 bg-gray-50/70 p-1 dark:border-gray-700 dark:bg-gray-800/50">
             {(["classic", "modern"] as HomeVariant[]).map((variant) => {
               const selected = homeVariant === variant;
               return (
@@ -280,7 +280,7 @@ export default function SettingsClient({
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-200/80 bg-white/80 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70">
+      <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
         <div className="flex flex-wrap items-center gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -294,7 +294,7 @@ export default function SettingsClient({
               라이트·다크·시스템 중 원하는 테마를 선택하세요.
             </p>
           </div>
-          <div className="ml-auto flex items-center gap-2 rounded-full border border-gray-200/80 bg-gray-50/70 p-1 dark:border-gray-700 dark:bg-gray-800/50">
+          <div className="ml-auto flex items-center gap-2 rounded-full border border-gray-300/90 bg-gray-50/70 p-1 dark:border-gray-700 dark:bg-gray-800/50">
             {(["system", "light", "dark"] as ThemePreference[]).map((pref) => {
               const selected = themePreference === pref;
               return (
@@ -322,7 +322,7 @@ export default function SettingsClient({
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-200/80 bg-white/80 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70">
+      <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
         <div className="flex flex-wrap items-center gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -335,7 +335,7 @@ export default function SettingsClient({
               페이지 전환, 클릭 이펙트 등 시각적 움직임을 최소화합니다.
             </p>
           </div>
-          <div className="ml-auto flex items-center gap-2 rounded-full border border-gray-200/80 bg-gray-50/70 p-1 dark:border-gray-700 dark:bg-gray-800/50">
+          <div className="ml-auto flex items-center gap-2 rounded-full border border-gray-300/90 bg-gray-50/70 p-1 dark:border-gray-700 dark:bg-gray-800/50">
             {(["system", "reduced"] as MotionPreference[]).map((pref) => {
               const selected = motionPreference === pref;
               return (
@@ -359,7 +359,7 @@ export default function SettingsClient({
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-200/80 bg-white/80 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70">
+      <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
         <div className="flex flex-wrap items-center gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -378,7 +378,7 @@ export default function SettingsClient({
                 : "내 접속 상태와 다른 사람들의 목록을 모두 숨깁니다."}
             </p>
           </div>
-          <div className="ml-auto flex items-center gap-2 rounded-full border border-gray-200/80 bg-gray-50/70 p-1 dark:border-gray-700 dark:bg-gray-800/50">
+          <div className="ml-auto flex items-center gap-2 rounded-full border border-gray-300/90 bg-gray-50/70 p-1 dark:border-gray-700 dark:bg-gray-800/50">
             {(["show", "hide"] as ActiveStatusPreference[]).map((pref) => {
               const selected = activeStatusPreference === pref;
               const label = pref === "show" ? "표시" : "숨김";
@@ -403,7 +403,7 @@ export default function SettingsClient({
         </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-lg border border-gray-200/80 bg-white/80 p-4 shadow-sm dark:border-gray-800/70 dark:bg-gray-900/70">
+      <div className="flex items-center justify-between rounded-lg border border-gray-300 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
         <div>
           <h3 className="font-medium">푸시 알림</h3>
           <p className="text-sm text-gray-500">
@@ -414,7 +414,7 @@ export default function SettingsClient({
           type="button"
           aria-label={pushStatus === "enabled" ? "알림 끄기" : "알림 켜기"}
           onClick={handleTogglePush}
-          className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur transition-colors ${
+          className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md border border-gray-300/90 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur transition-colors ${
             pushStatus === "enabled"
               ? "hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
               : "hover:bg-gray-50 dark:hover:bg-gray-700/60"
