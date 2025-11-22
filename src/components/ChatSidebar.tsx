@@ -314,14 +314,14 @@ export default function ChatSidebar({
   }, [messages, scrollToBottom]);
 
   // Auto-resize textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto"; // Reset height to recalculate
-      textareaRef.current.style.height =
-        textareaRef.current.scrollHeight + "px";
-      scrollToBottom(true); // Scroll to bottom when textarea resizes
-    }
-  }, [input, scrollToBottom]);
+  // useEffect(() => {
+  //   if (textareaRef.current) {
+  //     textareaRef.current.style.height = "auto"; // Reset height to recalculate
+  //     textareaRef.current.style.height =
+  //       textareaRef.current.scrollHeight + "px";
+  //     scrollToBottom(true); // Scroll to bottom when textarea resizes
+  //   }
+  // }, [input, scrollToBottom]);
 
   const buildAiContextHistory = useCallback(() => {
     const isSameRoom = (roomId: number | null | undefined) => {
@@ -655,13 +655,13 @@ export default function ChatSidebar({
                     rows={1} // Start with 1 row
                   />
                   <div
-                    className={`absolute top-2 left-3 right-3 flex justify-end text-xs ${
+                    className={`absolute top-2 left-3 right-3 flex justify-end text-xs pointer-events-none ${
                       input.length > 0 ? "hidden" : ""
                     }`}
                   >
                     <button
                       type="button"
-                      className="inline-flex items-center justify-center w-7 h-5 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      className="inline-flex items-center justify-center w-7 h-5 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 pointer-events-auto"
                       onClick={() => setAiHelpPinned((prev) => !prev)}
                       aria-describedby={
                         aiHelpPinned ? aiHelpTooltipId : undefined
