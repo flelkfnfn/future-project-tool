@@ -35,6 +35,7 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
   const [editor, setEditor] = useState<{
     id: number;
     description: string;
+    title: string;
   } | null>(null);
 
   const first = startOfMonth(current);
@@ -188,7 +189,11 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
                     className="flex cursor-pointer items-center justify-between rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
                     title={e.description ? `메모: ${e.description}` : undefined}
                     onClick={() =>
-                      setEditor({ id: e.id, description: e.description ?? "" })
+                      setEditor({
+                        id: e.id,
+                        description: e.description ?? "",
+                        title: e.title,
+                      })
                     }
                   >
                     <span className="truncate">{e.title}</span>
@@ -259,7 +264,7 @@ export default function CalendarGrid({ events }: { events: EventItem[] }) {
               </svg>
             </button>
             <h3 className="mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100">
-              일정 메모 수정
+              {editor.title}
             </h3>
             <AuthGuardForm
               action={updateEventAssignee}
