@@ -3,7 +3,17 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
-type Result = { ok: true; processed?: number; sent?: number; failed?: number; errors?: Array<{ id: number; to: string; error: string }> } | { ok: false; error: string }
+type Result =
+  | {
+      ok: true
+      processed?: number
+      sent?: number
+      failed?: number
+      errors?: Array<{ id: number; to: string; error: string }>
+      cleared?: number | null
+      clearError?: string | null
+    }
+  | { ok: false; error: string }
 
 export default function SendEmailPage() {
   const [result, setResult] = useState<Result | null>(null)
@@ -39,6 +49,12 @@ export default function SendEmailPage() {
             <div className="rounded-md border p-3 bg-green-50">
               <div className="font-semibold text-green-700">발송 처리 완료</div>
               <div className="text-sm text-gray-700">processed: {result.processed ?? 0}, sent: {result.sent ?? 0}, failed: {result.failed ?? 0}</div>
+              {typeof result.cleared === 'number' && (
+                <div className="text-sm text-gray-700">email_outbox cleared: {result.cleared}</div>
+              )}
+              {result.clearError && (
+                <div className="text-sm text-rose-700">email_outbox 삭제 실패: {result.clearError}</div>
+              )}
               {result.errors && result.errors.length > 0 && (
                 <details className="mt-2">
                   <summary className="cursor-pointer text-sm text-gray-700">에러 상세 보기</summary>

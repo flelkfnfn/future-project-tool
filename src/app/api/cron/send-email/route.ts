@@ -53,5 +53,42 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json({ ok: true, processed: items.length, sent: okCount, failed: failCount, errors })
+  let cleared: number | null = null
+  let clearError: string | null = null
+
+  // Only clear the outbox when:
+  // - this batch had no failures, and
+  // - there is nothing left to send (sent_at is still null)
+  if (failCount === 0) {
+    try {
+      const { count: remaining, error: remainingErr } = await supabase
+        .from('email_outbox')
+        .select('id', { count: 'exact', head: true })
+        .is('sent_at', null)
+
+      if (!remainingErr && (remaining ?? 0) === 0) {
+        const { count, error: delErr } = await supabase
+          .from('email_outbox')
+          .delete({ count: 'exact' })
+          .gte('id', 0)
+        if (delErr) {
+          clearError = delErr.message
+        } else {
+          cleared = count ?? 0
+        }
+      }
+    } catch (e) {
+      clearError = (e as { message?: string } | undefined)?.message ?? 'CLEAR_FAILED'
+    }
+  }
+
+  return NextResponse.json({
+    ok: true,
+    processed: items.length,
+    sent: okCount,
+    failed: failCount,
+    errors,
+    cleared,
+    clearError,
+  })
 }

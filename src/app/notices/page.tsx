@@ -2,6 +2,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { deleteNotice } from "./actions";
 import Link from "next/link";
+import NoticePoll from "@/components/NoticePoll";
 type Notice = { id: number; title: string; content: string };
 
 export default async function NoticesPage() {
@@ -35,24 +36,28 @@ export default async function NoticesPage() {
           {((notices as unknown as Notice[]) ?? []).map((notice: Notice) => (
             <li
               key={notice.id}
-              className="bg-white dark:bg-gray-800 p-6 border dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow flex justify-between items-start"
+              className="bg-white dark:bg-gray-800 p-6 border dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4"
             >
-              <div>
-                <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{notice.title}</h2>
-                <p className="mt-2 text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{notice.content}</p>
-              </div>
-              <AuthGuardForm
-                action={deleteNotice}
-                confirmMessage="정말 삭제하시겠습니까?"
-              >
-                <input type="hidden" name="id" value={notice.id} />
-                <button
-                  type="submit"
-                  className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors ml-4"
+              <div className="flex justify-between items-start gap-4">
+                <div className="min-w-0">
+                  <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{notice.title}</h2>
+                  <p className="mt-2 text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{notice.content}</p>
+                </div>
+                <AuthGuardForm
+                  action={deleteNotice}
+                  confirmMessage="정말 삭제하시겠습니까?"
                 >
-                  삭제
-                </button>
-              </AuthGuardForm>
+                  <input type="hidden" name="id" value={notice.id} />
+                  <button
+                    type="submit"
+                    className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors whitespace-nowrap"
+                  >
+                    삭제
+                  </button>
+                </AuthGuardForm>
+              </div>
+
+              <NoticePoll noticeId={notice.id} />
             </li>
           ))}
         </ul>
