@@ -8,6 +8,7 @@ import {
   useState,
   useCallback,
   useId,
+  useLayoutEffect,
 } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useSupabase } from "@/components/supabase-provider";
@@ -41,6 +42,8 @@ type ChatMessagePayload = {
 
 const MESSAGE_LIMIT = 200;
 const CONTEXT_HISTORY_LIMIT = 12;
+const TEXTAREA_MAX_HEIGHT_PX = 180;
+const STICK_TO_BOTTOM_THRESHOLD_PX = 32;
 
 export default function ChatSidebar({
   onCreateRoom,
@@ -313,15 +316,36 @@ export default function ChatSidebar({
     scrollToBottom(true);
   }, [messages, scrollToBottom]);
 
-  // Auto-resize textarea
-  // useEffect(() => {
-  //   if (textareaRef.current) {
-  //     textareaRef.current.style.height = "auto"; // Reset height to recalculate
-  //     textareaRef.current.style.height =
-  //       textareaRef.current.scrollHeight + "px";
-  //     scrollToBottom(true); // Scroll to bottom when textarea resizes
-  //   }
-  // }, [input, scrollToBottom]);
+  const resizeTextarea = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+
+    const listEl = listRef.current;
+    const shouldStickToBottom =
+      !!listEl &&
+      listEl.scrollHeight - listEl.scrollTop - listEl.clientHeight <
+        STICK_TO_BOTTOM_THRESHOLD_PX;
+
+    el.style.height = "auto";
+    const nextHeight = Math.min(el.scrollHeight, TEXTAREA_MAX_HEIGHT_PX);
+    el.style.height = `${nextHeight}px`;
+    el.style.overflowY =
+      el.scrollHeight > TEXTAREA_MAX_HEIGHT_PX ? "auto" : "hidden";
+
+    if (shouldStickToBottom) {
+      scrollToBottom(false);
+    }
+  }, [scrollToBottom]);
+
+  useLayoutEffect(() => {
+    resizeTextarea();
+  }, [input, resizeTextarea]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.addEventListener("resize", resizeTextarea);
+    return () => window.removeEventListener("resize", resizeTextarea);
+  }, [resizeTextarea]);
 
   const buildAiContextHistory = useCallback(() => {
     const isSameRoom = (roomId: number | null | undefined) => {
