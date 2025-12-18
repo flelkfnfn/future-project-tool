@@ -31,12 +31,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "INVALID_JSON" }, { status: 400 });
   }
 
-  const noticeId = Number((body as any)?.noticeId);
-  const optionIdsRaw = (body as any)?.optionIds;
-  const optionIds = Array.isArray(optionIdsRaw)
-    ? optionIdsRaw
-        .map((n: any) => Number(n))
-        .filter((n: number) => Number.isFinite(n))
+  const payload = body as { noticeId?: unknown; optionIds?: unknown };
+  const noticeId = Number(payload.noticeId);
+  const optionIds = Array.isArray(payload.optionIds)
+    ? payload.optionIds
+        .map((value) => Number(value))
+        .filter((value) => Number.isFinite(value))
     : [];
 
   if (!Number.isFinite(noticeId) || noticeId <= 0) {
@@ -150,4 +150,3 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ ok: true });
 }
-
