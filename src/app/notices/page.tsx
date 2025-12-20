@@ -27,7 +27,7 @@ export default async function NoticesPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">공지사항</h1>
-        <Link href="/send-email" className="inline-flex items-center px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">
+        <Link href="/send-email" className="btn btn-accent">
           메일 발송
         </Link>
       </div>
@@ -36,7 +36,7 @@ export default async function NoticesPage() {
           {((notices as unknown as Notice[]) ?? []).map((notice: Notice) => (
             <li
               key={notice.id}
-              className="bg-white dark:bg-gray-800 p-6 border dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col gap-4"
+              className="glass-card p-6 flex flex-col gap-4"
             >
               <div className="flex justify-between items-start gap-4">
                 <div className="min-w-0">
@@ -50,7 +50,7 @@ export default async function NoticesPage() {
                   <input type="hidden" name="id" value={notice.id} />
                   <button
                     type="submit"
-                    className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors whitespace-nowrap"
+                    className="btn btn-danger whitespace-nowrap"
                   >
                     삭제
                   </button>
@@ -62,7 +62,7 @@ export default async function NoticesPage() {
           ))}
         </ul>
       ) : (
-        <div className="text-center py-24">
+        <div className="glass-card text-center py-16">
           <svg
             className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
             fill="none"

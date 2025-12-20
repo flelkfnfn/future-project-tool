@@ -55,8 +55,8 @@ export default function AuthGuardForm({ children, onSubmit, confirmMessage, ...r
     <form {...formProps} onSubmit={handleSubmit}>
       {children}
       {pending && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 transition-opacity duration-200 pointer-events-auto">
-          <MotionAwareSpinner className="h-6 w-6 rounded-full border-4 border-blue-500 border-t-transparent" />
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 dark:bg-black/30 backdrop-blur-sm transition-opacity duration-200 pointer-events-auto">
+          <MotionAwareSpinner className="h-6 w-6 rounded-full border-4 border-[var(--accent)] border-t-transparent" />
         </div>
       )}
     </form>

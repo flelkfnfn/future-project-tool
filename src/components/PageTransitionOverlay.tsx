@@ -38,15 +38,17 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const suppressNext = useRef<boolean>(false);
+  const navTriggered = useRef<boolean>(false);
   const isFirstPaint = useRef<boolean>(true);
   const finishMsRef = useRef<number>(300);
 
-  const showOverlay = useCallback((minDuration: number = 800) => {
+  const showOverlay = useCallback((minDuration: number = 250) => {
     if (reducedMotion) {
       setShow(false);
       setProgress(0);
       return;
     }
+    navTriggered.current = true;
     setShow(true);
     setProgress(0);
     minUntil.current = Date.now() + minDuration;
@@ -77,7 +79,7 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
     const target = 0.90 + Math.random() * 0.06; // 90%~96%
     const step = 0.06 + Math.random() * 0.05;   // easing factor
     const interval = 90 + Math.floor(Math.random() * 70); // 90~160ms
-    finishMsRef.current = 220 + Math.floor(Math.random() * 180); // 220~400ms
+    finishMsRef.current = 120 + Math.floor(Math.random() * 120); // 120~240ms
     setVariant({ gradient, spinner, backdrop, msg, target, step, interval });
     if (progTimer.current) clearInterval(progTimer.current);
     progTimer.current = setInterval(() => {
@@ -95,23 +97,23 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
       return;
     }
     const now = Date.now();
-    const delay = Math.max(500, minUntil.current - now);
+    const delay = Math.max(0, minUntil.current - now);
     if (progTimer.current) { clearInterval(progTimer.current); progTimer.current = null; }
     // Fast ramp to 100%
     const finMs = finishMsRef.current;
     const t0 = Date.now();
     const fin = setInterval(() => {
       setProgress((p) => {
-        const next = p + (1 - p) * 0.35;
+        const next = p + (1 - p) * 0.48;
         return next >= 0.999 ? 1 : next;
       });
       if (Date.now() - t0 > finMs) clearInterval(fin);
-    }, 50);
+    }, 30);
     if (hideTimer.current) clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => {
       setShow(false);
       setProgress(0);
-    }, Math.max(delay, 320));
+    }, Math.max(delay, 140));
   }, [reducedMotion]);
 
   // Listen for native <a> tag clicks
@@ -146,7 +148,15 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
       suppressNext.current = false;
       return;
     }
-    showOverlay();
+    // If navigation was triggered by a click (overlay already shown), only hide it.
+    if (navTriggered.current) {
+      navTriggered.current = false;
+      hideOverlay();
+      return;
+    }
+
+    // Otherwise (back/forward or programmatic push), show briefly then hide.
+    showOverlay(200);
     hideOverlay();
   }, [pathname, showOverlay, hideOverlay]);
 
@@ -162,7 +172,7 @@ export const PageTransitionOverlayProvider: React.FC<{ children: React.ReactNode
     <PageTransitionOverlayContext.Provider value={{ showOverlay, hideOverlay }}>
       {children}
       {show && !reducedMotion && (
-        <div className={`pointer-events-none fixed inset-0 z-40 flex items-center justify-center ${variant?.backdrop ?? 'bg-white/60 dark:bg-black/40'} backdrop-blur-sm transition-opacity duration-500 opacity-100`}>
+        <div className={`pointer-events-none fixed inset-0 z-40 flex items-center justify-center ${variant?.backdrop ?? 'bg-white/60 dark:bg-black/40'} backdrop-blur-sm transition-opacity duration-200 opacity-100`}>
           <div
             role="status"
             aria-live="polite"

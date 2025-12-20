@@ -41,38 +41,38 @@ export default function SendEmailPage() {
     <main className="max-w-3xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">메일 발송</h1>
 
-      {loading && <div className="text-gray-600">발송 처리 중...</div>}
+      {loading && <div className="text-gray-600 dark:text-white/70">발송 처리 중...</div>}
 
       {!loading && result && (
         <div className="space-y-3">
           {result && result.ok ? (
-            <div className="rounded-md border p-3 bg-green-50">
-              <div className="font-semibold text-green-700">발송 처리 완료</div>
-              <div className="text-sm text-gray-700">processed: {result.processed ?? 0}, sent: {result.sent ?? 0}, failed: {result.failed ?? 0}</div>
+            <div className="glass-card p-4 border-emerald-500/20">
+              <div className="font-semibold text-emerald-700 dark:text-emerald-200">발송 처리 완료</div>
+              <div className="text-sm text-gray-700 dark:text-white/70">processed: {result.processed ?? 0}, sent: {result.sent ?? 0}, failed: {result.failed ?? 0}</div>
               {typeof result.cleared === 'number' && (
-                <div className="text-sm text-gray-700">email_outbox cleared: {result.cleared}</div>
+                <div className="text-sm text-gray-700 dark:text-white/70">email_outbox cleared: {result.cleared}</div>
               )}
               {result.clearError && (
-                <div className="text-sm text-rose-700">email_outbox 삭제 실패: {result.clearError}</div>
+                <div className="text-sm text-rose-700 dark:text-rose-200">email_outbox 삭제 실패: {result.clearError}</div>
               )}
               {result.errors && result.errors.length > 0 && (
                 <details className="mt-2">
-                  <summary className="cursor-pointer text-sm text-gray-700">에러 상세 보기</summary>
-                  <pre className="whitespace-pre-wrap text-xs text-gray-700">{JSON.stringify(result.errors, null, 2)}</pre>
+                  <summary className="cursor-pointer text-sm text-gray-700 dark:text-white/70">에러 상세 보기</summary>
+                  <pre className="whitespace-pre-wrap text-xs text-gray-700 dark:text-white/70">{JSON.stringify(result.errors, null, 2)}</pre>
                 </details>
               )}
             </div>
           ) : (
-            <div className="rounded-md border p-3 bg-rose-50">
-              <div className="font-semibold text-rose-700">발송 실패</div>
-              <div className="text-sm text-gray-700">{('ok' in result && !result.ok) ? result.error : 'UNKNOWN_ERROR'}</div>
+            <div className="glass-card p-4 border-rose-500/25">
+              <div className="font-semibold text-rose-700 dark:text-rose-200">발송 실패</div>
+              <div className="text-sm text-gray-700 dark:text-white/70">{('ok' in result && !result.ok) ? result.error : 'UNKNOWN_ERROR'}</div>
             </div>
           )}
         </div>
       )}
 
       <div className="mt-6">
-        <Link href="/notices" className="inline-flex items-center px-3 py-1.5 rounded bg-gray-800 text-white hover:bg-gray-900">공지사항으로 돌아가기</Link>
+        <Link href="/notices" className="btn btn-neutral">공지사항으로 돌아가기</Link>
       </div>
     </main>
   )

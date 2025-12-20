@@ -486,7 +486,7 @@ export default function ChatSidebar({
   );
 
   return (
-    <div className="h-full w-full flex flex-col border dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 min-w-0">
+    <div className="h-full w-full flex flex-col glass-card min-w-0 overflow-hidden">
       <div className="p-2 pr-4 border-b dark:border-gray-700 flex items-center gap-2 overflow-x-auto">
         <div className="relative">
           <button

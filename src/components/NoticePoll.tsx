@@ -121,7 +121,7 @@ export default function NoticePoll({ noticeId }: { noticeId: number }) {
   if (!poll) return null;
 
   return (
-    <div className="mt-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/30 p-4">
+    <div className="mt-4 glass-card p-4">
       <div className="flex flex-wrap items-center gap-2">
         <div className="font-semibold text-gray-900 dark:text-gray-100">
           {poll.question?.trim() ? poll.question : "Poll"}
@@ -143,11 +143,11 @@ export default function NoticePoll({ noticeId }: { noticeId: number }) {
               type="button"
               onClick={() => toggleChoice(opt.id)}
               disabled={!canVote}
-              className={`w-full text-left rounded-md border px-3 py-2 transition ${
+              className={`w-full text-left rounded-xl border px-3 py-2 transition backdrop-blur-md ${
                 checked
-                  ? "border-blue-400 bg-blue-50 dark:bg-blue-950/30"
-                  : "border-gray-200 bg-white dark:bg-gray-900/40 dark:border-gray-700"
-              } ${canVote ? "hover:border-blue-300" : "opacity-80 cursor-not-allowed"}`}
+                  ? "border-[color-mix(in_oklab,var(--ring)_55%,transparent)] bg-[color-mix(in_oklab,var(--ring)_16%,transparent)]"
+                  : "border-slate-200/70 bg-white/60 dark:border-white/10 dark:bg-white/5"
+              } ${canVote ? "hover:border-[color-mix(in_oklab,var(--ring)_45%,transparent)]" : "opacity-80 cursor-not-allowed"}`}
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -155,7 +155,7 @@ export default function NoticePoll({ noticeId }: { noticeId: number }) {
                     <span
                       className={`inline-block h-4 w-4 border ${
                         poll.multiple ? "rounded-sm" : "rounded-full"
-                      } ${checked ? "bg-blue-600 border-blue-600" : "border-gray-400"}`}
+                      } ${checked ? "bg-[var(--accent)] border-[var(--accent)]" : "border-gray-400"}`}
                       aria-hidden
                     />
                     <span className="font-medium text-gray-900 dark:text-gray-100 break-words">
@@ -168,8 +168,8 @@ export default function NoticePoll({ noticeId }: { noticeId: number }) {
                   <span>({pct}%)</span>
                 </div>
               </div>
-              <div className="mt-2 h-2 w-full rounded bg-gray-200 dark:bg-gray-800 overflow-hidden">
-                <div className="h-full bg-blue-500" style={{ width: `${pct}%` }} />
+              <div className="mt-2 h-2 w-full rounded bg-gray-200/70 dark:bg-white/10 overflow-hidden">
+                <div className="h-full" style={{ width: `${pct}%`, background: "var(--accent)" }} />
               </div>
             </button>
           );
@@ -181,7 +181,7 @@ export default function NoticePoll({ noticeId }: { noticeId: number }) {
           type="button"
           onClick={submitVote}
           disabled={!canVote || submitting}
-          className="inline-flex items-center gap-2 rounded-md bg-blue-600 text-white px-3 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-60"
+          className="btn btn-accent disabled:opacity-60"
         >
           {submitting ? (
             <MotionAwareSpinner className="h-4 w-4 rounded-full border-2 border-white/80 border-t-transparent" />
@@ -196,4 +196,3 @@ export default function NoticePoll({ noticeId }: { noticeId: number }) {
     </div>
   );
 }
-

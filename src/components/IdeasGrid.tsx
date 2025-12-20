@@ -6,56 +6,37 @@ import { deleteIdea, toggleLike } from "@/app/ideas/actions";
 import IdeaModal, { Idea } from "@/components/IdeaModal";
 
 function truncate(s: string, n: number) {
-
   if (!s) return "";
 
   return s.length > n ? s.slice(0, n) + "..." : s;
-
 }
 
-
-
 export default function IdeasGrid({
-
   ideas,
 
   currentUserId,
-
 }: {
-
   ideas: Idea[];
 
   currentUserId: string | null;
-
 }) {
-
   const [selected, setSelected] = useState<Idea | null>(null);
 
-
-
   return (
-
     <>
-
-      <ul className="grid grid-cols-3 gap-6">
-
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {ideas.map((idea) => {
-
           const likeCount = idea.idea_likes.length;
 
           const userHasLiked = idea.idea_likes.some(
-
             (l) => l.user_id === currentUserId
-
           );
-
-
 
           const d = truncate(idea.description ?? "", 100);
           return (
             <li key={idea.id}>
               <article
-                className="h-56 bg-white dark:bg-gray-800 p-5 border dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col cursor-pointer"
+                className="h-56 glass-card p-5 transition-shadow hover:shadow-md flex flex-col cursor-pointer overflow-hidden"
                 onClick={(e) => {
                   const target = e.target as HTMLElement;
                   if (
@@ -71,7 +52,7 @@ export default function IdeasGrid({
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 overflow-hidden whitespace-nowrap text-ellipsis">
                       {idea.title}
                     </h3>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 break-words">
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line break-words leading-snug line-clamp-5">
                       {d}
                     </p>
                   </div>
@@ -82,7 +63,7 @@ export default function IdeasGrid({
                     <input type="hidden" name="id" value={idea.id} />
                     <button
                       type="submit"
-                      className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 whitespace-nowrap"
+                      className="btn btn-danger px-3 py-1 whitespace-nowrap"
                       data-no-modal
                     >
                       삭제
@@ -90,11 +71,11 @@ export default function IdeasGrid({
                   </AuthGuardForm>
                 </div>
 
-                <div className="mt-auto pt-4 flex items-center justify-between">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="mt-auto pt-4 flex items-center justify-between gap-2 min-w-0">
+                  <span className="text-sm text-gray-500 dark:text-gray-400 truncate">
                     댓글 ({idea.comments.length})
                   </span>
-                  <AuthGuardForm action={toggleLike}>
+                  <AuthGuardForm action={toggleLike} className="shrink-0">
                     <input type="hidden" name="idea_id" value={idea.id} />
                     <button
                       type="submit"

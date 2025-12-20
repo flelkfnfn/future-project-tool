@@ -116,7 +116,7 @@ export default function ProjectCard({ project }: { project: Project }) {
 
   // 이하 JSX는 변경사항 없음
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 w-80 flex-shrink-0 flex flex-col">
+    <div className="glass-card p-4 w-80 flex-shrink-0 flex flex-col">
       <div className="flex justify-between items-start mb-2">
         <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">
           {liveProject.name}
@@ -128,21 +128,10 @@ export default function ProjectCard({ project }: { project: Project }) {
           <input type="hidden" name="id" value={liveProject.id} />
           <button
             type="submit"
-            className="text-gray-400 hover:text-red-500 transition-colors"
+            className="btn btn-danger px-2 py-1 text-xs rounded-lg shadow-none hover:shadow-lg whitespace-nowrap"
             aria-label="프로젝트 삭제"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <span className="text-xs leading-none">삭제</span>
           </button>
         </AuthGuardForm>
       </div>
@@ -161,7 +150,7 @@ export default function ProjectCard({ project }: { project: Project }) {
           <button
             type="button"
             onClick={() => setOpen((v: boolean) => !v)}
-            className="w-8 h-8 rounded-full border dark:border-gray-600 flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="glass-fab w-7 h-7 shadow-none hover:shadow-lg text-gray-700 dark:text-white/70"
             aria-expanded={open}
             aria-controls={`project-links-${liveProject.id}`}
             aria-label={open ? "링크 접기" : "링크 펼치기"}
@@ -171,7 +160,7 @@ export default function ProjectCard({ project }: { project: Project }) {
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"
               fill="currentColor"
-              className={`w-5 h-5 transition-transform duration-200 ${
+              className={`w-3.5 h-3.5 transition-transform duration-200 ${
                 open ? "rotate-180" : ""
               }`}
             >

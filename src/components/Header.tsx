@@ -113,7 +113,7 @@ const Header = () => {
   const authed = !!user || localAuthed
 
   return (
-    <header className="sticky top-0 z-50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-b dark:border-gray-700 h-18.5">
+    <header className="sticky top-0 z-50 glass-header relative text-gray-900 dark:text-gray-100 h-18.5 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[color-mix(in_oklab,var(--ring)_35%,transparent)] after:to-transparent">
       <div className="container mx-auto px-4 h-full">
         <div className="flex justify-between h-full">
           {/* Left Section */}

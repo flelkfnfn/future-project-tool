@@ -92,7 +92,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <button
           type="button"
           onClick={() => setChatOpen(v => !v)}
-          className="glass-fab glass-fab--accent"
+          className="glass-fab glass-fab--accent ring-2 ring-[color-mix(in_oklab,var(--ring)_35%,transparent)]"
           aria-label={chatOpen ? "梨꾪똿 ?リ린" : "梨꾪똿 ?닿린"}
         >
           <svg
@@ -107,12 +107,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             />
           </svg>
         </button>
-        <AddLauncher onOpen={() => setAddOpen(true)} />
+        <div className="ring-2 ring-[color-mix(in_oklab,var(--ring)_25%,transparent)] rounded-full">
+          <AddLauncher onOpen={() => setAddOpen(true)} />
+        </div>
       </div>
 
       {/* Floating Settings Button */}
       <div className="fixed left-4 bottom-4 z-40 flex flex-col items-center gap-2 pointer-events-auto">
-        <Link href="/settings" aria-label="?ㅼ젙" className="glass-fab">
+        <Link href="/settings" aria-label="?ㅼ젙" className="glass-fab ring-2 ring-white/10 dark:ring-white/15">
           <LuSettings className="w-6 h-6" />
         </Link>
       </div>

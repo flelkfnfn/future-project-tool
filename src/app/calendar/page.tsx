@@ -16,7 +16,7 @@ export default async function CalendarPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">일정 캘린더</h1>
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+      <div className="glass-card p-4">
         <CalendarGrid events={events ?? []} />
       </div>
     </div>

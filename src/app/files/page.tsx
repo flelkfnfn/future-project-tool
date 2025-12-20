@@ -28,7 +28,7 @@ export default async function FilesPage() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">파일 관리</h1>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+      <div className="glass-card p-6 mb-8">
         <h2 className="text-xl font-semibold mb-4">파일 업로드</h2>
         <AuthGuardForm
           action={uploadFile}
@@ -38,13 +38,13 @@ export default async function FilesPage() {
             <input
               type="file"
               name="file"
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="block w-full text-sm text-gray-700 dark:text-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border file:border-slate-200/70 dark:file:border-white/10 file:text-sm file:font-semibold file:bg-white/70 dark:file:bg-white/5 file:text-slate-900 dark:file:text-white hover:file:bg-white/85 dark:hover:file:bg-white/10"
               required
             />
           </div>
           <button
             type="submit"
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            className="btn btn-accent px-6"
           >
             업로드
           </button>
@@ -52,12 +52,12 @@ export default async function FilesPage() {
       </div>
 
       {files && files.length > 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
-          <ul className="divide-y dark:divide-gray-700">
+        <div className="glass-card overflow-hidden">
+          <ul className="divide-y divide-slate-200/70 dark:divide-white/10">
             {(files as unknown as FileItem[]).map((file: FileItem) => (
               <li
                 key={file.id}
-                className="p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="p-4 flex justify-between items-center hover:bg-white/60 dark:hover:bg-white/5 transition-colors"
               >
                 <span className="text-lg font-medium text-gray-800 dark:text-gray-200">
                   {file.name}
@@ -67,7 +67,7 @@ export default async function FilesPage() {
                     <input type="hidden" name="fileUrl" value={file.url} />
                     <button
                       type="submit"
-                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                      className="btn btn-neutral"
                     >
                       다운로드
                     </button>
@@ -80,7 +80,7 @@ export default async function FilesPage() {
                     <input type="hidden" name="fileUrl" value={file.url} />
                     <button
                       type="submit"
-                      className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
+                      className="btn btn-danger"
                     >
                       삭제
                     </button>
@@ -91,7 +91,7 @@ export default async function FilesPage() {
           </ul>
         </div>
       ) : (
-        <div className="text-center py-24 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+        <div className="glass-card text-center py-24">
           <svg
             className="mx-auto h-12 w-12 text-gray-400"
             fill="none"

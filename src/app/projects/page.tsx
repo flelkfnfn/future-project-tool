@@ -138,11 +138,11 @@ export default async function ProjectsPage({
               name="q"
               defaultValue={searchQuery}
               placeholder="프로젝트 이름 또는 설명으로 검색..."
-              className="w-full border dark:border-gray-600 rounded-md pl-3 pr-10 py-2 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500"
+              className="glass-input pr-10"
             />
             <button
               type="submit"
-              className="absolute right-0 top-0 bottom-0 px-3 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              className="absolute right-0 top-0 bottom-0 px-3 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-white/55 dark:hover:text-white"
               aria-label="Search"
             >
               <svg
@@ -161,8 +161,8 @@ export default async function ProjectsPage({
           </div>
         </form>
       </div>
-      <section className="mx-4 mb-4 rounded-lg border border-gray-300/80 dark:border-gray-700/70 bg-white dark:bg-gray-900/80 shadow-md ring-1 ring-gray-900/5 dark:ring-white/10">
-        <div className="px-4 py-3 border-b border-gray-200/70 dark:border-gray-700/60 bg-gray-50/70 dark:bg-gray-800/60">
+      <section className="mx-4 mb-4 glass-card overflow-hidden">
+        <div className="px-4 py-3 border-b border-slate-200/70 dark:border-white/10 bg-white/40 dark:bg-white/5">
           <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">
             프로젝트 목록
           </h2>

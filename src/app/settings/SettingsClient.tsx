@@ -243,7 +243,7 @@ export default function SettingsClient({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+      <div className="glass-card p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -280,7 +280,7 @@ export default function SettingsClient({
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+      <div className="glass-card p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -322,7 +322,7 @@ export default function SettingsClient({
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+      <div className="glass-card p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -359,7 +359,7 @@ export default function SettingsClient({
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-300 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+      <div className="glass-card p-4">
         <div className="flex flex-wrap items-center gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -403,7 +403,7 @@ export default function SettingsClient({
         </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-lg border border-gray-300 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900">
+      <div className="flex items-center justify-between glass-card p-4">
         <div>
           <h3 className="font-medium">푸시 알림</h3>
           <p className="text-sm text-gray-500">
