@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
@@ -92,8 +92,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <button
           type="button"
           onClick={() => setChatOpen(v => !v)}
-          className="w-12 h-12 rounded-full bg-blue-600 text-white shadow flex items-center justify-center transition-all duration-150 ease-out hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30 active:translate-y-0 active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50 dark:focus-visible:ring-blue-400/30"
-          aria-label={chatOpen ? "채팅 닫기" : "채팅 열기"}
+          className="glass-fab glass-fab--accent"
+          aria-label={chatOpen ? "梨꾪똿 ?リ린" : "梨꾪똿 ?닿린"}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -112,11 +112,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Floating Settings Button */}
       <div className="fixed left-4 bottom-4 z-40 flex flex-col items-center gap-2 pointer-events-auto">
-        <div className="rounded-full transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 active:translate-y-0 active:scale-95 focus-within:ring-4 focus-within:ring-gray-300/50 dark:focus-within:ring-gray-500/30">
-        <Link href="/settings" aria-label="설정" className="w-12 h-12 rounded-full bg-gray-600 text-white shadow hover:bg-gray-700 flex items-center justify-center">
+        <Link href="/settings" aria-label="?ㅼ젙" className="glass-fab">
           <LuSettings className="w-6 h-6" />
         </Link>
-        </div>
       </div>
 
       {/* Modals */}
@@ -147,3 +145,4 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     </main>
   );
 }
+
