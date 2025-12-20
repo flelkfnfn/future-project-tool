@@ -150,7 +150,7 @@ export default function ProjectCard({ project }: { project: Project }) {
           <button
             type="button"
             onClick={() => setOpen((v: boolean) => !v)}
-            className="glass-fab w-7 h-7 shadow-none hover:shadow-lg text-gray-700 dark:text-white/70"
+            className="glass-fab !w-9 !h-9 shadow-none hover:shadow-lg text-gray-700 dark:text-white/70"
             aria-expanded={open}
             aria-controls={`project-links-${liveProject.id}`}
             aria-label={open ? "링크 접기" : "링크 펼치기"}
@@ -160,10 +160,11 @@ export default function ProjectCard({ project }: { project: Project }) {
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"
               fill="currentColor"
-              className={`w-3.5 h-3.5 transition-transform duration-200 ${
+              className={`w-3 h-3 transition-transform duration-200 ${
                 open ? "rotate-180" : ""
               }`}
             >
+              {" "}
               <path
                 fillRule="evenodd"
                 d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
