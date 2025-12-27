@@ -26,9 +26,12 @@ const Header = () => {
   const { showOverlay } = usePageTransitionOverlay()
   const [user, setUser] = useState<User | null>(session?.user ?? null)
   const [localAuthed, setLocalAuthed] = useState(false)
+  const [localAccountPresent, setLocalAccountPresent] = useState(false)
   const [accountLabel, setAccountLabel] = useState<string | null>(session?.user?.email ?? null)
 
   const userEmail = user?.email; // Destructure email here
+  const hasLocalRole = () => typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
+  const hasLocalAccount = () => typeof document !== 'undefined' && document.cookie.includes('local_account_present=1')
 
   useEffect(() => {
     let mounted = true
@@ -38,7 +41,7 @@ const Header = () => {
       if (mounted) {
         if (res.data.user?.email) {
           setAccountLabel(res.data.user.email)
-        } else if (typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')) {
+        } else if (hasLocalRole()) {
           fetchMeCached()
             .then(j => {
               const p = j?.principal
@@ -54,7 +57,8 @@ const Header = () => {
     } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, s: Session | null) => {
       if (mounted) setUser(s?.user ?? null)
     })
-    setLocalAuthed(typeof document !== 'undefined' && document.cookie.includes('local_session_present=1'))
+    setLocalAuthed(hasLocalRole())
+    setLocalAccountPresent(hasLocalAccount())
     return () => {
       mounted = false
       subscription.unsubscribe()
@@ -62,8 +66,9 @@ const Header = () => {
   }, [supabase])
 
   useEffect(() => {
-    const hasLocal = typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
+    const hasLocal = hasLocalRole()
     setLocalAuthed(hasLocal)
+    setLocalAccountPresent(hasLocalAccount())
     if (userEmail) { // Use userEmail here
       setAccountLabel(userEmail)
     } else if (hasLocal) {
@@ -80,8 +85,9 @@ const Header = () => {
   }, [pathname, userEmail, setAccountLabel])
   useEffect(() => {
     const onFocus = () => {
-      const hasLocal = typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
+      const hasLocal = hasLocalRole()
       setLocalAuthed(hasLocal)
+      setLocalAccountPresent(hasLocalAccount())
       if (!user?.email && hasLocal) {
         fetchMeCached()
           .then(j => {
@@ -111,6 +117,7 @@ const Header = () => {
   }
 
   const authed = !!user || localAuthed
+  const pendingRole = !authed && localAccountPresent
 
   return (
     <header className="sticky top-0 z-50 glass-header relative text-gray-900 dark:text-gray-100 h-18.5 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-[color-mix(in_oklab,var(--ring)_35%,transparent)] after:to-transparent">
@@ -175,6 +182,8 @@ const Header = () => {
                   </button>
                 </form>
               </div>
+            ) : pendingRole ? (
+              <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded text-sm">권한 승인 대기</span>
             ) : (
               <Link href="/login" className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm">로그인 / 회원가입</Link>
             )}

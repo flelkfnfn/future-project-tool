@@ -24,10 +24,16 @@ export async function localSignIn(formData: FormData) {
   const valid = verifyPassword(password, data.salt, data.password_hash)
   if (!valid) redirect(`/login?error=${encodeURIComponent('아이디 또는 비밀번호가 올바르지 않습니다')}`)
 
-  const token = sign({ uid: data.id, username: data.username, role: data.role }, process.env.APP_SECRET || 'dev-secret')
+  const role = typeof data.role === 'string' ? data.role : ''
+  const token = sign({ uid: data.id, username: data.username, role }, process.env.APP_SECRET || 'dev-secret')
   const jar = await cookies()
   jar.set('local_session', token, { httpOnly: true, sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 7 })
-  jar.set('local_session_present', '1', { httpOnly: false, sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 7 })
+  jar.set('local_account_present', '1', { httpOnly: false, sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 7 })
+  if (role) {
+    jar.set('local_session_present', '1', { httpOnly: false, sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 7 })
+  } else {
+    jar.set('local_session_present', '', { path: '/', expires: new Date(0) })
+  }
   redirect('/')
 }
 
@@ -51,7 +57,7 @@ export async function localSignUp(formData: FormData) {
   const { salt, hash } = hashPassword(password)
   const { error: insErr } = await svc
     .from(TABLE)
-    .insert({ username, password_hash: hash, salt, role: 'member', gmail })
+    .insert({ username, password_hash: hash, salt, role: '', gmail })
   if (insErr) redirect(`/login?error=${encodeURIComponent(insErr.message)}`)
   redirect(`/login?message=${encodeURIComponent('회원가입이 완료되었습니다. 로그인해 주세요.')}`)
 }
@@ -60,5 +66,6 @@ export async function localSignOut() {
   const jar = await cookies()
   jar.set('local_session', '', { path: '/', expires: new Date(0) })
   jar.set('local_session_present', '', { path: '/', expires: new Date(0) })
+  jar.set('local_account_present', '', { path: '/', expires: new Date(0) })
   redirect('/login')
 }

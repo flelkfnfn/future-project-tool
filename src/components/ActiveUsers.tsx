@@ -16,6 +16,7 @@ export default function ActiveUsers() {
   >([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [userLabel, setUserLabel] = useState<string | undefined>(undefined);
+  const [localAccountPresent, setLocalAccountPresent] = useState<boolean>(false);
   const [sharePresence, setSharePresence] = useState<boolean>(() => {
     if (typeof window === "undefined") {
       return true;
@@ -40,6 +41,9 @@ export default function ActiveUsers() {
       setUserId(s?.user?.id ?? null);
       setUserLabel(s?.user?.email ?? undefined);
     });
+    if (typeof document !== "undefined") {
+      setLocalAccountPresent(document.cookie.includes("local_account_present=1"));
+    }
     return () => {
       mounted = false;
       subscription.unsubscribe();
@@ -143,6 +147,8 @@ export default function ActiveUsers() {
         <p className="text-xs text-gray-500 dark:text-gray-400">
           {userId
             ? "현재 접속 중인 사용자가 없습니다."
+            : localAccountPresent
+            ? "권한 승인 후 이용 가능합니다."
             : "로그인 후 이용 가능합니다."}
         </p>
       )}

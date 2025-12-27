@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export type AuthPrincipal =
   | { source: 'supabase'; id: string; email: string | null; role: 'admin' | 'member' }
-  | { source: 'local'; id: string; username: string; role: 'admin' | 'member' }
+  | { source: 'local'; id: string; username: string; role: 'admin' | 'member' | '' }
 
 export async function getAuth(): Promise<{ authenticated: boolean; principal?: AuthPrincipal }> {
   // Supabase session (admin email)
@@ -31,13 +31,15 @@ export async function getAuth(): Promise<{ authenticated: boolean; principal?: A
       const secret = process.env.APP_SECRET || 'dev-secret'
       const v = verify(token, secret)
       if (v.valid && v.payload && v.payload.username) {
+        const role = typeof v.payload.role === 'string' ? v.payload.role.trim() : ''
+        if (!role) return { authenticated: false }
         return {
           authenticated: true,
           principal: {
             source: 'local',
             id: String(v.payload.uid ?? v.payload.username),
             username: String(v.payload.username),
-            role: (v.payload.role as 'admin' | 'member') || 'member',
+            role: role as 'admin' | 'member',
           },
         }
       }

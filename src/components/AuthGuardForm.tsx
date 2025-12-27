@@ -13,16 +13,20 @@ export default function AuthGuardForm({ children, onSubmit, confirmMessage, ...r
   const { supabase } = useSupabase()
   const [authed, setAuthed] = useState<boolean>(false)
   const [pending, setPending] = useState<boolean>(false)
+  const [localAccountPresent, setLocalAccountPresent] = useState<boolean>(false)
 
   useEffect(() => {
     let mounted = true
-    const hasLocal = () => typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
+    const hasLocalRole = () => typeof document !== 'undefined' && document.cookie.includes('local_session_present=1')
+    const hasLocalAccount = () => typeof document !== 'undefined' && document.cookie.includes('local_account_present=1')
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return
-      setAuthed(!!data.session || hasLocal())
+      setAuthed(!!data.session || hasLocalRole())
+      setLocalAccountPresent(hasLocalAccount())
     })
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      setAuthed(!!s || hasLocal())
+      setAuthed(!!s || hasLocalRole())
+      setLocalAccountPresent(hasLocalAccount())
     })
     return () => {
       sub.subscription.unsubscribe()
@@ -40,7 +44,7 @@ export default function AuthGuardForm({ children, onSubmit, confirmMessage, ...r
     }
     if (!authed) {
       e.preventDefault()
-      toast.warning('로그인이 필요합니다.')
+      toast.warning(localAccountPresent ? '권한 승인이 필요합니다.' : '로그인이 필요합니다.')
       return
     }
     setPending(true)

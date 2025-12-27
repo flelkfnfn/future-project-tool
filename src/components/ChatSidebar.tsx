@@ -58,6 +58,7 @@ export default function ChatSidebar({
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [aiHelpPinned, setAiHelpPinned] = useState(false);
+  const [localAccountPresent, setLocalAccountPresent] = useState(false);
   const aiHelpTooltipId = useId();
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
@@ -112,6 +113,17 @@ export default function ChatSidebar({
     }
     return false;
   }, [session]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const update = () =>
+      setLocalAccountPresent(
+        document.cookie.includes("local_account_present=1")
+      );
+    update();
+    window.addEventListener("focus", update);
+    return () => window.removeEventListener("focus", update);
+  }, []);
 
   // Fetch rooms
   useEffect(() => {
@@ -751,7 +763,9 @@ export default function ChatSidebar({
         </>
       ) : (
         <div className="flex-1 flex items-center justify-center p-4 text-sm text-gray-600 dark:text-gray-400">
-          로그인 후 채팅을 이용하실 수 있습니다.
+          {localAccountPresent
+            ? "권한 승인 후 채팅을 이용하실 수 있습니다."
+            : "로그인 후 채팅을 이용하실 수 있습니다."}
         </div>
       )}
     </div>

@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { cookies } from "next/headers";
-import { getAuth } from "@/lib/auth/session";
+import { requireAuth } from "@/lib/auth/session";
 import { sendPushToUserIds } from "@/lib/push/send";
 
 export const runtime = "nodejs";
@@ -42,15 +41,14 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: Request) {
-  const auth = await getAuth();
-  if (!auth.authenticated) {
-    const jar = await cookies();
-    const present = jar.get("local_session_present")?.value;
-    if (present !== "1")
-      return NextResponse.json(
-        { ok: false, error: "UNAUTHORIZED" },
-        { status: 401 }
-      );
+  let authPrincipal;
+  try {
+    authPrincipal = await requireAuth();
+  } catch {
+    return NextResponse.json(
+      { ok: false, error: "UNAUTHORIZED" },
+      { status: 401 }
+    );
   }
   const supabase = createServiceClient();
   const form = await req.formData();
@@ -64,11 +62,10 @@ export async function POST(req: Request) {
       { status: 400 }
     );
 
-  const username = auth.authenticated
-    ? auth.principal?.source === "supabase"
-      ? auth.principal.email ?? "user"
-      : String(auth.principal?.username ?? "user")
-    : "user";
+  const username =
+    authPrincipal.source === "supabase"
+      ? authPrincipal.email ?? "user"
+      : String(authPrincipal.username ?? "user");
 
   const { error, data } = await supabase
     .from("chat_messages")

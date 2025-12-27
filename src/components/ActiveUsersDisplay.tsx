@@ -16,6 +16,7 @@ export default function ActiveUsersDisplay() {
   >([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | undefined>(undefined);
+  const [localAccountPresent, setLocalAccountPresent] = useState<boolean>(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const currentKeyRef = useRef<string | null>(null);
   const [sharePresence, setSharePresence] = useState<boolean>(() => {
@@ -60,6 +61,9 @@ export default function ActiveUsersDisplay() {
       setUserId(s?.user?.id ?? null);
       setUserEmail(s?.user?.email ?? undefined);
     });
+    if (typeof document !== "undefined") {
+      setLocalAccountPresent(document.cookie.includes("local_account_present=1"));
+    }
     return () => {
       mounted = false;
       subscription.unsubscribe();
@@ -226,7 +230,7 @@ export default function ActiveUsersDisplay() {
       ) : (
         <div className="text-center py-3">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            로그인이 필요합니다.
+            {localAccountPresent ? "권한 승인 대기 중입니다." : "로그인이 필요합니다."}
           </p>
         </div>
       )}
